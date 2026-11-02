@@ -1,0 +1,12 @@
+/*
+ * Bảng màu cổng Admin — mode `Admin` của collection "VXN / Shadcn · Operator dashboard" (Figma, Khanh chốt
+ * 13/10/2026): indigo thay teal để nhân sự nền tảng không nhầm với cổng nhà xe. Chỉ đổi token ngữ nghĩa;
+ * component Shadcn dùng `primary` / `accent` / `ring` tự đổi màu theo.
+ */
+:root {
+  --primary: #4338ca;
+  --primary-foreground: #ffffff;
+  --accent: #eef2ff;
+  --accent-foreground: #3730a3;
+  --ring: #6366f1;
+}

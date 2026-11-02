@@ -152,6 +152,16 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
   @override
   final DateTime updatedAt;
   @override
+  final int onlineSaleCutoffMinutes;
+  @override
+  final BuiltList<String> subRouteIds;
+  @override
+  final String? statusReason;
+  @override
+  final DateTime? departedAt;
+  @override
+  final DateTime? completedAt;
+  @override
   final String? note;
   @override
   final BuiltList<TripResponseDtoOutputStopsInner> stops;
@@ -174,6 +184,11 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
       required this.seatCount,
       required this.createdAt,
       required this.updatedAt,
+      required this.onlineSaleCutoffMinutes,
+      required this.subRouteIds,
+      this.statusReason,
+      this.departedAt,
+      this.completedAt,
       this.note,
       required this.stops,
       required this.seats})
@@ -202,6 +217,11 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
         seatCount == other.seatCount &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
+        onlineSaleCutoffMinutes == other.onlineSaleCutoffMinutes &&
+        subRouteIds == other.subRouteIds &&
+        statusReason == other.statusReason &&
+        departedAt == other.departedAt &&
+        completedAt == other.completedAt &&
         note == other.note &&
         stops == other.stops &&
         seats == other.seats;
@@ -221,6 +241,11 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
     _$hash = $jc(_$hash, seatCount.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jc(_$hash, onlineSaleCutoffMinutes.hashCode);
+    _$hash = $jc(_$hash, subRouteIds.hashCode);
+    _$hash = $jc(_$hash, statusReason.hashCode);
+    _$hash = $jc(_$hash, departedAt.hashCode);
+    _$hash = $jc(_$hash, completedAt.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, stops.hashCode);
     _$hash = $jc(_$hash, seats.hashCode);
@@ -242,6 +267,11 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
           ..add('seatCount', seatCount)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
+          ..add('onlineSaleCutoffMinutes', onlineSaleCutoffMinutes)
+          ..add('subRouteIds', subRouteIds)
+          ..add('statusReason', statusReason)
+          ..add('departedAt', departedAt)
+          ..add('completedAt', completedAt)
           ..add('note', note)
           ..add('stops', stops)
           ..add('seats', seats))
@@ -299,6 +329,29 @@ class TripResponseDtoOutputBuilder
   DateTime? get updatedAt => _$this._updatedAt;
   set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
 
+  int? _onlineSaleCutoffMinutes;
+  int? get onlineSaleCutoffMinutes => _$this._onlineSaleCutoffMinutes;
+  set onlineSaleCutoffMinutes(int? onlineSaleCutoffMinutes) =>
+      _$this._onlineSaleCutoffMinutes = onlineSaleCutoffMinutes;
+
+  ListBuilder<String>? _subRouteIds;
+  ListBuilder<String> get subRouteIds =>
+      _$this._subRouteIds ??= ListBuilder<String>();
+  set subRouteIds(ListBuilder<String>? subRouteIds) =>
+      _$this._subRouteIds = subRouteIds;
+
+  String? _statusReason;
+  String? get statusReason => _$this._statusReason;
+  set statusReason(String? statusReason) => _$this._statusReason = statusReason;
+
+  DateTime? _departedAt;
+  DateTime? get departedAt => _$this._departedAt;
+  set departedAt(DateTime? departedAt) => _$this._departedAt = departedAt;
+
+  DateTime? _completedAt;
+  DateTime? get completedAt => _$this._completedAt;
+  set completedAt(DateTime? completedAt) => _$this._completedAt = completedAt;
+
   String? _note;
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
@@ -333,6 +386,11 @@ class TripResponseDtoOutputBuilder
       _seatCount = $v.seatCount;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
+      _onlineSaleCutoffMinutes = $v.onlineSaleCutoffMinutes;
+      _subRouteIds = $v.subRouteIds.toBuilder();
+      _statusReason = $v.statusReason;
+      _departedAt = $v.departedAt;
+      _completedAt = $v.completedAt;
       _note = $v.note;
       _stops = $v.stops.toBuilder();
       _seats = $v.seats.toBuilder();
@@ -379,6 +437,14 @@ class TripResponseDtoOutputBuilder
                 createdAt, r'TripResponseDtoOutput', 'createdAt'),
             updatedAt: BuiltValueNullFieldError.checkNotNull(
                 updatedAt, r'TripResponseDtoOutput', 'updatedAt'),
+            onlineSaleCutoffMinutes: BuiltValueNullFieldError.checkNotNull(
+                onlineSaleCutoffMinutes,
+                r'TripResponseDtoOutput',
+                'onlineSaleCutoffMinutes'),
+            subRouteIds: subRouteIds.build(),
+            statusReason: statusReason,
+            departedAt: departedAt,
+            completedAt: completedAt,
             note: note,
             stops: stops.build(),
             seats: seats.build(),
@@ -386,6 +452,9 @@ class TripResponseDtoOutputBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'subRouteIds';
+        subRouteIds.build();
+
         _$failedField = 'stops';
         stops.build();
         _$failedField = 'seats';

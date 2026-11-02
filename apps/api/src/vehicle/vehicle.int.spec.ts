@@ -78,7 +78,7 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
 
   beforeAll(async () => {
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
-    vehicles = new VehicleService(prisma);
+    vehicles = new VehicleService(prisma, { publicUrl: (key) => `https://cdn.test/${key}` });
     seatMaps = new SeatMapService(prisma);
     const [role] = await prisma.$queryRaw<{ rolsuper: boolean; rolbypassrls: boolean }[]>`
       SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user`;
@@ -319,6 +319,12 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
   });
 
   describe("VehicleService", () => {
+    it("xe mới chưa có ảnh trả mảng rỗng (TRN-009)", async () => {
+      const created = await vehicles.create(authzA, vehicleInput({ plateNumber: "51B-900.09" }));
+      expect(created.images).toEqual([]);
+      expect((await vehicles.get(authzA, created.id)).images).toEqual([]);
+    });
+
     it("tạo xe: biển số chuẩn hoá, tiện ích, SeatMap cùng tenant", async () => {
       const map = await seatMaps.create(authzA, seatMapInput(`Xe ${tag}`));
       const created = await vehicles.create(

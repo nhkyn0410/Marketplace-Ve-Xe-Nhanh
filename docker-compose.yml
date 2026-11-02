@@ -74,9 +74,12 @@ services:
     image: mongo-express
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://vexenhanh:vexenhanh_dev@mongo:27017/?authSource=admin
-      ME_CONFIG_BASICAUTH: "false"
+      ME_CONFIG_BASICAUTH_ENABLED: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: vexenhanh_dev
+      ME_CONFIG_OPTIONS_READONLY: "true"
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     depends_on:
       mongo:
         condition: service_healthy

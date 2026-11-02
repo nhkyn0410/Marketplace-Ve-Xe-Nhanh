@@ -138,9 +138,9 @@ class _$MfaVerifyWebSessionResponse extends MfaVerifyWebSessionResponse {
   @override
   final String role;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
   @override
   final BuiltList<String>? backupCodes;
 
@@ -152,8 +152,8 @@ class _$MfaVerifyWebSessionResponse extends MfaVerifyWebSessionResponse {
       {required this.authenticated,
       required this.scope,
       required this.role,
-      required this.expiresIn,
-      required this.refreshExpiresIn,
+      this.expiresIn,
+      this.refreshExpiresIn,
       this.backupCodes})
       : super._();
   @override
@@ -282,12 +282,8 @@ class MfaVerifyWebSessionResponseBuilder
                 scope, r'MfaVerifyWebSessionResponse', 'scope'),
             role: BuiltValueNullFieldError.checkNotNull(
                 role, r'MfaVerifyWebSessionResponse', 'role'),
-            expiresIn: BuiltValueNullFieldError.checkNotNull(
-                expiresIn, r'MfaVerifyWebSessionResponse', 'expiresIn'),
-            refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-                refreshExpiresIn,
-                r'MfaVerifyWebSessionResponse',
-                'refreshExpiresIn'),
+            expiresIn: expiresIn,
+            refreshExpiresIn: refreshExpiresIn,
             backupCodes: _backupCodes?.build(),
           );
     } catch (_) {

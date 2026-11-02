@@ -26,8 +26,16 @@ import { SessionController } from "./session/session.controller";
 import { SessionService } from "./session/session.service";
 import { SessionCache } from "./session/session-cache";
 import { AccountProvisioningService } from "./user/account-provisioning.service";
+import { AdminAccountService } from "./user/admin-account.service";
+import {
+  AdminEmployeeController,
+  AdminPassengerController,
+  AdminPlatformAccountController,
+} from "./user/admin-user.controller";
 import { EmployeeAccountController } from "./user/employee-account.controller";
 import { EmployeeAccountService } from "./user/employee-account.service";
+import { OperatorManagerController } from "./user/operator-manager.controller";
+import { OperatorManagerService } from "./user/operator-manager.service";
 import { TemporaryCredentialEmailLimiter } from "./user/temporary-credential-email-limiter";
 import { WebAuthService } from "./auth/web/web-auth.service";
 import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
@@ -35,7 +43,15 @@ import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
 /** TASK-IAM-001/002 — Better Auth + login 3-namespace + hybrid token (DOMAIN-MAP `iam/auth`, `iam/session`). */
 @Module({
   imports: [DatabaseModule, AuditModule, RedisModule, NotificationModule],
-  controllers: [AuthController, SessionController, EmployeeAccountController],
+  controllers: [
+    AuthController,
+    SessionController,
+    EmployeeAccountController,
+    OperatorManagerController,
+    AdminPassengerController,
+    AdminEmployeeController,
+    AdminPlatformAccountController,
+  ],
   providers: [
     {
       provide: BETTER_AUTH,
@@ -55,6 +71,8 @@ import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
     RecentReauthGuard,
     AccountProvisioningService,
     EmployeeAccountService,
+    OperatorManagerService,
+    AdminAccountService,
     TemporaryCredentialEmailLimiter,
     AuthService,
     RefreshTokenService,

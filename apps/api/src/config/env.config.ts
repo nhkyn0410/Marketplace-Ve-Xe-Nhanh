@@ -161,6 +161,14 @@ export const envSchema = z
     ),
     // Email OTP delivery (Resend required for delivery; dev fallback never prints OTP).
     RESEND_API_KEY: optionalString,
+    FCM_PROJECT_ID: optionalString,
+    FCM_CLIENT_EMAIL: z.preprocess(emptyToUndefined, z.email().optional()),
+    FCM_PRIVATE_KEY: optionalString,
+    APNS_TEAM_ID: optionalString,
+    APNS_KEY_ID: optionalString,
+    APNS_PRIVATE_KEY: optionalString,
+    APNS_TOPIC: optionalString,
+    APNS_SANDBOX: z.enum(["true", "false"]).default("true"),
     RESEND_FROM_EMAIL: z.preprocess(
       emptyToUndefined,
       z.email().default("no-reply@vexenhanh.com"),
@@ -176,6 +184,47 @@ export const envSchema = z
     ADMIN_WEB_ORIGINS: webOriginList,
     // Khoá HMAC ký CSRF token double-submit (base64 32 byte, tách khỏi mọi key khác). Thiếu ở dev → ephemeral.
     WEB_CSRF_SECRET: optionalBase64Key32,
+    // Kho object công khai — Cloudflare R2 (ADR-018, TASK-TRN-009). Đủ cả năm biến → dùng R2; bỏ trống cả năm →
+    // lưu ổ đĩa local ở `STORAGE_LOCAL_DIR` (chỉ dev / test); production bắt buộc đủ.
+    R2_ACCOUNT_ID: optionalString,
+    R2_ACCESS_KEY_ID: optionalString,
+    R2_SECRET_ACCESS_KEY: optionalString,
+    R2_PUBLIC_BUCKET: optionalString,
+    // Gốc địa chỉ công khai của bucket (CDN / custom domain), vd `https://cdn.vexenhanh.com`.
+    R2_PUBLIC_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+    STORAGE_LOCAL_DIR: optionalString,
+    // Bucket private cho giấy tờ KYC (ADR-018, TASK-OPR-001), dùng chung tài khoản R2 ở trên. Production chưa khai
+    // thì API tải / xem giấy tờ trả 503 — nơi lưu KYC production chờ OQ-21; dev / test bỏ trống thì lưu ổ đĩa.
+    R2_PRIVATE_BUCKET: optionalString,
+    // Hạn dùng link bảo mật của hồ sơ đăng ký nhà xe (Security §5: mặc định 72 giờ; DB chặn quá 30 ngày).
+    OPERATOR_APPLICATION_LINK_TTL_HOURS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().positive().max(720).default(72),
+    ),
+    // Cổng thanh toán (ADR-019, TASK-BTP-003). Tới khi có giấy phép trung gian thanh toán (OQ-22) chỉ dùng sandbox:
+    // URL mặc định là sandbox. Thiếu khóa một cổng → cổng đó tắt (tạo payment trả 503); riêng dev / test thiếu khóa thì
+    // dùng cổng giả lập trong API (`/v1/dev/payment-gateway/*`) — KHÔNG bao giờ ở production. IPN của MoMo gửi về
+    // `BETTER_AUTH_URL` (origin công khai của API); IPN VNPay khai ở cổng quản trị merchant.
+    VNPAY_TMN_CODE: optionalString,
+    VNPAY_HASH_SECRET: optionalString,
+    VNPAY_PAYMENT_URL: z.preprocess(emptyToUndefined, z.url().default("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html")),
+    // API truy vấn / hoàn tiền của VNPay (TASK-BTP-005).
+    VNPAY_API_URL: z.preprocess(emptyToUndefined, z.url().default("https://sandbox.vnpayment.vn/merchant_webapi/api/transaction")),
+    MOMO_PARTNER_CODE: optionalString,
+    MOMO_ACCESS_KEY: optionalString,
+    MOMO_SECRET_KEY: optionalString,
+    MOMO_ENDPOINT: z.preprocess(emptyToUndefined, z.url().default("https://test-payment.momo.vn")),
+    // payOS không có sandbox riêng: chỉ thử tiền thật ở local trước khi giải quyết OQ-22.
+    PAYOS_CLIENT_ID: optionalString,
+    PAYOS_API_KEY: optionalString,
+    PAYOS_CHECKSUM_KEY: optionalString,
+    PAYOS_API_URL: z.preprocess(emptyToUndefined, z.url().default("https://api-merchant.payos.vn")),
+    PAYMENT_DEMO_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).default("false").transform((value) => value === "true")),
+    // Gốc web Marketplace: cổng đưa khách về `{gốc}/bookings/{bookingId}/payment/result` (chỉ hiển thị kết quả).
+    PAYMENT_RETURN_BASE_URL: z.preprocess(emptyToUndefined, z.url().default("http://localhost:3001")),
+    // Khóa HMAC sinh QR vé (TASK-BTP-004, BR-29; base64 32 byte, tách khỏi mọi khóa khác). Đổi khóa = mọi QR cũ mất hiệu
+    // lực. Thiếu ở dev / test → khóa cố định chỉ cho dev (QR vẫn đúng sau khi khởi động lại); production bắt buộc.
+    TICKET_QR_SECRET: optionalBase64Key32,
   })
   .superRefine((env, ctx) => {
     // Một origin thuộc cả hai app thì không biết ràng phiên với scope nào → từ chối ở mọi môi trường.
@@ -187,9 +236,49 @@ export const envSchema = z
         message: "OPERATOR_WEB_ORIGINS and ADMIN_WEB_ORIGINS must not share an origin.",
       });
     }
+    // Khai dở cấu hình R2 thì từ chối ở mọi môi trường: nếu lặng lẽ rơi về ổ đĩa local, file "đã tải lên"
+    // sẽ không nằm ở R2 như người cấu hình tưởng.
+    const r2Keys = [
+      "R2_ACCOUNT_ID",
+      "R2_ACCESS_KEY_ID",
+      "R2_SECRET_ACCESS_KEY",
+      "R2_PUBLIC_BUCKET",
+      "R2_PUBLIC_BASE_URL",
+    ] as const;
+    const r2Set = r2Keys.filter((key) => env[key]);
+    if (r2Set.length > 0 && r2Set.length < r2Keys.length) {
+      for (const key of r2Keys.filter((name) => !env[name])) {
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when any R2_* variable is set.` });
+      }
+    }
+    // Khai dở khóa một cổng thanh toán → từ chối (không lặng lẽ tắt cổng / rơi về cổng giả lập).
+    for (const keys of [
+      ["VNPAY_TMN_CODE", "VNPAY_HASH_SECRET"],
+      ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"],
+      ["PAYOS_CLIENT_ID", "PAYOS_API_KEY", "PAYOS_CHECKSUM_KEY"],
+      ["FCM_PROJECT_ID", "FCM_CLIENT_EMAIL", "FCM_PRIVATE_KEY"],
+      ["APNS_TEAM_ID", "APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TOPIC"],
+    ] as const) {
+      if (keys.some((key) => env[key]) && !keys.every((key) => env[key])) {
+        for (const key of keys.filter((name) => !env[name])) {
+          ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when the gateway is configured.` });
+        }
+      }
+    }
+    if (env.NODE_ENV === "production" && env.PAYOS_CLIENT_ID) {
+      ctx.addIssue({ code: "custom", path: ["PAYOS_CLIENT_ID"], message: "Live payOS is restricted to local development until OQ-22 is resolved." });
+    }
+    if (env.PAYMENT_DEMO_ENABLED && env.PAYOS_CLIENT_ID) {
+      ctx.addIssue({ code: "custom", path: ["PAYMENT_DEMO_ENABLED"], message: "Demo payments cannot be enabled with live payOS credentials." });
+    }
     // Production fail-fast: secret/key bắt buộc, base URL phải https non-localhost (sec H1/M4).
     if (env.NODE_ENV !== "production") {
       return;
+    }
+    if (r2Set.length === 0) {
+      for (const key of r2Keys) {
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} is required in production.` });
+      }
     }
     // RESEND_API_KEY bắt buộc: production không được rơi về dev fallback không gửi OTP.
     for (const key of [
@@ -201,6 +290,7 @@ export const envSchema = z
       "WEB_CSRF_SECRET",
       "OPERATOR_WEB_ORIGINS",
       "ADMIN_WEB_ORIGINS",
+      "TICKET_QR_SECRET",
     ] as const) {
       if (!env[key]) {
         ctx.addIssue({

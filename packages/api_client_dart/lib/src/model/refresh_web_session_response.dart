@@ -31,10 +31,10 @@ abstract class RefreshWebSessionResponse implements Built<RefreshWebSessionRespo
   String get role;
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   RefreshWebSessionResponse._();
 
@@ -75,14 +75,14 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
       specifiedType: const FullType(String),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
+    yield object.expiresIn == null ? null : serializers.serialize(
       object.expiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
+    yield object.refreshExpiresIn == null ? null : serializers.serialize(
       object.refreshExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
   }
 
@@ -131,15 +131,17 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         default:

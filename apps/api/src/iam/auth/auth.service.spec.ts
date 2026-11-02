@@ -16,8 +16,9 @@ function setup() {
     }
   };
   const prisma = {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     session: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn().mockResolvedValue({ id: "user-1", email: "rider@example.com", status: "ACTIVE" }) },
     operatorProfile: { findUnique: vi.fn() },
     operatorAccount: { findUnique: vi.fn() },
     employeeAccount: { findUnique: vi.fn() },
@@ -369,6 +370,59 @@ const EMPLOYEE = {
   operator: ACTIVE_OPERATOR
 };
 
+describe("AuthService.counterLogin", () => {
+  it("nhân viên bán vé không đăng nhập nhầm cổng mobile của tài xế/soát vé", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF" });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await problemOf(ctx.service.employeeLogin("phuongtrang/nv.sales01", "good", {}))).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+  });
+  it("nhân viên bán vé nhận phiên EMPLOYEE và ghi đúng role", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF", username: "nv.sales01" });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/nv.sales01", "good", {})).toMatchObject({ role: "SALES_STAFF", accessToken: "tok" });
+    expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "EMPLOYEE", id: "emp-1", operatorId: "op-1", authEpoch: 0 }, {});
+    expect(ctx.prisma.operatorAccount.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("chủ nhà xe vẫn qua MFA và được ghi đúng chủ thể OPERATOR", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/owner01", "good", {})).toMatchObject({ mfaRequired: true });
+    expect(ctx.mfa.begin).toHaveBeenCalledWith(expect.objectContaining({ subjectType: "OPERATOR", subjectId: OWNER.id }), {});
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it.each(["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF", "OPERATOR_MANAGER"])("%s không nhận phiên hoặc challenge bán vé", async (role) => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role, passwordChangeRequired: true });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ ...OWNER, role, passwordChangeRequired: true });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await problemOf(ctx.service.counterLogin(`phuongtrang/${role === "OPERATOR_MANAGER" ? "manager01" : "nv.other01"}`, "good", {}))).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
+  });
+
+  it("nhân viên bán vé phải đổi mật khẩu tạm trước khi có phiên", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF", passwordChangeRequired: true, temporaryPasswordExpiresAt: new Date(Date.now() + 60_000) });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/nv.sales01", "temporary", {})).toMatchObject({ passwordChangeRequired: true });
+    expect(ctx.passwordChanges.begin).toHaveBeenCalledWith(expect.objectContaining({ subjectType: "EMPLOYEE", subjectId: EMPLOYEE.id }));
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+});
+
 describe("AuthService.employeeLogin", () => {
   let ctx: ReturnType<typeof setup>;
   beforeEach(() => {
@@ -451,6 +505,30 @@ describe("AuthService.platformLogin", () => {
 
   it("rejects an operator-namespace identifier", async () => {
     expect(await statusOf(ctx.service.platformLogin("phuongtrang/owner01", "p", {}))).toBe(401);
+  });
+
+  it("tài khoản quản trị có mật khẩu tạm: chỉ nhận challenge đổi mật khẩu (PLATFORM, không nhà xe), chưa MFA", async () => {
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-2",
+      username: "ngoc.finance",
+      passwordHash: "scrypt$x$y",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      authEpoch: 3,
+      credentialDeliveryPending: false,
+      passwordChangeRequired: true,
+      temporaryPasswordExpiresAt: new Date(Date.now() + 60_000)
+    });
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    await ctx.service.platformLogin("platform/ngoc.finance", "temp", {});
+    expect(ctx.passwordChanges.begin).toHaveBeenCalledWith({
+      subjectType: "PLATFORM",
+      subjectId: "padm-2",
+      operatorId: null,
+      authEpoch: 3
+    });
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
   });
 
   it("platform password đúng chỉ nhận MFA challenge", async () => {
@@ -598,6 +676,40 @@ describe("AuthService.verifyMfa", () => {
     );
   });
 
+  it("TASK-IAM-007: tài khoản quản lý / quản trị phân quyền riêng → token mang `perms` đọc từ DB; Owner không mang", async () => {
+    proofAccepted({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({
+      ...OWNER,
+      role: "OPERATOR_MANAGER",
+      permissions: ["trip:manage", "god:mode", "booking:read"],
+      operator: ACTIVE_OPERATOR
+    });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken).toHaveBeenLastCalledWith(
+      expect.objectContaining({ role: "OPERATOR_MANAGER", perms: ["booking:read", "trip:manage"], mfa: true })
+    );
+
+    proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-1",
+      username: "ketoan",
+      passwordHash: "x",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      authEpoch: 0,
+      credentialDeliveryPending: false,
+      passwordChangeRequired: false,
+      permissions: ["payout:manage"]
+    });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken).toHaveBeenLastCalledWith(expect.objectContaining({ role: "PLATFORM_ADMIN", perms: ["payout:manage"] }));
+
+    proofAccepted({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ ...OWNER, permissions: null, operator: ACTIVE_OPERATOR });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken.mock.lastCall?.[0]).not.toHaveProperty("perms");
+  });
+
   it("account đã bị xoá trong lúc challenge sống → 401 generic, không phát token", async () => {
     proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
     ctx.prisma.platformAccount.findUnique.mockResolvedValue(null);
@@ -647,6 +759,19 @@ describe("AuthService passenger OTP", () => {
     const result = await ctx.service.verifyOtp("a@b.com", "123456", {});
     expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
     expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PASSENGER", id: "user-9" }, {});
+    expect(ctx.prisma.$executeRaw).toHaveBeenCalledOnce();
+    expect(ctx.prisma.$executeRaw.mock.calls[0]!.slice(1)).toContain("user-9");
+  });
+
+  it("hành khách bị Admin khóa: OTP đúng vẫn 403 AUTH_ACCOUNT_LOCKED, không tạo phiên (FR-IAM-08)", async () => {
+    ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "a@b.com", status: "LOCKED" });
+    expect(await problemOf(ctx.service.verifyOtp("a@b.com", "123456", {}))).toMatchObject({
+      status: 403,
+      code: "AUTH_ACCOUNT_LOCKED"
+    });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.prisma.$executeRaw).not.toHaveBeenCalled();
   });
 
   it("xoá phiên Better Auth vừa sinh ra — phiên thật là auth_sessions, phiên cầu nối không được sống", async () => {
@@ -744,6 +869,75 @@ describe("AuthService OAuth + session exchange", () => {
     expect(await statusOf(ctx.service.oauthInit("google", undefined))).toBe(502);
   });
 
+  it("xác minh Google ID token native rồi cấp phiên Passenger nội bộ", async () => {
+    ctx.auth.api.signInSocial.mockResolvedValue({
+      redirect: false,
+      token: "ba-native-token",
+      url: undefined,
+      user: { id: "user-google-1", emailVerified: true }
+    });
+
+    const result = await ctx.service.oauthIdToken("google", "google-id-token", {
+      ip: "1.2.3.4"
+    });
+
+    expect(ctx.auth.api.signInSocial).toHaveBeenCalledWith({
+      body: { provider: "google", idToken: { token: "google-id-token" } }
+    });
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-native-token" } });
+    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: "user-google-1", scope: "passenger" })
+    );
+  });
+
+  it("không cấp phiên nếu Google không xác nhận quyền sở hữu email", async () => {
+    ctx.auth.api.signInSocial.mockResolvedValue({
+      redirect: false,
+      token: "ba-unverified-token",
+      url: undefined,
+      user: { id: "user-google-unverified", emailVerified: false }
+    });
+
+    expect(await statusOf(ctx.service.oauthIdToken("google", "google-id-token", {}))).toBe(401);
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-unverified-token" } });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "oauth_email_unverified" })
+    );
+  });
+
+  it("Google ID token sai trả 401 generic và ghi login history không chứa token", async () => {
+    ctx.auth.api.signInSocial.mockRejectedValue(
+      Object.assign(new Error("invalid Google token"), { status: "UNAUTHORIZED" })
+    );
+
+    expect(await statusOf(ctx.service.oauthIdToken("google", "secret-id-token", {}))).toBe(401);
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: "passenger",
+        result: "failure",
+        targetId: "google",
+        reason: "oauth_invalid"
+      })
+    );
+    expect(JSON.stringify(ctx.history.record.mock.calls)).not.toContain("secret-id-token");
+  });
+
+  it("không che lỗi hạ tầng của OAuth native thành 401", async () => {
+    ctx.auth.api.signInSocial.mockRejectedValue(new Error("database unavailable"));
+
+    await expect(ctx.service.oauthIdToken("google", "google-id-token", {})).rejects.toThrow(
+      "database unavailable"
+    );
+    expect(ctx.history.record).not.toHaveBeenCalled();
+  });
+
+  it("OAuth native từ chối provider ngoài Google trước khi gọi Better Auth", async () => {
+    expect(await statusOf(ctx.service.oauthIdToken("facebook", "id-token", {}))).toBe(400);
+    expect(ctx.auth.api.signInSocial).not.toHaveBeenCalled();
+  });
+
   it("exchanges a valid Better Auth session for a passenger token", async () => {
     ctx.auth.api.getSession.mockResolvedValue({
       session: { token: "ba-oauth-token" },
@@ -810,6 +1004,7 @@ describe("AuthService.refresh (IAM-002)", () => {
       id: "padm-1",
       role: "PLATFORM_ADMIN",
       status: "ACTIVE",
+      authEpoch: 0,
       passwordHash: "x"
     });
 
@@ -830,6 +1025,7 @@ describe("AuthService.refresh (IAM-002)", () => {
       id: "padm-1",
       role: "PLATFORM_ADMIN",
       status: "ACTIVE",
+      authEpoch: 0,
       passwordHash: "x"
     });
 
@@ -991,7 +1187,7 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
 
   it("passenger re-auth bằng OTP gửi tới email của CHÍNH account trong phiên", async () => {
     ctx.sessions.findById.mockResolvedValue(sessionRow());
-    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com", status: "ACTIVE" });
     ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
 
     await ctx.service.reauth(
@@ -1007,7 +1203,7 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
 
   it("passenger sai OTP → 401", async () => {
     ctx.sessions.findById.mockResolvedValue(sessionRow());
-    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com", status: "ACTIVE" });
     ctx.auth.api.signInEmailOTP.mockRejectedValue(Object.assign(new Error("bad"), { status: 401 }));
 
     expect(
@@ -1057,6 +1253,25 @@ describe("AuthService.me (TASK-IAM-006)", () => {
         expect(ctx.prisma[other].findUnique).not.toHaveBeenCalled();
       }
     }
+  });
+
+  it("TASK-IAM-007: tài khoản quản lý đọc tên từ operator_accounts; `permissions` = quyền hiệu lực theo claim", async () => {
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ username: "ketoan" });
+    const me = await ctx.service.me({
+      sub: "subj-1",
+      sid: "sid-1",
+      exp,
+      scope: "operator",
+      role: "OPERATOR_MANAGER",
+      mfa: true,
+      operatorId: "op-1",
+      operatorSlug: "phuongtrang",
+      perms: ["finance:read"]
+    } as never);
+    expect(me).toMatchObject({ username: "ketoan", role: "OPERATOR_MANAGER" });
+    expect(me.permissions).toEqual(expect.arrayContaining(["finance:read", "notification:manage"]));
+    expect(me.permissions).not.toContain("trip:manage");
+    expect(ctx.prisma.employeeAccount.findUnique).not.toHaveBeenCalled();
   });
 
   it("account hoặc session không còn → 401 AUTH_SESSION_EXPIRED", async () => {
@@ -1157,8 +1372,14 @@ function setupAuthController() {
     RESEND_API_KEY: "test-resend-key",
     GOONG_API_KEY: "test-goong-key",
     WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+    TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
     OPERATOR_WEB_ORIGINS: "https://operator.example.com",
-    ADMIN_WEB_ORIGINS: "https://admin.example.com"
+    ADMIN_WEB_ORIGINS: "https://admin.example.com",
+    R2_ACCOUNT_ID: "account",
+    R2_ACCESS_KEY_ID: "key-id",
+    R2_SECRET_ACCESS_KEY: "secret",
+    R2_PUBLIC_BUCKET: "vexenhanh-public",
+    R2_PUBLIC_BASE_URL: "https://cdn.example.com"
   });
 
   return { controller: new AuthController(authService, config, new WebAuthService(config)), operatorLogin, employeeLogin };

@@ -186,7 +186,7 @@ class _$MfaVerifyTokenResponse extends MfaVerifyTokenResponse {
   @override
   final MfaVerifyTokenResponseTokenTypeEnum tokenType;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
   final MfaVerifyTokenResponseScopeEnum scope;
   @override
@@ -194,7 +194,7 @@ class _$MfaVerifyTokenResponse extends MfaVerifyTokenResponse {
   @override
   final String refreshToken;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
   @override
   final MfaVerifyTokenResponseMfaRequiredEnum mfaRequired;
   @override
@@ -207,11 +207,11 @@ class _$MfaVerifyTokenResponse extends MfaVerifyTokenResponse {
   _$MfaVerifyTokenResponse._(
       {required this.accessToken,
       required this.tokenType,
-      required this.expiresIn,
+      this.expiresIn,
       required this.scope,
       required this.role,
       required this.refreshToken,
-      required this.refreshExpiresIn,
+      this.refreshExpiresIn,
       required this.mfaRequired,
       this.backupCodes})
       : super._();
@@ -359,18 +359,14 @@ class MfaVerifyTokenResponseBuilder
                 accessToken, r'MfaVerifyTokenResponse', 'accessToken'),
             tokenType: BuiltValueNullFieldError.checkNotNull(
                 tokenType, r'MfaVerifyTokenResponse', 'tokenType'),
-            expiresIn: BuiltValueNullFieldError.checkNotNull(
-                expiresIn, r'MfaVerifyTokenResponse', 'expiresIn'),
+            expiresIn: expiresIn,
             scope: BuiltValueNullFieldError.checkNotNull(
                 scope, r'MfaVerifyTokenResponse', 'scope'),
             role: BuiltValueNullFieldError.checkNotNull(
                 role, r'MfaVerifyTokenResponse', 'role'),
             refreshToken: BuiltValueNullFieldError.checkNotNull(
                 refreshToken, r'MfaVerifyTokenResponse', 'refreshToken'),
-            refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-                refreshExpiresIn,
-                r'MfaVerifyTokenResponse',
-                'refreshExpiresIn'),
+            refreshExpiresIn: refreshExpiresIn,
             mfaRequired: BuiltValueNullFieldError.checkNotNull(
                 mfaRequired, r'MfaVerifyTokenResponse', 'mfaRequired'),
             backupCodes: _backupCodes?.build(),

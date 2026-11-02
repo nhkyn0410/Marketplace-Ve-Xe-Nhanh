@@ -26,7 +26,7 @@ abstract class EmployeeCreateDto implements Built<EmployeeCreateDto, EmployeeCre
 
   @BuiltValueField(wireName: r'role')
   EmployeeCreateDtoRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'reason')
   String get reason;
@@ -163,6 +163,8 @@ class EmployeeCreateDtoRoleEnum extends EnumClass {
   static const EmployeeCreateDtoRoleEnum TICKET_STAFF = _$employeeCreateDtoRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const EmployeeCreateDtoRoleEnum SUPPORT_STAFF = _$employeeCreateDtoRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const EmployeeCreateDtoRoleEnum SALES_STAFF = _$employeeCreateDtoRoleEnum_SALES_STAFF;
 
   static Serializer<EmployeeCreateDtoRoleEnum> get serializer => _$employeeCreateDtoRoleEnumSerializer;
 

@@ -6,12 +6,41 @@ part of 'route_response_dto_output.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const RouteResponseDtoOutputNameSourceEnum
+    _$routeResponseDtoOutputNameSourceEnum_AUTO =
+    const RouteResponseDtoOutputNameSourceEnum._('AUTO');
+const RouteResponseDtoOutputNameSourceEnum
+    _$routeResponseDtoOutputNameSourceEnum_MANUAL =
+    const RouteResponseDtoOutputNameSourceEnum._('MANUAL');
+
+RouteResponseDtoOutputNameSourceEnum
+    _$routeResponseDtoOutputNameSourceEnumValueOf(String name) {
+  switch (name) {
+    case 'AUTO':
+      return _$routeResponseDtoOutputNameSourceEnum_AUTO;
+    case 'MANUAL':
+      return _$routeResponseDtoOutputNameSourceEnum_MANUAL;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<RouteResponseDtoOutputNameSourceEnum>
+    _$routeResponseDtoOutputNameSourceEnumValues = BuiltSet<
+        RouteResponseDtoOutputNameSourceEnum>(const <RouteResponseDtoOutputNameSourceEnum>[
+  _$routeResponseDtoOutputNameSourceEnum_AUTO,
+  _$routeResponseDtoOutputNameSourceEnum_MANUAL,
+]);
+
 const RouteResponseDtoOutputStatusEnum
     _$routeResponseDtoOutputStatusEnum_ACTIVE =
     const RouteResponseDtoOutputStatusEnum._('ACTIVE');
 const RouteResponseDtoOutputStatusEnum
     _$routeResponseDtoOutputStatusEnum_INACTIVE =
     const RouteResponseDtoOutputStatusEnum._('INACTIVE');
+const RouteResponseDtoOutputStatusEnum
+    _$routeResponseDtoOutputStatusEnum_DRAFT =
+    const RouteResponseDtoOutputStatusEnum._('DRAFT');
 
 RouteResponseDtoOutputStatusEnum _$routeResponseDtoOutputStatusEnumValueOf(
     String name) {
@@ -20,6 +49,8 @@ RouteResponseDtoOutputStatusEnum _$routeResponseDtoOutputStatusEnumValueOf(
       return _$routeResponseDtoOutputStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$routeResponseDtoOutputStatusEnum_INACTIVE;
+    case 'DRAFT':
+      return _$routeResponseDtoOutputStatusEnum_DRAFT;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +61,7 @@ final BuiltSet<RouteResponseDtoOutputStatusEnum>
         RouteResponseDtoOutputStatusEnum>(const <RouteResponseDtoOutputStatusEnum>[
   _$routeResponseDtoOutputStatusEnum_ACTIVE,
   _$routeResponseDtoOutputStatusEnum_INACTIVE,
+  _$routeResponseDtoOutputStatusEnum_DRAFT,
 ]);
 
 const RouteResponseDtoOutputMetricsSourceEnum
@@ -58,6 +90,9 @@ final BuiltSet<RouteResponseDtoOutputMetricsSourceEnum>
   _$routeResponseDtoOutputMetricsSourceEnum_ESTIMATE,
 ]);
 
+Serializer<RouteResponseDtoOutputNameSourceEnum>
+    _$routeResponseDtoOutputNameSourceEnumSerializer =
+    _$RouteResponseDtoOutputNameSourceEnumSerializer();
 Serializer<RouteResponseDtoOutputStatusEnum>
     _$routeResponseDtoOutputStatusEnumSerializer =
     _$RouteResponseDtoOutputStatusEnumSerializer();
@@ -65,15 +100,49 @@ Serializer<RouteResponseDtoOutputMetricsSourceEnum>
     _$routeResponseDtoOutputMetricsSourceEnumSerializer =
     _$RouteResponseDtoOutputMetricsSourceEnumSerializer();
 
+class _$RouteResponseDtoOutputNameSourceEnumSerializer
+    implements PrimitiveSerializer<RouteResponseDtoOutputNameSourceEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    RouteResponseDtoOutputNameSourceEnum
+  ];
+  @override
+  final String wireName = 'RouteResponseDtoOutputNameSourceEnum';
+
+  @override
+  Object serialize(
+          Serializers serializers, RouteResponseDtoOutputNameSourceEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  RouteResponseDtoOutputNameSourceEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      RouteResponseDtoOutputNameSourceEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$RouteResponseDtoOutputStatusEnumSerializer
     implements PrimitiveSerializer<RouteResponseDtoOutputStatusEnum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
 
   @override
@@ -133,6 +202,8 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
   @override
   final String name;
   @override
+  final RouteResponseDtoOutputNameSourceEnum nameSource;
+  @override
   final RouteResponseDtoOutputStatusEnum status;
   @override
   final int totalDistanceMeters;
@@ -141,9 +212,19 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
   @override
   final RouteResponseDtoOutputMetricsSourceEnum metricsSource;
   @override
+  final String? parentRouteId;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
+  @override
+  final String? parentRouteName;
+  @override
+  final bool needsReview;
+  @override
+  final BuiltList<RouteResponseDtoOutputSubRoutesInner> subRoutes;
+  @override
+  final String? suggestedName;
   @override
   final String? note;
   @override
@@ -156,12 +237,18 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
   _$RouteResponseDtoOutput._(
       {required this.id,
       required this.name,
+      required this.nameSource,
       required this.status,
       required this.totalDistanceMeters,
       required this.totalDurationSeconds,
       required this.metricsSource,
+      this.parentRouteId,
       required this.createdAt,
       required this.updatedAt,
+      this.parentRouteName,
+      required this.needsReview,
+      required this.subRoutes,
+      this.suggestedName,
       this.note,
       required this.stops})
       : super._();
@@ -180,12 +267,18 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
     return other is RouteResponseDtoOutput &&
         id == other.id &&
         name == other.name &&
+        nameSource == other.nameSource &&
         status == other.status &&
         totalDistanceMeters == other.totalDistanceMeters &&
         totalDurationSeconds == other.totalDurationSeconds &&
         metricsSource == other.metricsSource &&
+        parentRouteId == other.parentRouteId &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
+        parentRouteName == other.parentRouteName &&
+        needsReview == other.needsReview &&
+        subRoutes == other.subRoutes &&
+        suggestedName == other.suggestedName &&
         note == other.note &&
         stops == other.stops;
   }
@@ -195,12 +288,18 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, nameSource.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, totalDistanceMeters.hashCode);
     _$hash = $jc(_$hash, totalDurationSeconds.hashCode);
     _$hash = $jc(_$hash, metricsSource.hashCode);
+    _$hash = $jc(_$hash, parentRouteId.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jc(_$hash, parentRouteName.hashCode);
+    _$hash = $jc(_$hash, needsReview.hashCode);
+    _$hash = $jc(_$hash, subRoutes.hashCode);
+    _$hash = $jc(_$hash, suggestedName.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, stops.hashCode);
     _$hash = $jf(_$hash);
@@ -212,12 +311,18 @@ class _$RouteResponseDtoOutput extends RouteResponseDtoOutput {
     return (newBuiltValueToStringHelper(r'RouteResponseDtoOutput')
           ..add('id', id)
           ..add('name', name)
+          ..add('nameSource', nameSource)
           ..add('status', status)
           ..add('totalDistanceMeters', totalDistanceMeters)
           ..add('totalDurationSeconds', totalDurationSeconds)
           ..add('metricsSource', metricsSource)
+          ..add('parentRouteId', parentRouteId)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
+          ..add('parentRouteName', parentRouteName)
+          ..add('needsReview', needsReview)
+          ..add('subRoutes', subRoutes)
+          ..add('suggestedName', suggestedName)
           ..add('note', note)
           ..add('stops', stops))
         .toString();
@@ -235,6 +340,11 @@ class RouteResponseDtoOutputBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
+
+  RouteResponseDtoOutputNameSourceEnum? _nameSource;
+  RouteResponseDtoOutputNameSourceEnum? get nameSource => _$this._nameSource;
+  set nameSource(RouteResponseDtoOutputNameSourceEnum? nameSource) =>
+      _$this._nameSource = nameSource;
 
   RouteResponseDtoOutputStatusEnum? _status;
   RouteResponseDtoOutputStatusEnum? get status => _$this._status;
@@ -257,6 +367,11 @@ class RouteResponseDtoOutputBuilder
   set metricsSource(RouteResponseDtoOutputMetricsSourceEnum? metricsSource) =>
       _$this._metricsSource = metricsSource;
 
+  String? _parentRouteId;
+  String? get parentRouteId => _$this._parentRouteId;
+  set parentRouteId(String? parentRouteId) =>
+      _$this._parentRouteId = parentRouteId;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -264,6 +379,26 @@ class RouteResponseDtoOutputBuilder
   DateTime? _updatedAt;
   DateTime? get updatedAt => _$this._updatedAt;
   set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
+
+  String? _parentRouteName;
+  String? get parentRouteName => _$this._parentRouteName;
+  set parentRouteName(String? parentRouteName) =>
+      _$this._parentRouteName = parentRouteName;
+
+  bool? _needsReview;
+  bool? get needsReview => _$this._needsReview;
+  set needsReview(bool? needsReview) => _$this._needsReview = needsReview;
+
+  ListBuilder<RouteResponseDtoOutputSubRoutesInner>? _subRoutes;
+  ListBuilder<RouteResponseDtoOutputSubRoutesInner> get subRoutes =>
+      _$this._subRoutes ??= ListBuilder<RouteResponseDtoOutputSubRoutesInner>();
+  set subRoutes(ListBuilder<RouteResponseDtoOutputSubRoutesInner>? subRoutes) =>
+      _$this._subRoutes = subRoutes;
+
+  String? _suggestedName;
+  String? get suggestedName => _$this._suggestedName;
+  set suggestedName(String? suggestedName) =>
+      _$this._suggestedName = suggestedName;
 
   String? _note;
   String? get note => _$this._note;
@@ -284,12 +419,18 @@ class RouteResponseDtoOutputBuilder
     if ($v != null) {
       _id = $v.id;
       _name = $v.name;
+      _nameSource = $v.nameSource;
       _status = $v.status;
       _totalDistanceMeters = $v.totalDistanceMeters;
       _totalDurationSeconds = $v.totalDurationSeconds;
       _metricsSource = $v.metricsSource;
+      _parentRouteId = $v.parentRouteId;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
+      _parentRouteName = $v.parentRouteName;
+      _needsReview = $v.needsReview;
+      _subRoutes = $v.subRoutes.toBuilder();
+      _suggestedName = $v.suggestedName;
       _note = $v.note;
       _stops = $v.stops.toBuilder();
       _$v = null;
@@ -319,6 +460,8 @@ class RouteResponseDtoOutputBuilder
                 id, r'RouteResponseDtoOutput', 'id'),
             name: BuiltValueNullFieldError.checkNotNull(
                 name, r'RouteResponseDtoOutput', 'name'),
+            nameSource: BuiltValueNullFieldError.checkNotNull(
+                nameSource, r'RouteResponseDtoOutput', 'nameSource'),
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'RouteResponseDtoOutput', 'status'),
             totalDistanceMeters: BuiltValueNullFieldError.checkNotNull(
@@ -331,16 +474,25 @@ class RouteResponseDtoOutputBuilder
                 'totalDurationSeconds'),
             metricsSource: BuiltValueNullFieldError.checkNotNull(
                 metricsSource, r'RouteResponseDtoOutput', 'metricsSource'),
+            parentRouteId: parentRouteId,
             createdAt: BuiltValueNullFieldError.checkNotNull(
                 createdAt, r'RouteResponseDtoOutput', 'createdAt'),
             updatedAt: BuiltValueNullFieldError.checkNotNull(
                 updatedAt, r'RouteResponseDtoOutput', 'updatedAt'),
+            parentRouteName: parentRouteName,
+            needsReview: BuiltValueNullFieldError.checkNotNull(
+                needsReview, r'RouteResponseDtoOutput', 'needsReview'),
+            subRoutes: subRoutes.build(),
+            suggestedName: suggestedName,
             note: note,
             stops: stops.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'subRoutes';
+        subRoutes.build();
+
         _$failedField = 'stops';
         stops.build();
       } catch (e) {

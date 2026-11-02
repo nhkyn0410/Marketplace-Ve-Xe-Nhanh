@@ -3,6 +3,8 @@ import { defineConfig } from "@playwright/test";
 // E2E web auth (TASK-IAM-006, TC-SEC-008). API phải chạy sẵn ở http://localhost:3000 với DB đã migrate
 // (xem doc/task-propreties/IAM-006-guide.md §3); Playwright tự bật Next dev ở 3002 nếu chưa chạy.
 // Local có Chrome: đặt PLAYWRIGHT_CHANNEL=chrome để khỏi tải Chromium của Playwright.
+// API của E2E phải chạy với RESEND_API_KEY để trống: spec Nhân viên tạo tài khoản và cấp lại mật khẩu tạm, có
+// khóa thật thì API gửi email thật.
 export default defineConfig({
   testDir: "./e2e",
   testMatch: /.*\.e2e\.ts$/,

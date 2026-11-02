@@ -2,13 +2,14 @@
 import type { RouteStatus } from "./route-api";
 
 /** Nhãn + màu trạng thái tuyến. */
-export const ROUTE_STATUS: Record<RouteStatus, { label: string; tone: "success" | "neutral" }> = {
+export const ROUTE_STATUS: Record<RouteStatus, { label: string; tone: "success" | "neutral" | "warning" }> = {
   ACTIVE: { label: "Hoạt động", tone: "success" },
+  DRAFT: { label: "Nháp", tone: "warning" },
   INACTIVE: { label: "Ngừng dùng", tone: "neutral" }
 };
 
-/** Thứ tự trạng thái trong ô lọc và ô chọn. */
-export const ROUTE_STATUS_ORDER: RouteStatus[] = ["ACTIVE", "INACTIVE"];
+/** Thứ tự trạng thái trong ô lọc và ô chọn. Nháp (3.2): chưa tạo chuyến được, khách không thấy. */
+export const ROUTE_STATUS_ORDER: RouteStatus[] = ["ACTIVE", "DRAFT", "INACTIVE"];
 
 /** Chữ thay cho số liệu chưa có: quãng đường / thời gian chỉ được tính khi lưu (ADR-027). */
 export const COMPUTED_ON_SAVE = "Tính khi lưu";

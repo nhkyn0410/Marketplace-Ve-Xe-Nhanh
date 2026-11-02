@@ -38,11 +38,17 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
   const route = {
     id,
     name: "SG - ĐL",
+    nameSource: "MANUAL",
+    suggestedName: "TP.HCM → Đà Lạt",
     status: "ACTIVE",
     note: null,
     totalDistanceMeters: 1000,
     totalDurationSeconds: 60,
     metricsSource: "GOONG",
+    parentRouteId: null,
+    parentRouteName: null,
+    needsReview: false,
+    subRoutes: [],
     stops: [],
     createdAt: now,
     updatedAt: now,
@@ -213,6 +219,7 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
       allowDropoff: false,
       distanceMetersFromPrevious: null,
       durationSecondsFromPrevious: null,
+      measuredDurationSecondsFromPrevious: null,
     };
     services.routes.get.mockResolvedValueOnce({ ...route, stops: [stop] } as never);
     const response = await call("GET", `/routes/${id}`, await token("OPERATOR_OWNER"));
@@ -230,6 +237,11 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     ["PUT", `/routes/${id}`, { name: "x", stops: routeBody.stops }],
     // BR-79: thiếu cờ cho đón / cho trả là 400, không ngầm hiểu.
     ["POST", "/routes", { ...routeBody, stops: routeBody.stops.map(({ allowPickup: _allowPickup, ...stop }) => stop) }],
+    // Thời gian chặng nhà xe nhập: không đặt ở điểm đầu; 1–1440 phút, số nguyên.
+    ["POST", "/routes", { ...routeBody, stops: [{ ...routeBody.stops[0], durationMinutesFromPrevious: 30 }, routeBody.stops[1]] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 0 }] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 1441 }] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 30.5 }] }],
     ["POST", "/stop-points", { ...location, status: "ACTIVE", latitude: 95 }],
     // Tạm ngưng là quyền của Admin Platform: nhà xe không tự đặt được.
     ["PUT", `/stop-points/${id}`, { ...location, status: "SUSPENDED" }],
@@ -237,7 +249,7 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     ["POST", "/stop-point-proposals", { ...proposalBody, type: "OFFICE" }],
     ["POST", "/stop-point-proposals", location],
     ["PUT", `/stop-point-proposals/${id}`, { ...proposalBody, legalBasis: "  " }],
-    ["GET", "/routes?status=DRAFT", undefined],
+    ["GET", "/routes?status=ARCHIVED", undefined],
     ["GET", "/stop-points?type=AIRPORT", undefined],
     ["GET", `/stop-points?q=${"x".repeat(101)}`, undefined],
     ["GET", "/stop-point-proposals?status=UNKNOWN", undefined],

@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Hợp đồng đọc/ghi access token.
+/// Hợp đồng đọc/ghi cặp token của phiên.
 ///
 /// Tách khỏi [TokenStorage] để những thứ *dùng* token (vd `AuthInterceptor`)
 /// test được mà không phải kéo theo platform channel của
@@ -9,15 +9,21 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 abstract interface class TokenStore {
   Future<String?> readAccessToken();
   Future<void> saveAccessToken(String token);
+  Future<String?> readRefreshToken();
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+  });
   Future<void> clear();
 }
 
-/// Nơi **duy nhất** chạm access token thật (ADR-017: mobile lưu token bằng
+/// Nơi **duy nhất** chạm access/refresh token thật (ADR-017: mobile lưu token bằng
 /// `flutter_secure_storage`, không dùng SharedPreferences).
 class TokenStorage implements TokenStore {
   const TokenStorage([this._storage = const FlutterSecureStorage()]);
 
   static const _accessTokenKey = 'access_token';
+  static const _refreshTokenKey = 'refresh_token';
 
   final FlutterSecureStorage _storage;
 
@@ -29,5 +35,26 @@ class TokenStorage implements TokenStore {
   Future<String?> readAccessToken() => _storage.read(key: _accessTokenKey);
 
   @override
-  Future<void> clear() => _storage.delete(key: _accessTokenKey);
+  Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
+
+  /// Ghi cả cặp token. Nếu một lần ghi lỗi, xoá phần đã ghi để không giữ phiên dở dang.
+  @override
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    try {
+      await _storage.write(key: _accessTokenKey, value: accessToken);
+      await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    } catch (_) {
+      await clear();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> clear() async {
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+  }
 }

@@ -4,6 +4,11 @@
     "allowJs": true,
     "incremental": true,
     "noEmit": true,
+    "paths": {
+      "@vexenhanh/api-client": ["../../packages/api-client/src/index.ts"],
+      "@vexenhanh/types": ["../../packages/types/dist/index"],
+      "@vexenhanh/utils": ["../../packages/utils/src/index.ts"]
+    },
     "plugins": [{ "name": "next" }]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

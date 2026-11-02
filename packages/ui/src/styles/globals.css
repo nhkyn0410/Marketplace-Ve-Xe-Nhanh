@@ -124,6 +124,45 @@
   background-image: linear-gradient(135deg, #2b7ead 0%, #006481 100%);
 }
 
+/*
+ * Màn hình lớn (2K/4K): Figma chỉ vẽ ở 1440px nên app nào gắn class `vxn-scale` lên <html> (hiện: Marketplace)
+ * được phóng cả giao diện theo tỉ lệ thay vì để trống hai bên. CSS zoom nhân cả đơn vị vh/dvh lên,
+ * nên chiều cao theo màn hình phải dùng `--vxn-vh` (= 100dvh chia lại hệ số phóng) — ví dụ `h-viewport`.
+ */
+:root {
+  --vxn-zoom: 1;
+  --vxn-vh: calc(100dvh / var(--vxn-zoom));
+}
+
+@media (min-width: 1920px) {
+  html.vxn-scale {
+    zoom: 1.25;
+    --vxn-zoom: 1.25;
+  }
+}
+
+@media (min-width: 2400px) {
+  html.vxn-scale {
+    zoom: 1.5;
+    --vxn-zoom: 1.5;
+  }
+}
+
+@media (min-width: 3200px) {
+  html.vxn-scale {
+    zoom: 2;
+    --vxn-zoom: 2;
+  }
+}
+
+@utility h-viewport {
+  height: var(--vxn-vh);
+}
+
+@utility min-h-viewport {
+  min-height: var(--vxn-vh);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

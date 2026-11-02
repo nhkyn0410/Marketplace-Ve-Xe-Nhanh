@@ -45,6 +45,7 @@ describe("nhãn tuyến", () => {
   it("trạng thái luôn kèm chữ", () => {
     expect(ROUTE_STATUS.ACTIVE).toEqual({ label: "Hoạt động", tone: "success" });
     expect(ROUTE_STATUS.INACTIVE).toEqual({ label: "Ngừng dùng", tone: "neutral" });
+    expect(ROUTE_STATUS.DRAFT).toEqual({ label: "Nháp", tone: "warning" });
   });
 
   it("ngày giờ theo giờ Việt Nam", () => {

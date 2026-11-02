@@ -10,11 +10,13 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**authControllerChangeRequiredPassword**](AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
+[**authControllerCounterLogin**](AuthApi.md#authcontrollercounterlogin) | **POST** /v1/auth/counter/login | 
 [**authControllerCsrf**](AuthApi.md#authcontrollercsrf) | **GET** /v1/auth/csrf | 
 [**authControllerEmployeeLogin**](AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
 [**authControllerLogout**](AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [**authControllerMe**](AuthApi.md#authcontrollerme) | **GET** /v1/auth/me | 
 [**authControllerOauth**](AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
+[**authControllerOauthIdToken**](AuthApi.md#authcontrolleroauthidtoken) | **POST** /v1/auth/oauth/{provider}/id-token | 
 [**authControllerOauthSession**](AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [**authControllerOperatorLogin**](AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
 [**authControllerPlatformLogin**](AuthApi.md#authcontrollerplatformlogin) | **POST** /v1/auth/platform/login | 
@@ -61,6 +63,51 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**MessageResponseDtoOutput**](MessageResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerCounterLogin**
+> CredentialLoginResponseDtoOutput authControllerCounterLogin(credentialLoginDto, xAuthTransport, xCSRFToken)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final CredentialLoginDto credentialLoginDto = ; // CredentialLoginDto | 
+final String xAuthTransport = xAuthTransport_example; // String | `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile).
+final String xCSRFToken = xCSRFToken_example; // String | Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit).
+
+try {
+    final response = api.authControllerCounterLogin(credentialLoginDto, xAuthTransport, xCSRFToken);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerCounterLogin: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **credentialLoginDto** | [**CredentialLoginDto**](CredentialLoginDto.md)|  | 
+ **xAuthTransport** | **String**| `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile). | [optional] 
+ **xCSRFToken** | **String**| Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit). | [optional] 
+
+### Return type
+
+[**CredentialLoginResponseDtoOutput**](CredentialLoginResponseDtoOutput.md)
 
 ### Authorization
 
@@ -271,6 +318,49 @@ No authorization required
 
  - **Content-Type**: application/json
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerOauthIdToken**
+> AuthTokenResponseDtoOutput authControllerOauthIdToken(provider, oAuthIdTokenDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final String provider = provider_example; // String | OAuth provider native (v1: google).
+final OAuthIdTokenDto oAuthIdTokenDto = ; // OAuthIdTokenDto | 
+
+try {
+    final response = api.authControllerOauthIdToken(provider, oAuthIdTokenDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerOauthIdToken: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **provider** | **String**| OAuth provider native (v1: google). | 
+ **oAuthIdTokenDto** | [**OAuthIdTokenDto**](OAuthIdTokenDto.md)|  | 
+
+### Return type
+
+[**AuthTokenResponseDtoOutput**](AuthTokenResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

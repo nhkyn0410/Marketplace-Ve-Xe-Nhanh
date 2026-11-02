@@ -61,5 +61,20 @@
 - [ ] Smoke guide §3 trên API chạy thật — chưa chạy. Tương đương: `trip.http.spec.ts` (route + guard thật) + `trip-sale.int.spec.ts` (Postgres + Mongo thật).
 - [x] AI journal đã ghi; không commit journal.
 - [ ] CI branch xanh — Khanh xác nhận.
-- [ ] Màn Operator OS (mở / khóa bán, sơ đồ ghế khóa) — sau khi có đăng nhập web (M1).
+- [x] Màn Operator OS (mở / khóa bán, sơ đồ ghế khóa) — xong 14/10/2026, PHẦN I.
 - [ ] Task row §7.3 → `Done`.
+
+## PHẦN I — Đưa về repo chính + màn Operator OS (14/10/2026)
+
+Các phần A–H ở trên là evidence gốc của repo bản sao (30/09/2026). Phần này là evidence trên repo chính, nhánh `TASK-TRN-006`.
+
+- [x] Migration `20261014010000_trip_sale_lifecycle` áp sau `add_fare`; `db:app-role` pass; `trips` / `trip_seats` không lệch schema.
+- [x] API trên Postgres 16 + Redis + Mongo 7 thật, role app: 76 / 76 file, 1035 / 1035 test, 0 skip (gồm `trip-sale.int.spec.ts`, `trip-sale.spec.ts`).
+- [x] Fixture test theo schema hiện tại: cờ cho đón / cho trả (BR-79), loại xe có dạng chỗ + hạng xe, điểm riêng loại văn phòng.
+- [x] Client TS + Dart sinh lại; `dart analyze` không lỗi, `dart test` 544 / 544.
+- [x] Form chuyến có ô "Ngừng bán online" (0–1440, bắt buộc); test đơn vị `trip-form.test.ts`.
+- [x] Trang chi tiết: nút theo trạng thái, khối Điều kiện mở bán, khóa / mở khóa chỗ, hộp thoại hủy; logic thuần ở `lib/trip/trip-sale.ts` có test (`trip-sale.test.ts`). Operator OS 340 test đơn vị.
+- [x] E2E Playwright 26 / 26 (ba ca mới của TRN-006); `pnpm lint` + `typecheck` + `test` + `build` cả monorepo đạt.
+- [ ] `code-reviewer` + `security-auditor` cho phần port và màn Operator OS — **chưa chạy**, chỉ chạy khi Khanh yêu cầu (`CLAUDE.md` §4.8).
+- [ ] Khanh duyệt bảy điểm G1–G7 ở todo.
+- [ ] CI branch xanh — Khanh xác nhận.

@@ -17,7 +17,9 @@ import { Input } from "@vexenhanh/ui/components/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from "@vexenhanh/ui/components/select";
@@ -26,24 +28,29 @@ import { Switch } from "@vexenhanh/ui/components/switch";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { Bus, CircleAlert, FileX2, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
 import { getRoute, listAllRoutes, type Route } from "../../lib/route/route-api";
 import { formatDuration, stopCountLabel } from "../../lib/route/route-format";
+import { choiceNote, listTripsBetween, previousLocalDate, vehicleChoices } from "../../lib/trip/vehicle-schedule";
+import { VehicleDayCard } from "./vehicle-day-card";
 import { createTrip, getTrip, updateTrip, type Trip } from "../../lib/trip/trip-api";
 import {
-  arrivalIso,
   autoSplitTimes,
   departureIso,
+  roundClock,
+  TIME_STEP_MINUTES,
   describeTripSaveError,
-  EMPTY_TRIP_VALUES,
   hasCompleteTimes,
+  MAX_ONLINE_SALE_CUTOFF_MINUTES,
   NO_VEHICLE,
+  parseCutoffMinutes,
+  prefillTripValues,
   resolveManualTimes,
-  suggestArrival,
+  routeArrivalMs,
   toTripFormValues,
   toTripInput,
   TRIP_NOTE_MAX_LENGTH,
@@ -55,13 +62,18 @@ import {
   arrivalDayNote,
   formatTime,
   formatWeekdayDate,
+  fromLocalParts,
+  nextLocalDate,
+  toLocalParts,
   stopMetaLabel,
   TRIP_STATUS,
   tripDurationLabel
 } from "../../lib/trip/trip-format";
+import { onlineSaleCloseLabel } from "../../lib/trip/trip-sale";
 import { listAllVehicles, listVehicleTypes } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber, vehicleTypeLabel } from "../../lib/vehicle/vehicle-format";
 import { FormField } from "../form-field";
+import { SegmentOffersField } from "./segment-offers-field";
 import { BUTTON } from "../list-parts";
 import { PageHeader } from "../page-header";
 import { StopTimeDay, StopTimeLocked, TripStopRow } from "./trip-stop-row";
@@ -108,7 +120,8 @@ export function TripForm({ tripId }: { tripId?: string }) {
       </FormShell>
     );
   }
-  if (trip.isError || tripRoute.isError) {
+  // Chỉ khi CHƯA có dữ liệu: refetch nền lỗi (đổi tab rồi quay lại) không được xóa form đang nhập dở.
+  if ((trip.isError && !trip.data) || (tripRoute.isError && !tripRoute.data)) {
     return (
       <FormShell title={title} description="Chưa tải được dữ liệu.">
         <StatePanel
@@ -161,13 +174,12 @@ export function TripForm({ tripId }: { tripId?: string }) {
 
 function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const backHref = trip ? `/trips/${trip.id}` : "/trips";
   const [formError, setFormError] = useState<string | null>(null);
   const [stopsError, setStopsError] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
-  // Giờ đến chỉ tự gợi ý cho tới khi nhà xe sửa tay; chuyến đang sửa thì giữ giờ đã lưu.
-  const [arrivalTouched, setArrivalTouched] = useState(trip !== undefined);
   const savedAutoSplit = trip && tripRoute ? usesAutoSplit(trip, legSecondsOf(tripRoute)) : true;
   const [autoSplit, setAutoSplit] = useState(savedAutoSplit);
   const savedManualTimes = useMemo(
@@ -178,10 +190,13 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripInfoSchema),
-    defaultValues: trip ? toTripFormValues(trip) : EMPTY_TRIP_VALUES
+    // Mở từ Lịch xe (bấm khoảng trống của một xe): xe + ngày giờ khởi hành điền sẵn (TASK-TRN-015).
+    defaultValues: trip ? toTripFormValues(trip) : prefillTripValues(searchParams)
   });
   const { errors } = form.formState;
   const values = form.watch();
+  // Chặng mở bán (3.3): đổi tuyến thì danh sách tuyến con đổi theo (ô tự tích sẵn khi tạo mới).
+  const setSubRoutes = useCallback((ids: string[]) => form.setValue("subRouteIds", ids, { shouldDirty: true }), [form]);
 
   const activeRoutes = useQuery({ queryKey: ["routes", "all", "ACTIVE"], queryFn: () => listAllRoutes("ACTIVE") });
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
@@ -208,20 +223,46 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
     [vehicles.data, trip]
   );
   const selectedRoute = activeRoutes.data?.find((item) => item.id === values.routeId);
-  const selectedVehicle = vehicles.data?.find((vehicle) => vehicle.id === values.vehicleId);
-  const vehicleType = vehicleTypes.data?.find((type) => type.id === selectedVehicle?.vehicleTypeId);
-
   const stops = route.data?.stops ?? [];
   const complete = hasCompleteTimes(values);
   const departureMs = complete ? new Date(departureIso(values)).getTime() : undefined;
-  const arrivalMs = complete ? new Date(arrivalIso(values)).getTime() : undefined;
-  const validSpan = departureMs !== undefined && arrivalMs !== undefined && arrivalMs > departureMs;
+  // Giờ đến không nhập: máy chủ tính = giờ đi + thời gian chạy của tuyến (chờ duyệt 27/10/2026); ở đây xem trước.
+  const arrivalMs =
+    departureMs !== undefined && route.data ? routeArrivalMs(departureMs, route.data.totalDurationSeconds) : undefined;
+  const arrivalAt = arrivalMs === undefined ? undefined : new Date(arrivalMs).toISOString();
+  const validSpan = departureMs !== undefined && arrivalMs !== undefined;
+  // Chuyến quanh giờ chuyến này (từ đầu hôm trước tới hết ngày đến) để biết xe nào rảnh / trùng giờ (TASK-TRN-015).
+  const scheduleDate = /^\d{4}-\d{2}-\d{2}$/.test(values.departureDate) && values.departureDate >= "1971-01-01" ? values.departureDate : null;
+  const scheduleEnd = arrivalAt && scheduleDate ? toLocalParts(arrivalAt).date : scheduleDate;
+  const nearbyTrips = useQuery({
+    queryKey: ["trips", "around", scheduleDate, scheduleEnd],
+    queryFn: () =>
+      listTripsBetween(fromLocalParts(previousLocalDate(scheduleDate!), "00:00"), fromLocalParts(nextLocalDate(scheduleEnd!), "00:00")),
+    enabled: scheduleDate !== null && scheduleEnd !== null
+  });
+  const routeDestinations = useMemo(
+    () => new Map((activeRoutes.data ?? []).map((item) => [item.id, item.destinationName])),
+    [activeRoutes.data]
+  );
+  const selectedVehicle = vehicles.data?.find((vehicle) => vehicle.id === values.vehicleId);
+  const vehicleType = vehicleTypes.data?.find((type) => type.id === selectedVehicle?.vehicleTypeId);
+
+  // Mốc ngừng bán online tính được khi đã có giờ khởi hành và số phút hợp lệ.
+  const cutoffMinutes = parseCutoffMinutes(values.onlineSaleCutoffMinutes);
+  const saleClose =
+    departureMs === undefined || cutoffMinutes === null
+      ? null
+      : onlineSaleCloseLabel(departureIso(values), cutoffMinutes);
   const clockTimes = stops.map((_stop, index) => manualTimes[index] ?? "");
   // Giờ tại từng điểm để hiển thị: tự chia thì đủ cả dãy; tự nhập thì có tới đâu ghi ngày tới đó.
+  const choices =
+    validSpan && nearbyTrips.data
+      ? vehicleChoices(vehicleOptions, nearbyTrips.data, departureMs!, arrivalMs!, trip?.id)
+      : null;
   let stopTimes: (number | undefined)[] = [];
   if (route.data && validSpan) {
     stopTimes = autoSplit
-      ? autoSplitTimes(departureMs, arrivalMs, legSecondsOf(route.data))
+      ? autoSplitTimes(departureMs, arrivalMs, legSecondsOf(route.data), route.data.stops.map((stop) => stop.allowPickup))
       : resolveManualTimes(departureMs, arrivalMs, clockTimes).times;
   }
 
@@ -249,21 +290,6 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
     }
   });
 
-  /** Gợi ý lại giờ đến khi đổi tuyến hoặc giờ khởi hành, chừng nào nhà xe chưa tự sửa giờ đến. */
-  function suggest(next: Partial<Pick<TripFormValues, "routeId" | "departureDate" | "departureTime">>) {
-    if (arrivalTouched) {
-      return;
-    }
-    const current = { ...form.getValues(), ...next };
-    const duration = activeRoutes.data?.find((item) => item.id === current.routeId)?.totalDurationSeconds;
-    const suggestion =
-      duration === undefined ? null : suggestArrival(current.departureDate, current.departureTime, duration);
-    if (suggestion) {
-      form.setValue("arrivalDate", suggestion.date, { shouldDirty: true, shouldValidate: form.formState.isSubmitted });
-      form.setValue("arrivalTime", suggestion.time, { shouldDirty: true, shouldValidate: form.formState.isSubmitted });
-    }
-  }
-
   function toggleAutoSplit(next: boolean) {
     setStopsError(null);
     setAutoSplit(next);
@@ -282,11 +308,8 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
         setStopsError("Chưa tải được điểm dừng của tuyến nên chưa kiểm được giờ tại từng điểm. Vui lòng thử lại.");
         return;
       }
-      const resolved = resolveManualTimes(
-        new Date(departureIso(info)).getTime(),
-        new Date(arrivalIso(info)).getTime(),
-        clockTimes
-      );
+      const departure = new Date(departureIso(info)).getTime();
+      const resolved = resolveManualTimes(departure, routeArrivalMs(departure, route.data.totalDurationSeconds), clockTimes);
       if (resolved.error) {
         setStopsError(resolved.error);
         return;
@@ -364,7 +387,6 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                           // Tuyến khác có số điểm dừng khác: giờ tự nhập cũ không còn dùng được.
                           setManualTimes([]);
                           setStopsError(null);
-                          suggest({ routeId });
                         }}
                       >
                         <SelectTrigger {...control} onBlur={field.onBlur}>
@@ -389,53 +411,45 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                     <Input
                       {...control}
                       type="date"
-                      {...form.register("departureDate", {
-                        onChange: (event) => suggest({ departureDate: (event.target as HTMLInputElement).value })
-                      })}
+                      {...form.register("departureDate")}
                     />
                   )}
                 </FormField>
-                <FormField label="Giờ khởi hành *" error={errors.departureTime?.message}>
+                <FormField label="Giờ khởi hành *" helper="Làm tròn theo bước 5 phút" error={errors.departureTime?.message}>
                   {(control) => (
                     <Input
                       {...control}
                       type="time"
+                      step={TIME_STEP_MINUTES * 60}
                       {...form.register("departureTime", {
-                        onChange: (event) => suggest({ departureTime: (event.target as HTMLInputElement).value })
+                        // Rời ô thì hiện ngay giờ đã làm tròn — đúng giờ máy chủ sẽ lưu.
+                        onBlur: (event: { target: { value: string } }) =>
+                          form.setValue("departureTime", roundClock(event.target.value), { shouldDirty: true, shouldValidate: true })
                       })}
                     />
                   )}
                 </FormField>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="Ngày đến *" error={errors.arrivalDate?.message}>
-                  {(control) => (
-                    <Input
-                      {...control}
-                      type="date"
-                      {...form.register("arrivalDate", { onChange: () => setArrivalTouched(true) })}
-                    />
-                  )}
-                </FormField>
-                <FormField
-                  label="Giờ đến *"
-                  helper="Gợi ý theo thời gian chạy của tuyến, sửa được"
-                  error={errors.arrivalTime?.message}
-                >
-                  {(control) => (
-                    <Input
-                      {...control}
-                      type="time"
-                      {...form.register("arrivalTime", { onChange: () => setArrivalTouched(true) })}
-                    />
-                  )}
-                </FormField>
+              <div role="group" aria-label="Giờ đến theo tuyến" className="flex flex-col gap-1 rounded-lg bg-muted/50 px-4 py-3">
+                <span className="text-sm leading-5 font-medium text-vxn-fg-1">Giờ đến (theo tuyến)</span>
+                <span className="text-sm leading-5 text-vxn-ink">
+                  {arrivalAt
+                    ? `${formatTime(arrivalAt)} · ${formatWeekdayDate(arrivalAt)}`
+                    : values.routeId === ""
+                      ? "Chọn tuyến và giờ khởi hành"
+                      : "Nhập giờ khởi hành"}
+                </span>
+                <span className={HELPER}>
+                  Tự tính = giờ khởi hành + thời gian chạy của tuyến
+                  {route.data ? ` (${formatDuration(route.data.totalDurationSeconds)})` : ""}. Lệch thực tế thì sửa thời
+                  gian từng chặng ở Tuyến đường.
+                </span>
               </div>
 
               <FormField
                 label="Xe"
-                helper="Để trống được khi còn nháp. Chỉ liệt kê xe đang hoạt động và đã có sơ đồ ghế."
+                helper="Để trống được khi còn nháp, bắt buộc khi mở bán. Chỉ liệt kê xe đang hoạt động và đã có sơ đồ ghế."
                 error={errors.vehicleId?.message}
               >
                 {(control) => (
@@ -445,20 +459,76 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger {...control} onBlur={field.onBlur}>
-                          <SelectValue />
+                          {/* Ô đã chọn chỉ hiện biển số + sơ đồ ghế, không kèm dòng tình trạng của danh sách. */}
+                          <SelectValue>{vehicleLabel(vehicleOptions.find((vehicle) => vehicle.id === field.value))}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
+                          {choices && (
+                            <p className="px-3 pt-2 pb-1 text-xs leading-[18px] text-muted-foreground">
+                              Tình trạng xe trong giờ chuyến này: {formatTime(departureIso(values))} {formatWeekdayDate(departureIso(values))} →{" "}
+                              {formatTime(arrivalAt!)} {formatWeekdayDate(arrivalAt!)}
+                            </p>
+                          )}
                           <SelectItem value={NO_VEHICLE}>Chưa gắn xe</SelectItem>
-                          {vehicleOptions.map((vehicle) => (
-                            <SelectItem key={vehicle.id} value={vehicle.id}>
-                              {formatPlateNumber(vehicle.plateNumber)}
-                              {vehicle.seatMap ? ` · ${vehicle.seatMap.name}` : ""}
-                            </SelectItem>
-                          ))}
+                          {choices ? (
+                            <>
+                              <SelectGroup>
+                                <SelectLabel className="font-semibold uppercase">Rảnh trong giờ chuyến · {choices.free.length} xe</SelectLabel>
+                                {choices.free.map((choice) => (
+                                  <SelectItem key={choice.vehicle.id} value={choice.vehicle.id}>
+                                    <span className="flex flex-col">
+                                      <span>{vehicleLabel(choice.vehicle)}</span>
+                                      <span className="text-xs leading-[18px] text-success-700">
+                                        {choiceNote(choice, values.departureDate, (id) => routeDestinations.get(id))}
+                                      </span>
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                              {choices.busy.length > 0 && (
+                                <SelectGroup>
+                                  <SelectLabel className="font-semibold uppercase">
+                                    Trùng giờ — không chọn được · {choices.busy.length} xe
+                                  </SelectLabel>
+                                  {choices.busy.map((choice) => (
+                                    <SelectItem key={choice.vehicle.id} value={choice.vehicle.id} disabled>
+                                      <span className="flex min-w-0 flex-1 items-center gap-3">
+                                        <span className="flex min-w-0 flex-col">
+                                          <span>{vehicleLabel(choice.vehicle)}</span>
+                                          <span className="text-xs leading-[18px]">
+                                            {choiceNote(choice, values.departureDate, (id) => routeDestinations.get(id))}
+                                          </span>
+                                        </span>
+                                        <span className="ml-auto shrink-0 rounded-md bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-600">
+                                          Trùng giờ
+                                        </span>
+                                      </span>
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              )}
+                            </>
+                          ) : (
+                            vehicleOptions.map((vehicle) => (
+                              <SelectItem key={vehicle.id} value={vehicle.id}>
+                                {vehicleLabel(vehicle)}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     )}
                   />
+                )}
+              </FormField>
+
+              <FormField
+                label="Ngừng bán online trước giờ khởi hành (phút) *"
+                helper={`Từ 0 đến ${MAX_ONLINE_SALE_CUTOFF_MINUTES} phút.${saleClose ? ` Với giờ trên, khách đặt online được tới ${saleClose}.` : ""}`}
+                error={errors.onlineSaleCutoffMinutes?.message}
+              >
+                {(control) => (
+                  <Input {...control} inputMode="numeric" maxLength={4} {...form.register("onlineSaleCutoffMinutes")} />
                 )}
               </FormField>
 
@@ -469,6 +539,12 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
               >
                 {(control) => <Textarea {...control} {...form.register("note")} rows={3} maxLength={TRIP_NOTE_MAX_LENGTH} />}
               </FormField>
+              <SegmentOffersField
+                routeId={values.routeId}
+                value={values.subRouteIds}
+                onChange={setSubRoutes}
+                autoSelect={!trip}
+              />
             </form>
           </section>
 
@@ -582,6 +658,19 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
             </p>
           </section>
 
+          {selectedVehicle && scheduleDate && nearbyTrips.data && (
+            <VehicleDayCard
+              plate={formatPlateNumber(selectedVehicle.plateNumber)}
+              vehicleId={selectedVehicle.id}
+              date={scheduleDate}
+              trips={nearbyTrips.data}
+              draft={arrivalAt ? { departureAt: departureIso(values), arrivalAt } : null}
+              destinationOf={(id) => routeDestinations.get(id)}
+              draftDestination={selectedRoute?.destinationName}
+              exceptTripId={trip?.id}
+            />
+          )}
+
           <section aria-labelledby="trip-summary-heading" className={`${CARD} gap-3.5`}>
             <h2 id="trip-summary-heading" className={CARD_TITLE}>
               Tổng quan
@@ -602,15 +691,16 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
               <SummaryRow
                 label="Đến"
                 value={
-                  validSpan
-                    ? `${formatTime(arrivalIso(values))} · ${lowerFirst(arrivalDayNote(departureIso(values), arrivalIso(values)))}`
-                    : "Chưa nhập"
+                  arrivalAt
+                    ? `${formatTime(arrivalAt)} · ${lowerFirst(arrivalDayNote(departureIso(values), arrivalAt))}`
+                    : "Chưa tính được"
                 }
               />
               <SummaryRow
                 label="Thời lượng"
-                value={validSpan ? tripDurationLabel(departureIso(values), arrivalIso(values)) : "—"}
+                value={arrivalAt ? tripDurationLabel(departureIso(values), arrivalAt) : "—"}
               />
+              <SummaryRow label="Ngừng bán online" value={saleClose ?? "Chưa nhập"} />
               <SummaryRow label="Trạng thái sau khi lưu" value={TRIP_STATUS.DRAFT.label} />
             </dl>
           </section>
@@ -661,6 +751,14 @@ function AutoSplitSwitch({ checked, onChange }: { checked: boolean; onChange: (c
       </div>
     </div>
   );
+}
+
+/** Nhãn một xe trong ô chọn: `51B-289.12 · Giường nằm 34 chỗ`. */
+function vehicleLabel(vehicle: { plateNumber: string; seatMap: { name: string } | null } | undefined): string {
+  if (!vehicle) {
+    return "Chưa gắn xe";
+  }
+  return `${formatPlateNumber(vehicle.plateNumber)}${vehicle.seatMap ? ` · ${vehicle.seatMap.name}` : ""}`;
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {

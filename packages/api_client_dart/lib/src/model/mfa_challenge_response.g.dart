@@ -68,7 +68,7 @@ class _$MfaChallengeResponse extends MfaChallengeResponse {
   @override
   final bool enrollmentRequired;
   @override
-  final int challengeExpiresIn;
+  final int? challengeExpiresIn;
   @override
   final String? otpAuthUri;
 
@@ -80,7 +80,7 @@ class _$MfaChallengeResponse extends MfaChallengeResponse {
       {required this.mfaRequired,
       required this.challengeToken,
       required this.enrollmentRequired,
-      required this.challengeExpiresIn,
+      this.challengeExpiresIn,
       this.otpAuthUri})
       : super._();
   @override
@@ -196,10 +196,7 @@ class MfaChallengeResponseBuilder
               enrollmentRequired,
               r'MfaChallengeResponse',
               'enrollmentRequired'),
-          challengeExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              challengeExpiresIn,
-              r'MfaChallengeResponse',
-              'challengeExpiresIn'),
+          challengeExpiresIn: challengeExpiresIn,
           otpAuthUri: otpAuthUri,
         );
     replace(_$result);

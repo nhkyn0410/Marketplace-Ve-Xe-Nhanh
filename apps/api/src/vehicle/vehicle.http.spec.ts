@@ -11,6 +11,8 @@ import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import { SeatMapController } from "./seat-map.controller";
 import { SeatMapService } from "./seat-map.service";
+import { VehicleImageController } from "./vehicle-image.controller";
+import { VehicleImageService } from "./vehicle-image.service";
 import { VehicleController } from "./vehicle.controller";
 import { VehicleService } from "./vehicle.service";
 
@@ -28,10 +30,24 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     seatMap: null,
     seatMapLocked: false,
     amenityIds: [],
+    images: [],
     status: "ACTIVE",
     description: null,
     createdAt: now,
     updatedAt: now,
+  };
+  const imageKey = `vehicles/${operatorId}/${vehicleId}/${randomUUID()}.jpg`;
+  const image = {
+    id: randomUUID(),
+    objectKey: imageKey,
+    url: `https://cdn.test/${imageKey}`,
+    position: 0,
+    caption: "Ngoại thất",
+  };
+  const uploadGrant = {
+    uploadUrl: "https://upload.test/put?signature=abc",
+    objectKey: imageKey,
+    expiresAt: now,
   };
   const seatMap = {
     id: seatMapId,
@@ -51,6 +67,10 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     create: vi.fn(async () => vehicle),
     update: vi.fn(async () => vehicle),
   };
+  const images = {
+    createUploadUrl: vi.fn(async () => uploadGrant),
+    replace: vi.fn(async () => ({ images: [image] })),
+  };
   const seatMaps = {
     list: vi.fn(async () => ({ items: [], nextCursor: null })),
     get: vi.fn(async () => seatMap),
@@ -64,12 +84,13 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
   const config = { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig;
 
   @Module({
-    controllers: [VehicleController, SeatMapController],
+    controllers: [VehicleController, VehicleImageController, SeatMapController],
     providers: [
       { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
       { provide: APP_CONFIG, useValue: config },
       TokenService,
       { provide: VehicleService, useValue: vehicles },
+      { provide: VehicleImageService, useValue: images },
       { provide: SeatMapService, useValue: seatMaps },
       {
         provide: SessionService,
@@ -136,7 +157,11 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     layout: { decks: [{ deck: 1, rows: 1, columns: 1 }] },
     seats: [{ code: "a1", deck: 1, row: 1, column: 1, type: "SEAT" }],
   };
+  const uploadBody = { contentType: "image/jpeg", sizeBytes: 1024 };
+  const imagesBody = { images: [{ objectKey: imageKey, caption: "Ngoại thất" }] };
   const routes: [string, string, object | undefined, number][] = [
+    ["POST", `/vehicles/${vehicleId}/images/upload-url`, uploadBody, 200],
+    ["PUT", `/vehicles/${vehicleId}/images`, imagesBody, 200],
     ["GET", "/vehicles", undefined, 200],
     ["GET", `/vehicles/${vehicleId}`, undefined, 200],
     ["POST", "/vehicles", vehicleBody, 201],
@@ -168,6 +193,87 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
       expect.anything(),
       expect.objectContaining({ seats: [expect.objectContaining({ code: "A1" })] }),
     );
+  });
+
+  it("ảnh xe: service nhận tài khoản + scope tenant từ JWT; chú thích được cắt khoảng trắng, rỗng thành null (TRN-009)", async () => {
+    const owner = await token("OPERATOR_OWNER");
+    const granted = await call("POST", `/vehicles/${vehicleId}/images/upload-url`, owner, uploadBody);
+    expect(granted.body).toEqual(uploadGrant);
+    expect(images.createUploadUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: expect.any(String) }),
+      expect.objectContaining({ db: expect.objectContaining({ kind: "tenant", operatorId }) }),
+      vehicleId,
+      uploadBody,
+    );
+
+    const other = `vehicles/${operatorId}/${vehicleId}/${randomUUID()}.png`;
+    const saved = await call("PUT", `/vehicles/${vehicleId}/images`, owner, {
+      images: [
+        { objectKey: imageKey, caption: "  Ngoại thất  " },
+        { objectKey: other, caption: "   " },
+      ],
+      operatorId: randomUUID(),
+    });
+    expect(saved.body).toEqual({ images: [image] });
+    expect(images.replace).toHaveBeenCalledWith(
+      expect.objectContaining({ db: expect.objectContaining({ kind: "tenant", operatorId }) }),
+      vehicleId,
+      {
+        images: [
+          { objectKey: imageKey, caption: "Ngoại thất" },
+          { objectKey: other, caption: null },
+        ],
+      },
+    );
+    // Mảng rỗng là yêu cầu hợp lệ: xóa hết ảnh.
+    expect((await call("PUT", `/vehicles/${vehicleId}/images`, owner, { images: [] })).status).toBe(200);
+  });
+
+  it("ảnh xe: 9 phần tử vẫn tới service (service trả 422 nghiệp vụ), không bị chặn thành 400 ở tầng dữ liệu", async () => {
+    const nine = Array.from({ length: 9 }, () => ({
+      objectKey: `vehicles/${operatorId}/${vehicleId}/${randomUUID()}.jpg`,
+      caption: null,
+    }));
+    expect((await call("PUT", `/vehicles/${vehicleId}/images`, await token("OPERATOR_OWNER"), { images: nine })).status).toBe(200);
+    expect(images.replace).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["POST", "/images/upload-url", { contentType: "image/gif", sizeBytes: 10 }],
+    ["POST", "/images/upload-url", { contentType: "image/svg+xml", sizeBytes: 10 }],
+    ["POST", "/images/upload-url", { contentType: "image/jpeg", sizeBytes: 0 }],
+    ["POST", "/images/upload-url", { contentType: "image/jpeg", sizeBytes: 5 * 1024 * 1024 + 1 }],
+    ["POST", "/images/upload-url", { contentType: "image/jpeg", sizeBytes: 10.5 }],
+    ["POST", "/images/upload-url", { sizeBytes: 10 }],
+    ["PUT", "/images", {}],
+    ["PUT", "/images", { images: [{ objectKey: imageKey }] }],
+    ["PUT", "/images", { images: [{ objectKey: imageKey, caption: "x".repeat(61) }] }],
+    ["PUT", "/images", { images: [{ objectKey: "", caption: null }] }],
+    [
+      "PUT",
+      "/images",
+      {
+        images: [
+          { objectKey: imageKey, caption: null },
+          { objectKey: imageKey, caption: "lặp" },
+        ],
+      },
+    ],
+    ["PUT", "/images", { images: Array.from({ length: 51 }, (_, index) => ({ objectKey: `k${index}`, caption: null })) }],
+  ])("ảnh xe: %s …%s dữ liệu sai → 400 problem+json, service không bị gọi", async (method, path, body) => {
+    const response = await call(method, `/vehicles/${vehicleId}${path}`, await token("OPERATOR_OWNER"), body);
+    expect(response.status).toBe(400);
+    expect(images.createUploadUrl).not.toHaveBeenCalled();
+    expect(images.replace).not.toHaveBeenCalled();
+  });
+
+  it("Vehicle trả kèm bộ ảnh; trường lạ service lỡ trả bị serializer cắt (TRN-009)", async () => {
+    vehicles.get.mockResolvedValueOnce({
+      ...vehicle,
+      images: [{ ...image, sizeBytes: 1024, contentType: "image/jpeg", operatorId }],
+    } as never);
+    const detail = await call("GET", `/vehicles/${vehicleId}`, await token("OPERATOR_OWNER"));
+    expect(detail.body.images).toEqual([image]);
   });
 
   it("Vehicle trả kèm tóm tắt sơ đồ đang gắn, không kèm bố cục / ghế (TRN-011)", async () => {

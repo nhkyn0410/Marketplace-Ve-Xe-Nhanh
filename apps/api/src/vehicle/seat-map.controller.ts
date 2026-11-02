@@ -27,7 +27,7 @@ export class SeatMapController {
 
   /** Trả một trang SeatMap của nhà xe. */
   @Get()
-  @Authorize("vehicle:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 100 })
   @ZodResponse({ status: 200, description: "SeatMap của nhà xe (không kèm ghế).", type: SeatMapListResponseDto })
@@ -38,7 +38,7 @@ export class SeatMapController {
 
   /** Trả chi tiết một SeatMap kèm ghế. */
   @Get(":seatMapId")
-  @Authorize("vehicle:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "seatMapId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết SeatMap kèm ghế.", type: SeatMapResponseDto })
   @ApiResponse({ status: 404, description: "`SEAT_MAP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })

@@ -138,9 +138,9 @@ class _$CredentialWebSessionResponse extends CredentialWebSessionResponse {
   @override
   final String role;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
 
   factory _$CredentialWebSessionResponse(
           [void Function(CredentialWebSessionResponseBuilder)? updates]) =>
@@ -150,8 +150,8 @@ class _$CredentialWebSessionResponse extends CredentialWebSessionResponse {
       {required this.authenticated,
       required this.scope,
       required this.role,
-      required this.expiresIn,
-      required this.refreshExpiresIn})
+      this.expiresIn,
+      this.refreshExpiresIn})
       : super._();
   @override
   CredentialWebSessionResponse rebuild(
@@ -267,12 +267,8 @@ class CredentialWebSessionResponseBuilder
               scope, r'CredentialWebSessionResponse', 'scope'),
           role: BuiltValueNullFieldError.checkNotNull(
               role, r'CredentialWebSessionResponse', 'role'),
-          expiresIn: BuiltValueNullFieldError.checkNotNull(
-              expiresIn, r'CredentialWebSessionResponse', 'expiresIn'),
-          refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              refreshExpiresIn,
-              r'CredentialWebSessionResponse',
-              'refreshExpiresIn'),
+          expiresIn: expiresIn,
+          refreshExpiresIn: refreshExpiresIn,
         );
     replace(_$result);
     return _$result;

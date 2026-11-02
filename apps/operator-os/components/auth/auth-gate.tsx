@@ -1,8 +1,10 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { useAuth } from "../../lib/auth/auth-context";
+import { isPublicPath } from "../../lib/public-routes";
 import { AuthLoading, AuthPage, NoticeDialog } from "./auth-ui";
 import { LoginFlow } from "./login-flow";
 
@@ -12,6 +14,10 @@ import { LoginFlow } from "./login-flow";
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const { state, completeLogin } = useAuth();
+  // Trang đăng ký nhà xe công khai: người nộp hồ sơ chưa có tài khoản (BR-75).
+  if (isPublicPath(usePathname())) {
+    return children;
+  }
 
   if (state.status === "loading") {
     return <AuthLoading label="Đang kiểm tra phiên đăng nhập…" />;

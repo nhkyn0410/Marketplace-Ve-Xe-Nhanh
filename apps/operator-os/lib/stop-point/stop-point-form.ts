@@ -2,22 +2,17 @@
 // qua lại với DTO của API. Giới hạn độ dài khớp `stop-point.dto.ts` của API.
 import { z } from "zod";
 
+import { parseCoordinate } from "@vexenhanh/ui/lib/stop-map";
+
 import { ApiError } from "../auth/api-client";
 import type { StopPoint, StopPointInput, StopPointProposal, StopPointProposalInput } from "./stop-point-api";
+
+export { parseCoordinate };
 
 export const NAME_MAX_LENGTH = 150;
 export const ADDRESS_MAX_LENGTH = 300;
 export const DESCRIPTION_MAX_LENGTH = 500;
 export const LEGAL_BASIS_MAX_LENGTH = 300;
-
-/** Đổi chữ người dùng gõ thành số; nhận cả dấu phẩy thập phân (`10,75`). Không phải số → `null`. */
-export function parseCoordinate(value: string): number | null {
-  const text = value.trim().replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(text)) {
-    return null;
-  }
-  return Number(text);
-}
 
 function coordinate(max: number, label: string) {
   return z

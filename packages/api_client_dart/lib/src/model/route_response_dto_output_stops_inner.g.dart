@@ -183,6 +183,8 @@ class _$RouteResponseDtoOutputStopsInner
   final int? distanceMetersFromPrevious;
   @override
   final int? durationSecondsFromPrevious;
+  @override
+  final int? measuredDurationSecondsFromPrevious;
 
   factory _$RouteResponseDtoOutputStopsInner(
           [void Function(RouteResponseDtoOutputStopsInnerBuilder)? updates]) =>
@@ -202,7 +204,8 @@ class _$RouteResponseDtoOutputStopsInner
       required this.allowPickup,
       required this.allowDropoff,
       this.distanceMetersFromPrevious,
-      this.durationSecondsFromPrevious})
+      this.durationSecondsFromPrevious,
+      this.measuredDurationSecondsFromPrevious})
       : super._();
   @override
   RouteResponseDtoOutputStopsInner rebuild(
@@ -230,7 +233,9 @@ class _$RouteResponseDtoOutputStopsInner
         allowPickup == other.allowPickup &&
         allowDropoff == other.allowDropoff &&
         distanceMetersFromPrevious == other.distanceMetersFromPrevious &&
-        durationSecondsFromPrevious == other.durationSecondsFromPrevious;
+        durationSecondsFromPrevious == other.durationSecondsFromPrevious &&
+        measuredDurationSecondsFromPrevious ==
+            other.measuredDurationSecondsFromPrevious;
   }
 
   @override
@@ -250,6 +255,7 @@ class _$RouteResponseDtoOutputStopsInner
     _$hash = $jc(_$hash, allowDropoff.hashCode);
     _$hash = $jc(_$hash, distanceMetersFromPrevious.hashCode);
     _$hash = $jc(_$hash, durationSecondsFromPrevious.hashCode);
+    _$hash = $jc(_$hash, measuredDurationSecondsFromPrevious.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -270,7 +276,9 @@ class _$RouteResponseDtoOutputStopsInner
           ..add('allowPickup', allowPickup)
           ..add('allowDropoff', allowDropoff)
           ..add('distanceMetersFromPrevious', distanceMetersFromPrevious)
-          ..add('durationSecondsFromPrevious', durationSecondsFromPrevious))
+          ..add('durationSecondsFromPrevious', durationSecondsFromPrevious)
+          ..add('measuredDurationSecondsFromPrevious',
+              measuredDurationSecondsFromPrevious))
         .toString();
   }
 }
@@ -342,6 +350,14 @@ class RouteResponseDtoOutputStopsInnerBuilder
   set durationSecondsFromPrevious(int? durationSecondsFromPrevious) =>
       _$this._durationSecondsFromPrevious = durationSecondsFromPrevious;
 
+  int? _measuredDurationSecondsFromPrevious;
+  int? get measuredDurationSecondsFromPrevious =>
+      _$this._measuredDurationSecondsFromPrevious;
+  set measuredDurationSecondsFromPrevious(
+          int? measuredDurationSecondsFromPrevious) =>
+      _$this._measuredDurationSecondsFromPrevious =
+          measuredDurationSecondsFromPrevious;
+
   RouteResponseDtoOutputStopsInnerBuilder() {
     RouteResponseDtoOutputStopsInner._defaults(this);
   }
@@ -363,6 +379,8 @@ class RouteResponseDtoOutputStopsInnerBuilder
       _allowDropoff = $v.allowDropoff;
       _distanceMetersFromPrevious = $v.distanceMetersFromPrevious;
       _durationSecondsFromPrevious = $v.durationSecondsFromPrevious;
+      _measuredDurationSecondsFromPrevious =
+          $v.measuredDurationSecondsFromPrevious;
       _$v = null;
     }
     return this;
@@ -407,6 +425,8 @@ class RouteResponseDtoOutputStopsInnerBuilder
               r'RouteResponseDtoOutputStopsInner', 'allowDropoff'),
           distanceMetersFromPrevious: distanceMetersFromPrevious,
           durationSecondsFromPrevious: durationSecondsFromPrevious,
+          measuredDurationSecondsFromPrevious:
+              measuredDurationSecondsFromPrevious,
         );
     replace(_$result);
     return _$result;

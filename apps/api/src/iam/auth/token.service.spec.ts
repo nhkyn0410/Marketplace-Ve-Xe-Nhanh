@@ -233,6 +233,20 @@ describe("TokenService.verifyAccessToken", () => {
     expect(await service.verifyAccessToken(accessToken)).toBeNull();
   });
 
+  it("claim perms (TASK-IAM-007): role phân quyền theo tài khoản mang được, role khác không; quản lý thiếu claim → null", async () => {
+    const manager = { ...claims, role: "OPERATOR_MANAGER" };
+    const withPerms = await service.mintAccessToken({ ...manager, perms: ["trip:manage"] });
+    expect(await service.verifyAccessToken(withPerms.accessToken)).toMatchObject({ perms: ["trip:manage"] });
+    expect(await service.verifyAccessToken((await service.mintAccessToken(manager)).accessToken)).toBeNull();
+    // Owner luôn đủ quyền — token Owner mang perms là lỗi phát token, không được coi là hợp lệ.
+    expect(await service.verifyAccessToken((await service.mintAccessToken({ ...claims, perms: [] })).accessToken)).toBeNull();
+    const admin = { sub: "adm-1", sid: randomUUID(), scope: "platform" as const, role: "PLATFORM_ADMIN", mfa: true as const };
+    expect(await service.verifyAccessToken((await service.mintAccessToken(admin)).accessToken)).not.toBeNull();
+    expect(await service.verifyAccessToken((await service.mintAccessToken({ ...admin, perms: ["audit:read"] })).accessToken)).toMatchObject({
+      perms: ["audit:read"],
+    });
+  });
+
   it("alg none → null", async () => {
     const b64 = (o: object) =>
       Buffer.from(JSON.stringify(o)).toString("base64url");

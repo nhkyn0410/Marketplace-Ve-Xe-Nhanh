@@ -60,3 +60,30 @@ export function stopPointProposalStateInvalid(): HttpException {
     "Chỉ sửa và gửi lại được đề xuất đã bị từ chối.",
   );
 }
+
+/** Admin duyệt / từ chối đề xuất đã có kết quả (Admin khác vừa xử lý, hoặc nhà xe chưa gửi lại). */
+export function stopPointProposalNotPending(): HttpException {
+  return problem(
+    HttpStatus.CONFLICT,
+    "STOP_POINT_PROPOSAL_STATE_INVALID",
+    "Đề xuất không còn ở trạng thái Chờ duyệt (có thể vừa được xử lý).",
+  );
+}
+
+/** Khóa điểm đang bị khóa, hoặc mở khóa điểm không bị khóa (BR-81). */
+export function stopPointStateInvalid(): HttpException {
+  return problem(
+    HttpStatus.CONFLICT,
+    "STOP_POINT_STATE_INVALID",
+    "Trạng thái điểm dừng đã thay đổi hoặc không cho phép thao tác này.",
+  );
+}
+
+/** Ghi audit lỗi / quá hạn trong transaction: thay đổi không được lưu — client thử lại sau. */
+export function stopPointAuditUnavailable(): HttpException {
+  return problem(
+    HttpStatus.SERVICE_UNAVAILABLE,
+    "SERVICE_UNAVAILABLE",
+    "Chưa ghi được nhật ký nên thay đổi chưa được lưu. Vui lòng thử lại sau.",
+  );
+}

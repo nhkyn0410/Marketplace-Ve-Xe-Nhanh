@@ -106,7 +106,7 @@ test("nhân viên đăng nhập Operator OS → lỗi chung từ cổng Owner, k
   expect((await context.cookies(API)).some((cookie) => cookie.name === "vxn_access")).toBe(false);
 });
 
-test("màn đăng nhập: cấp lại mật khẩu chỉ hướng dẫn liên hệ; chưa có lối đăng ký nhà xe", async ({ page, context }) => {
+test("màn đăng nhập: cấp lại mật khẩu chỉ hướng dẫn liên hệ; có lối sang trang đăng ký nhà xe", async ({ page, context }) => {
   // Phiên của ca trước còn trong cookie → xoá để về màn đăng nhập.
   await context.clearCookies();
   await page.goto("/");
@@ -119,8 +119,9 @@ test("màn đăng nhập: cấp lại mật khẩu chỉ hướng dẫn liên h�
   await help.getByRole("button", { name: "Đã hiểu" }).click();
   await expect(help).toHaveCount(0);
 
-  // Khối "Trở thành đối tác" ẩn tới khi có form đăng ký (TASK-OPR-001).
-  await expect(page.getByText("Trở thành đối tác")).toHaveCount(0);
+  // Khối "Trở thành đối tác" dẫn sang trang đăng ký công khai (TASK-OPR-001).
+  await expect(page.getByText("Trở thành đối tác")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Đăng ký", exact: true })).toHaveAttribute("href", "/register");
 
   // Nút hiện/ẩn mật khẩu đổi kiểu ô nhập.
   const password = page.locator('input[name="password"]');

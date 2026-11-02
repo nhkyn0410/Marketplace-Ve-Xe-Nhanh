@@ -1,0 +1,12 @@
+{
+  "name": "Vé Xe Nhanh · Nhân viên",
+  "short_name": "VXN Nhân viên",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ebf5fb",
+  "theme_color": "#123d5c",
+  "description": "Bản giao diện minh họa nhân viên Vé Xe Nhanh.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": []
+}

@@ -4,6 +4,854 @@
  */
 
 export interface paths {
+    "/v1/operator/offices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_list"];
+        put?: never;
+        post: operations["SalesOfficeController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/offices/{officeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["SalesOfficeController_update"];
+        trace?: never;
+    };
+    "/v1/operator/offices/{officeId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_assignments"];
+        put: operations["SalesOfficeController_replaceAssignments"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_trips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterSalesController_hold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/holds/{holdId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_getHold"];
+        put?: never;
+        post?: never;
+        delete: operations["CounterSalesController_release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_list"];
+        put?: never;
+        post: operations["CounterSalesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings/{bookingId}/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterSalesController_collect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/counter-commissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterCommissionController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/counter-commissions/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterCommissionController_settle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/departure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorDepartureController_depart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/system/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_list"];
+        put?: never;
+        post: operations["AdminNotificationCampaignController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_estimate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_detail"];
+        put: operations["AdminNotificationCampaignController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/system/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReconciliationController_list"];
+        put?: never;
+        post: operations["AdminReconciliationController_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PreferenceController_preferences"];
+        put: operations["PreferenceController_save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/push-devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PreferenceController_device"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/push-devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PreferenceController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PreferenceController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InboxController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InboxController_unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InboxController_markAllRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/{messageId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InboxController_markRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmployeeIncidentController_list"];
+        put?: never;
+        post: operations["EmployeeIncidentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/trips/{tripId}/incident-attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmployeeIncidentController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorIncidentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/incidents/{incidentId}/resolution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorIncidentController_resolve"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/incidents/{incidentId}/evidence/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorIncidentController_download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminIncidentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/incidents/{incidentId}/evidence/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminIncidentController_download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/journey-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmployeeJourneyLogController_list"];
+        put?: never;
+        post: operations["EmployeeJourneyLogController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/journey-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorJourneyLogController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/journey-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminJourneyLogController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/stops/{sequence}/pickup-window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PickupWindowController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_get"];
+        put: operations["PassengerProfileController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/saved-passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_saved"];
+        put?: never;
+        post: operations["PassengerProfileController_createSaved"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/saved-passengers/{passengerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PassengerProfileController_updateSaved"];
+        post?: never;
+        delete: operations["PassengerProfileController_deleteSaved"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_bookings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_tickets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/support-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_supportTickets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerProfileController_disputes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operators/{operatorId}/public-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicOperatorProfileController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/loyalty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerLoyaltyController_member"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/loyalty/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerLoyaltyController_transactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/loyalty/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PassengerLoyaltyController_redeem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/vouchers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerLoyaltyController_vouchers"];
+        put?: never;
+        post: operations["PassengerLoyaltyController_save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -148,6 +996,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/counter/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_counterLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/employee/login": {
         parameters: {
             query?: never;
@@ -222,6 +1086,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AuthController_oauthSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/oauth/{provider}/id-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_oauthIdToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -404,6 +1284,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/managers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorManagerController_list"];
+        put?: never;
+        post: operations["OperatorManagerController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["OperatorManagerController_update"];
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorManagerController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}/mfa-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorManagerController_resetMfa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/catalog/provinces": {
         parameters: {
             query?: never;
@@ -484,6 +1428,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/catalog/popular-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listPopularRoutes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/catalog/featured-operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listFeaturedOperators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/catalog/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/provinces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCatalogController_listProvinces"];
+        put?: never;
+        post: operations["AdminCatalogController_createProvince"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/provinces/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminCatalogController_renameProvince"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/wards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCatalogController_listWards"];
+        put?: never;
+        post: operations["AdminCatalogController_createWard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/wards/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminCatalogController_renameWard"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/vehicle-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCatalogController_listVehicleTypes"];
+        put?: never;
+        post: operations["AdminCatalogController_createVehicleType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/vehicle-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminCatalogController_updateVehicleType"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/amenities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCatalogController_listAmenities"];
+        put?: never;
+        post: operations["AdminCatalogController_createAmenity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/amenities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminCatalogController_renameAmenity"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/{kind}/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCatalogController_deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/{kind}/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCatalogController_activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/vehicles": {
         parameters: {
             query?: never;
@@ -510,6 +1662,70 @@ export interface paths {
         get: operations["VehicleController_get"];
         put: operations["VehicleController_update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/vehicles/{vehicleId}/images/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VehicleImageController_createUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/vehicles/{vehicleId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["VehicleImageController_replace"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vehicle-images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminVehicleImageController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vehicle-images/{imageId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminVehicleImageController_remove"];
         delete?: never;
         options?: never;
         head?: never;
@@ -612,6 +1828,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/stop-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSharedStopPointController_list"];
+        put?: never;
+        post: operations["AdminSharedStopPointController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stop-points/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSharedStopPointController_get"];
+        put: operations["AdminSharedStopPointController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stop-point-proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStopPointProposalController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stop-point-proposals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStopPointProposalController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stop-point-proposals/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStopPointProposalController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/stop-point-proposals/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminStopPointProposalController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-stop-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorStopPointController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-stop-points/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorStopPointController_suspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-stop-points/{id}/unsuspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorStopPointController_unsuspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/routes": {
         parameters: {
             query?: never;
@@ -637,6 +1997,102 @@ export interface paths {
         };
         get: operations["RouteController_get"];
         put: operations["RouteController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/name-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RouteController_previewName"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-route-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["RouteController_subRouteSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RouteController_createSubRoute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-routes/{subRouteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["RouteController_updateSubRoute"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRouteController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/routes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRouteController_detail"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -676,6 +2132,3030 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/trips/{tripId}/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TripController_sales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TripController_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["TripController_changeStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/seats/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["TripController_setSeatStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTripController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/trips/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTripController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trip-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TripScheduleController_list"];
+        put?: never;
+        post: operations["TripScheduleController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trip-schedules/{scheduleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TripScheduleController_get"];
+        put: operations["TripScheduleController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trip-schedules/{scheduleId}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TripScheduleController_generate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trip-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmployeeAssignmentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/driver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["EmployeeAssignmentController_assignDriver"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/content-pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ContentPageController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/content-pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ContentPageController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/content-pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminContentPageController_list"];
+        put?: never;
+        post: operations["AdminContentPageController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/content-pages/image-upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminContentPageController_createImageUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/content-pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminContentPageController_get"];
+        put: operations["AdminContentPageController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/content-pages/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminContentPageController_setStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/trips/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicTripController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/trips/{tripId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicTripController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/seat-holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SeatHoldController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/seat-holds/{holdId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SeatHoldController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["SeatHoldController_release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BookingController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BookingController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings/{bookingId}/contact-reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorBookingController_revealContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_passengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/passengers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_exportPassengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PaymentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPaymentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPaymentController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TicketController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup/otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_requestOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_verifyOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_listBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup/booking-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_grantBookingAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_lookup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/cancellation-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CancellationController_quote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/cancellations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CancellationController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRefundController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRefundController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments/{paymentId}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_refundPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_hold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/bank-reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_revealBank"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/finance/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/finance/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_bookings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_payouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/payouts/{payoutId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_payout"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmployeeOperationsController_assignments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/trips/{tripId}/passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["EmployeeOperationsController_passengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/tickets/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmployeeOperationsController_verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmployeeOperationsController_checkIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/employee/trips/{tripId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmployeeOperationsController_operate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorReportingController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorReportingController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/reports/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorReportingController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReportingController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReportingController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReportingController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/support-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSupportController_list"];
+        put?: never;
+        post: operations["CustomerSupportController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/support-tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSupportController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/support-tickets/{ticketId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerSupportController_reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/support-attachments/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerSupportController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/support-attachments/{attachmentId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerSupportController_download"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/support-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorSupportController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/support-tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorSupportController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/support-tickets/{ticketId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorSupportController_reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/support-attachments/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorSupportController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/support-attachments/{attachmentId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorSupportController_download"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSupportController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSupportController_assignees"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminSupportController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminSupportController_classify"];
+        trace?: never;
+    };
+    "/v1/admin/support-tickets/{ticketId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminSupportController_reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-tickets/{ticketId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminSupportController_setStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-tickets/{ticketId}/attachments/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminSupportController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-attachments/{attachmentId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminSupportController_download"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminDisputeController_list"];
+        put?: never;
+        post: operations["AdminDisputeController_open"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support-tickets/{ticketId}/escalate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminDisputeController_escalate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes/{disputeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminDisputeController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes/{disputeId}/evidence-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminDisputeController_requestEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes/{disputeId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminDisputeController_setStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes/{disputeId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminDisputeController_decide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/disputes/{disputeId}/attachments/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminDisputeController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorDisputeController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/disputes/{disputeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorDisputeController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/disputes/{disputeId}/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorDisputeController_respond"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerDisputeController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/disputes/{disputeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerDisputeController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/disputes/{disputeId}/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerDisputeController_respond"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerReviewController_get"];
+        put?: never;
+        post: operations["CustomerReviewController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorReviewController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/reviews/{reviewId}/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorReviewController_reply"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/reviews/{reviewId}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorReviewController_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReviewController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reviews/{reviewId}/moderation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminReviewController_moderate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotion-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPromotionController_routeOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPromotionController_list"];
+        put?: never;
+        post: operations["AdminPromotionController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotions/{promotionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPromotionController_get"];
+        put: operations["AdminPromotionController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotions/{promotionId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPromotionController_setStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotion-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPromotionController_permissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/promotion-permissions/{operatorId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminPromotionController_setPermission"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorPromotionController_list"];
+        put?: never;
+        post: operations["OperatorPromotionController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/promotion-permission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorPromotionController_permission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/promotions/{promotionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorPromotionController_get"];
+        put: operations["OperatorPromotionController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/promotions/{promotionId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorPromotionController_setStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/promotions/{promotionId}/participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorPromotionController_participate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPromotionController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/promotions/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicPromotionController_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/loyalty/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminLoyaltyController_member"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/loyalty/accounts/{userId}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminLoyaltyController_transactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/loyalty/accounts/{userId}/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminLoyaltyController_adjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/loyalty/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminLoyaltyController_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/fares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FareController_list"];
+        put?: never;
+        post: operations["FareController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/fares/{fareId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FareController_get"];
+        put: operations["FareController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/fares/{fareId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FareController_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/access-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_requestAccessLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorApplicationController_get"];
+        put: operations["OperatorApplicationController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_createDocumentUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/documents/{type}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_createDocumentDownload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorApplicationReviewController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorApplicationReviewController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}/documents/{type}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationReviewController_createDocumentDownload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationReviewController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}/request-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationReviewController_requestInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationReviewController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-applications/{applicationId}/resend-owner-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationReviewController_resendOwnerCredentials"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminAuditLogController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminAuditLogController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/article-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleController_listCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/articles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/articles/{slug}/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ArticleController_recordView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminArticleController_list"];
+        put?: never;
+        post: operations["AdminArticleController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminArticleController_createImageUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminArticleController_get"];
+        put: operations["AdminArticleController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminArticleController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminArticleController_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/article-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminArticleCategoryController_list"];
+        put?: never;
+        post: operations["AdminArticleCategoryController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/article-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminArticleCategoryController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_vehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorController_suspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/unsuspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorController_unsuspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/bank-account-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_getBankChange"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/bank-account-change/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorController_approveBankChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/bank-account-change/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorController_rejectBankChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorProfileController_get"];
+        put: operations["OperatorProfileController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/logo/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorProfileController_createLogoUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorProfileController_setLogo"];
+        post?: never;
+        delete: operations["OperatorProfileController_removeLogo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/documents/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorProfileController_createUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/documents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorProfileController_replaceDocument"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/documents/{type}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorProfileController_createDownloadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/bank-account-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorProfileController_requestBankChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/policies/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPolicyController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/policies/{type}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPolicyController_createDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/policy-versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPolicyController_get"];
+        put: operations["AdminPolicyController_updateDraft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/policy-versions/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPolicyController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/policy-versions/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPolicyController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/fare-bands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPolicyController_listFareBands"];
+        put?: never;
+        post: operations["AdminPolicyController_createFareBand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/fare-bands/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPolicyController_cancelFareBand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/commission-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCommissionController_overview"];
+        put?: never;
+        post: operations["AdminCommissionController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/commission-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminCommissionController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/commission-rules/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommissionController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/system/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemStatusController_integrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/system/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemStatusController_jobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPassengerController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPassengerController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPassengerController_bookings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPassengerController_lock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPassengerController_unlock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/employees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminEmployeeController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPlatformAccountController_list"];
+        put?: never;
+        post: operations["AdminPlatformAccountController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPlatformAccountController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts/{id}/reset-mfa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPlatformAccountController_resetMfa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts/{id}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPlatformAccountController_lock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts/{id}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPlatformAccountController_unlock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/platform-accounts/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminPlatformAccountController_updatePermissions"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -687,8 +5167,1163 @@ export interface components {
             detail: string;
             instance: string;
             code: string;
+            reasons?: string[];
             requestId?: string;
             traceId?: string;
+        };
+        SalesOfficeListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                address: string;
+                active: boolean;
+                version: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        SalesOfficeDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            address: string;
+            active: boolean;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SalesOfficeInputDto: {
+            code: string;
+            name: string;
+            address: string;
+            /** @default true */
+            active: boolean;
+        };
+        SalesOfficeUpdateDto: {
+            code: string;
+            name: string;
+            address: string;
+            active: boolean;
+            version: number;
+        };
+        SalesOfficeAssignmentsDto_Output: {
+            items: {
+                /** Format: uuid */
+                employeeId: string;
+                username: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+            }[];
+        };
+        SalesOfficeAssignmentsInputDto: {
+            version: number;
+            employeeIds: string[];
+        };
+        CounterTripListDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "OPEN_FOR_SALE" | "BOARDING";
+                vehiclePlateNumber: string | null;
+                stops: {
+                    sequence: number;
+                    name: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                    allowPickup: boolean;
+                    allowDropoff: boolean;
+                }[];
+                seats: {
+                    code: string;
+                    /** @enum {string} */
+                    type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                    status: string;
+                    price: string | null;
+                }[];
+            }[];
+        };
+        CounterReportDto_Output: {
+            cash: string;
+            bankTransfer: string;
+            exceptions: string;
+            commission: string;
+            receipts: number;
+            sellers: {
+                seller: string;
+                cash: string;
+                bankTransfer: string;
+                exceptions: string;
+                commission: string;
+            }[];
+        };
+        CounterHoldInputDto: {
+            /** Format: uuid */
+            officeId: string;
+            /** Format: uuid */
+            tripId: string;
+            seatCodes: string[];
+            pickupSequence: number;
+            dropoffSequence: number;
+        };
+        CounterHoldDto_Output: {
+            /** Format: uuid */
+            holdId: string;
+            /** Format: uuid */
+            officeId: string;
+            /** Format: uuid */
+            tripId: string;
+            pickup: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                code: string;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                price: string;
+            }[];
+            subtotal: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        CounterBookingInputDto: {
+            /** Format: uuid */
+            holdId: string;
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string | null;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                phone: string | null;
+                companionName?: string | null;
+            }[];
+            note: string | null;
+            expectedTotal: string;
+        };
+        CounterBookingDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            officeId: string;
+            seller: string;
+            status: string;
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string | null;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                companionName: string | null;
+                price: string;
+            }[];
+            total: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                status: string;
+                qrToken: string;
+            }[];
+            receipts: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                method: "CASH" | "BANK_TRANSFER";
+                amount: string;
+                reference: string | null;
+                /** @enum {string} */
+                status: "COMPLETED" | "EXCEPTION";
+                exceptionReason: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        CounterBookingListDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                officeId: string;
+                seller: string;
+                status: string;
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string | null;
+                };
+                passengers: {
+                    seatCode: string;
+                    fullName: string;
+                    companionName: string | null;
+                    price: string;
+                }[];
+                total: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    companionName: string | null;
+                    status: string;
+                    qrToken: string;
+                }[];
+                receipts: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    method: "CASH" | "BANK_TRANSFER";
+                    amount: string;
+                    reference: string | null;
+                    /** @enum {string} */
+                    status: "COMPLETED" | "EXCEPTION";
+                    exceptionReason: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+            }[];
+            nextCursor: string | null;
+        };
+        CounterReceiptInputDto: {
+            /** Format: uuid */
+            idempotencyKey: string;
+            /** @enum {string} */
+            method: "CASH" | "BANK_TRANSFER";
+            amount: string;
+            reference: string | null;
+        };
+        CounterReceiptResultDto_Output: {
+            /** Format: uuid */
+            receiptId: string;
+            /** @enum {string} */
+            status: "COMPLETED" | "EXCEPTION";
+            exceptionReason: string | null;
+            booking: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                officeId: string;
+                seller: string;
+                status: string;
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string | null;
+                };
+                passengers: {
+                    seatCode: string;
+                    fullName: string;
+                    companionName: string | null;
+                    price: string;
+                }[];
+                total: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    companionName: string | null;
+                    status: string;
+                    qrToken: string;
+                }[];
+                receipts: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    method: "CASH" | "BANK_TRANSFER";
+                    amount: string;
+                    reference: string | null;
+                    /** @enum {string} */
+                    status: "COMPLETED" | "EXCEPTION";
+                    exceptionReason: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+            };
+        };
+        CounterCommissionOverviewDto_Output: {
+            /** Format: uuid */
+            operatorId: string;
+            accrued: string;
+            settled: string;
+            outstanding: string;
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                bookingId: string;
+                /** Format: uuid */
+                receiptId: string;
+                commissionRuleId: string | null;
+                rateBps: number;
+                basis: string;
+                amount: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            settlements: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                operatorId: string;
+                amount: string;
+                reference: string;
+                reason: string;
+                createdBy: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        CounterCommissionSettlementInputDto: {
+            /** Format: uuid */
+            operatorId: string;
+            /** Format: uuid */
+            idempotencyKey: string;
+            amount: string;
+            reference: string;
+            reason: string;
+        };
+        CounterCommissionSettlementDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            operatorId: string;
+            amount: string;
+            reference: string;
+            reason: string;
+            createdBy: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TripDepartureInputDto: {
+            note?: string | null;
+        };
+        TripDepartureDto_Output: {
+            /** Format: uuid */
+            tripId: string;
+            /** Format: date-time */
+            departedAt: string;
+        };
+        NotificationLogDto_Output: {
+            items: {
+                id: string;
+                notificationId: string;
+                /** @enum {string} */
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
+                /** @enum {string} */
+                channel: "EMAIL" | "PUSH" | "SMS";
+                recipientMasked: string;
+                /** @enum {string} */
+                status: "PENDING" | "SENT" | "FAILED" | "SKIPPED";
+                attempts: number;
+                lastError: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                sentAt: string | null;
+            }[];
+            total: number;
+            offset: number;
+            limit: number;
+        };
+        CampaignPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "SERVICE" | "PROMOTION" | "NEWS";
+                title: string;
+                body: string;
+                /** @enum {string} */
+                audience: "ALL" | "LOYALTY_TIER";
+                tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+                promotionId: string | null;
+                promotionLabel: string | null;
+                articleId: string | null;
+                articleLabel: string | null;
+                /** @enum {string} */
+                status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+                scheduledAt: string | null;
+                startedAt: string | null;
+                completedAt: string | null;
+                cancelledAt: string | null;
+                note: string | null;
+                recipientCount: number;
+                cappedCount: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            total: number;
+            offset: number;
+            limit: number;
+        };
+        CampaignOptionsDto_Output: {
+            promotions: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** Format: date-time */
+                endsAt: string;
+            }[];
+            articles: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+                slug: string;
+                publishedAt: string | null;
+            }[];
+        };
+        AudienceInputDto: {
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            /**
+             * @default ALL
+             * @enum {string}
+             */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+        };
+        AudienceEstimateDto_Output: {
+            recipients: number;
+            withPush: number;
+            optedOut: number;
+            capped: number;
+        };
+        CampaignInputDto: {
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /**
+             * @default ALL
+             * @enum {string}
+             */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            /** @default null */
+            promotionId: string | null;
+            /** @default null */
+            articleId: string | null;
+        };
+        CampaignDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /** @enum {string} */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            promotionId: string | null;
+            promotionLabel: string | null;
+            articleId: string | null;
+            articleLabel: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+            scheduledAt: string | null;
+            startedAt: string | null;
+            completedAt: string | null;
+            cancelledAt: string | null;
+            note: string | null;
+            recipientCount: number;
+            cappedCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CampaignDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /** @enum {string} */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            promotionId: string | null;
+            promotionLabel: string | null;
+            articleId: string | null;
+            articleLabel: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+            scheduledAt: string | null;
+            startedAt: string | null;
+            completedAt: string | null;
+            cancelledAt: string | null;
+            note: string | null;
+            recipientCount: number;
+            cappedCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            stats: {
+                read: number;
+                pushSent: number;
+                pushPending: number;
+                pushFailed: number;
+                pushSkipped: number;
+            };
+        };
+        CampaignTestInputDto: {
+            /** Format: email */
+            email: string;
+        };
+        CampaignTestResultDto_Output: {
+            pushDevices: number;
+        };
+        CampaignSendInputDto: {
+            /** @default null */
+            scheduledAt: string | null;
+        };
+        ReconciliationPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                runId: string;
+                /** @enum {string} */
+                source: "MANUAL" | "SCHEDULED";
+                /** @enum {string} */
+                status: "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED";
+                checkpoint: string;
+                paymentsChecked: number;
+                paymentErrors: number;
+                ledgerEntriesChecked: number;
+                payoutsChecked: number;
+                issueCount: number;
+                issues: {
+                    checkpoint: string;
+                    entityId: string;
+                    /** Format: uuid */
+                    operatorId: string;
+                    expected: string;
+                    actual: string;
+                }[];
+                error: string | null;
+                startedAt: string | null;
+                finishedAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        ReconciliationRequestDto: {
+            /** Format: uuid */
+            requestId: string;
+            reason: string;
+        };
+        ReconciliationRecordDto_Output: {
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            source: "MANUAL" | "SCHEDULED";
+            /** @enum {string} */
+            status: "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED";
+            checkpoint: string;
+            paymentsChecked: number;
+            paymentErrors: number;
+            ledgerEntriesChecked: number;
+            payoutsChecked: number;
+            issueCount: number;
+            issues: {
+                checkpoint: string;
+                entityId: string;
+                /** Format: uuid */
+                operatorId: string;
+                expected: string;
+                actual: string;
+            }[];
+            error: string | null;
+            startedAt: string | null;
+            finishedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PreferencesDto_Output: {
+            items: {
+                /** @enum {string} */
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
+                email: boolean;
+                push: boolean;
+                mandatory: boolean;
+            }[];
+        };
+        PreferenceInputDto: {
+            /** @enum {string} */
+            kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
+            email: boolean;
+            push: boolean;
+        };
+        DeviceInputDto: {
+            /** @enum {string} */
+            provider: "FCM" | "APNS";
+            token: string;
+        };
+        DeviceDto_Output: {
+            /** Format: uuid */
+            id: string;
+            provider: string;
+            active: boolean;
+        };
+        InboxPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
+                title: string;
+                body: string;
+                linkType: ("PROMOTION" | "ARTICLE" | "BOOKING") | null;
+                linkTarget: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                readAt: string | null;
+            }[];
+            nextCursor: string | null;
+            unreadCount: number;
+        };
+        UnreadCountDto_Output: {
+            unreadCount: number;
+        };
+        IncidentInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            /** @enum {string} */
+            type: "VEHICLE" | "TRAFFIC" | "PASSENGER" | "SAFETY" | "OTHER";
+            /** @enum {string} */
+            severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+            description: string;
+            /** @default null */
+            location: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @default [] */
+            evidence: {
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        IncidentDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            operatorId: string;
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            employeeId: string;
+            /** @enum {string} */
+            type: "VEHICLE" | "TRAFFIC" | "PASSENGER" | "SAFETY" | "OTHER";
+            /** @enum {string} */
+            severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+            description: string;
+            location: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            resolvedAt: string | null;
+            resolvedBy: string | null;
+            resolution: string | null;
+            evidence: {
+                objectKey: string;
+                fileName: string;
+                contentType: string;
+                sizeBytes: number;
+            }[];
+        };
+        IncidentPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                operatorId: string;
+                /** Format: uuid */
+                tripId: string;
+                /** Format: uuid */
+                employeeId: string;
+                /** @enum {string} */
+                type: "VEHICLE" | "TRAFFIC" | "PASSENGER" | "SAFETY" | "OTHER";
+                /** @enum {string} */
+                severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                description: string;
+                location: string | null;
+                /** Format: date-time */
+                occurredAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                resolvedAt: string | null;
+                resolvedBy: string | null;
+                resolution: string | null;
+                evidence: {
+                    objectKey: string;
+                    fileName: string;
+                    contentType: string;
+                    sizeBytes: number;
+                }[];
+            }[];
+            nextCursor: string | null;
+        };
+        AttachmentUploadInputDto: {
+            /** @enum {string} */
+            contentType: "application/pdf" | "image/jpeg" | "image/png";
+            sizeBytes: number;
+        };
+        AttachmentUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        IncidentResolutionDto: {
+            resolution: string;
+        };
+        DownloadUrlResponseDto_Output: {
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        JourneyLogInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            /** @default null */
+            stopSequence: number | null;
+            /** Format: date-time */
+            actualAt: string;
+            /** @default null */
+            vehicleStatus: string | null;
+            /** @default null */
+            note: string | null;
+        };
+        JourneyLogDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            operatorId: string;
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            employeeId: string;
+            stopSequence: number | null;
+            /** Format: date-time */
+            actualAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            vehicleStatus: string | null;
+            note: string | null;
+            delayMinutes: number;
+        };
+        JourneyLogPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                operatorId: string;
+                /** Format: uuid */
+                tripId: string;
+                /** Format: uuid */
+                employeeId: string;
+                stopSequence: number | null;
+                /** Format: date-time */
+                actualAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                vehicleStatus: string | null;
+                note: string | null;
+                delayMinutes: number;
+            }[];
+            nextCursor: string | null;
+        };
+        PickupWindowInputDto: {
+            start: string | null;
+            end: string | null;
+        };
+        TripResponseDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            vehicleId: string | null;
+            vehiclePlateNumber: string | null;
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            /** @enum {string} */
+            status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            seatCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            onlineSaleCutoffMinutes: number;
+            subRouteIds: string[];
+            statusReason: string | null;
+            departedAt: string | null;
+            completedAt: string | null;
+            note: string | null;
+            stops: {
+                sequence: number;
+                /** @enum {string} */
+                role: "ORIGIN" | "INTERMEDIATE" | "DESTINATION";
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+                name: string;
+                address: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                /** Format: date-time */
+                plannedAt: string;
+                pickupWindowStart: string | null;
+                pickupWindowEnd: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                note: string | null;
+            }[];
+            seats: {
+                code: string;
+                deck: number;
+                row: number;
+                column: number;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                /** @enum {string} */
+                status: "AVAILABLE" | "HOLDING" | "BOOKED" | "CHECKED_IN" | "BLOCKED";
+                price: number | null;
+            }[];
+        };
+        PassengerProfileDto_Output: {
+            userId: string;
+            name: string | null;
+            /** Format: email */
+            email: string;
+            emailVerified: boolean;
+            phone: string | null;
+            dateOfBirth: string | null;
+            image: string | null;
+        };
+        PassengerProfileUpdateDto: {
+            name?: string;
+            phone?: string | null;
+            dateOfBirth?: string | null;
+        };
+        SavedPassengerListDto_Output: {
+            items: {
+                /** Format: uuid */
+                passengerId: string;
+                fullName: string;
+                phone: string | null;
+            }[];
+        };
+        SavedPassengerInputDto: {
+            fullName: string;
+            /** @default null */
+            phone: string | null;
+        };
+        SavedPassengerDto_Output: {
+            /** Format: uuid */
+            passengerId: string;
+            fullName: string;
+            phone: string | null;
+        };
+        PassengerBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                status: string;
+                ticketStatuses: string[];
+                total: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        PassengerTicketPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                operatorName: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                status: string;
+                /** Format: date-time */
+                issuedAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        PassengerSupportPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                subject: string;
+                status: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        PassengerDisputePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                disputeId: string;
+                disputeCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                title: string;
+                status: string;
+                responseDueAt: string | null;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        PublicOperatorProfileDto_Output: {
+            /** Format: uuid */
+            operatorId: string;
+            operatorSlug: string;
+            displayName: string;
+            logoUrl: string | null;
+            description: string | null;
+            hotline: string | null;
+            publicEmail: string | null;
+            address: string | null;
+            scorecard: {
+                averageRating: number | null;
+                reviewCount: number;
+                operatorCancellationRate: number | null;
+                refundBookingRate: number | null;
+                disputeBookingRate: number | null;
+                checkInRate: number | null;
+                noShowRate: number | null;
+            };
+            routes: {
+                /** Format: uuid */
+                routeId: string;
+                name: string;
+            }[];
+            serviceTerms: {
+                title: string;
+                contentMarkdown: string;
+            } | null;
+            reviews: {
+                /** Format: uuid */
+                reviewId: string;
+                authorName: string;
+                rating: number;
+                comment: string | null;
+                operatorReply: string | null;
+                operatorRepliedAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextReviewCursor: string | null;
+        };
+        PassengerLoyaltyDto_Output: {
+            userId: string;
+            name: string | null;
+            email: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            /** Format: date-time */
+            memberSince: string;
+            availablePoints: number;
+            earned12m: number;
+            /** @enum {string} */
+            tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+            nextTier: {
+                /** @enum {string} */
+                tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                minPoints: number;
+                remaining: number;
+            } | null;
+            policyVersion: number | null;
+            rules: {
+                earnUnit: number;
+                pointValue: number;
+                minRedeemPoints: number;
+                pointExpiryMonths: number;
+                voucherValidityDays: number;
+                tiers: {
+                    /** @enum {string} */
+                    tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                    minPoints: number;
+                    multiplierPercent: number;
+                }[];
+            } | null;
+        };
+        PassengerLoyaltyTransactionsDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "EARN" | "REDEEM" | "EXPIRE" | "ADJUST" | "REVERSAL";
+                points: number;
+                /** @enum {string} */
+                tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                sourceLabel: string;
+                reason: string | null;
+                policyVersion: number | null;
+                expiresAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            total: number;
+            totals: {
+                earned: number;
+                redeemed: number;
+                expired: number;
+            };
+        };
+        LoyaltyRedemptionInputDto: {
+            points: number;
+        };
+        UserVoucherDto_Output: {
+            /** Format: uuid */
+            userVoucherId: string;
+            /** @enum {string} */
+            source: "LOYALTY_REDEMPTION" | "SAVED_PROMOTION";
+            /** @enum {string} */
+            status: "AVAILABLE" | "RESERVED" | "USED" | "EXPIRED";
+            promotionCode: string | null;
+            name: string;
+            discountAmount: string | null;
+            /** @enum {string} */
+            discountType: "PERCENT" | "AMOUNT";
+            discountValue: string;
+            maxDiscount: string | null;
+            minOrder: string;
+            appliesTo: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        UserVoucherPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                userVoucherId: string;
+                /** @enum {string} */
+                source: "LOYALTY_REDEMPTION" | "SAVED_PROMOTION";
+                /** @enum {string} */
+                status: "AVAILABLE" | "RESERVED" | "USED" | "EXPIRED";
+                promotionCode: string | null;
+                name: string;
+                discountAmount: string | null;
+                /** @enum {string} */
+                discountType: "PERCENT" | "AMOUNT";
+                discountValue: string;
+                maxDiscount: string | null;
+                minOrder: string;
+                appliesTo: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            total: number;
+        };
+        SaveVoucherInputDto: {
+            promotionCode: string;
         };
         HealthResponseDto_Output: {
             /** @constant */
@@ -829,6 +6464,9 @@ export interface components {
             passwordChangeToken: string;
             newPassword: string;
         };
+        OAuthIdTokenDto: {
+            idToken: string;
+        };
         OAuthInitDto: {
             /** Format: uri */
             callbackURL?: string;
@@ -851,6 +6489,7 @@ export interface components {
             /** Format: date-time */
             accessExpiresAt: string;
             mfaVerified: boolean;
+            permissions: string[];
             operatorId?: string;
             operatorSlug?: string;
         };
@@ -904,10 +6543,12 @@ export interface components {
                 username: string;
                 contactEmail: string | null;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 credentialDeliveryPending: boolean;
+                passwordChangeRequired: boolean;
+                temporaryPasswordExpiresAt: string | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -920,7 +6561,7 @@ export interface components {
             /** Format: email */
             contactEmail: string;
             /** @enum {string} */
-            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             reason: string;
         };
         EmployeeAccountResponseDto_Output: {
@@ -929,10 +6570,12 @@ export interface components {
             username: string;
             contactEmail: string | null;
             /** @enum {string} */
-            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             credentialDeliveryPending: boolean;
+            passwordChangeRequired: boolean;
+            temporaryPasswordExpiresAt: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -943,7 +6586,7 @@ export interface components {
             /** Format: email */
             contactEmail?: string;
             /** @enum {string} */
-            role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             /** @enum {string} */
             status?: "ACTIVE" | "LOCKED" | "DISABLED";
             reason: string;
@@ -954,6 +6597,56 @@ export interface components {
         AccountMutationResponseDto_Output: {
             /** @constant */
             status: "ok";
+        };
+        ManagerListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                contactEmail: string | null;
+                permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                mfaEnabled: boolean;
+                passwordChangeRequired: boolean;
+                credentialDeliveryPending: boolean;
+                temporaryPasswordExpiresAt: string | null;
+                lastLoginAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        ManagerCreateDto: {
+            username: string;
+            /** Format: email */
+            contactEmail: string;
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            reason: string;
+        };
+        ManagerAccountDto_Output: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            contactEmail: string | null;
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            mfaEnabled: boolean;
+            passwordChangeRequired: boolean;
+            credentialDeliveryPending: boolean;
+            temporaryPasswordExpiresAt: string | null;
+            lastLoginAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ManagerUpdateDto: {
+            permissions?: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            /** @enum {string} */
+            status?: "ACTIVE" | "LOCKED";
+            reason: string;
+        };
+        ManagerReasonDto: {
+            reason: string;
         };
         ProvinceListResponseDto_Output: {
             items: {
@@ -1012,6 +6705,226 @@ export interface components {
                 name: string;
             }[];
         };
+        PopularRouteListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                originProvinceId: string;
+                originName: string;
+                /** Format: uuid */
+                destinationProvinceId: string;
+                destinationName: string;
+                distanceMeters: number;
+                durationSeconds: number;
+                minPrice: number | null;
+                vehicleTypeNames: string[];
+                nextDepartureAt: string | null;
+                operatorCount: number;
+                averageRating: number | null;
+                reviewCount: number;
+            }[];
+        };
+        FeaturedOperatorListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                operatorId: string;
+                displayName: string;
+                logoUrl: string | null;
+                averageRating: number | null;
+                reviewCount: number;
+                routes: {
+                    /** Format: uuid */
+                    originProvinceId: string;
+                    originName: string;
+                    /** Format: uuid */
+                    destinationProvinceId: string;
+                    destinationName: string;
+                }[];
+            }[];
+        };
+        PlaceSuggestionListResponseDto_Output: {
+            items: {
+                /** @enum {string} */
+                kind: "PROVINCE" | "AREA" | "WARD" | "STOP_POINT" | "LEGACY";
+                label: string;
+                detail: string | null;
+                target: {
+                    /** @enum {string} */
+                    type: "province" | "ward" | "area" | "stopPoint";
+                    id: string;
+                };
+            }[];
+        };
+        AdminProvincePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                wardCount: number;
+                stopPointCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminProvinceInputDto: {
+            code: string;
+            name: string;
+        };
+        AdminProvinceDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            wardCount: number;
+            stopPointCount: number;
+        };
+        AdminCatalogRenameDto: {
+            name: string;
+        };
+        AdminWardPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                /** Format: uuid */
+                provinceId: string;
+                provinceName: string;
+                stopPointCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminWardInputDto: {
+            /** Format: uuid */
+            provinceId: string;
+            code: string;
+            name: string;
+        };
+        AdminWardDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            provinceId: string;
+            provinceName: string;
+            stopPointCount: number;
+        };
+        AdminVehicleTypeListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                description: string | null;
+                /** @enum {string} */
+                form: "SEATER" | "SLEEPER" | "CABIN";
+                /** @enum {string} */
+                class: "STANDARD" | "LIMOUSINE";
+                vehicleCount: number;
+                operatorCount: number;
+                fareRuleCount: number;
+            }[];
+        };
+        AdminVehicleTypeInputDto: {
+            code: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            form: "SEATER" | "SLEEPER" | "CABIN";
+            /** @enum {string} */
+            class: "STANDARD" | "LIMOUSINE";
+        };
+        AdminVehicleTypeDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            description: string | null;
+            /** @enum {string} */
+            form: "SEATER" | "SLEEPER" | "CABIN";
+            /** @enum {string} */
+            class: "STANDARD" | "LIMOUSINE";
+            vehicleCount: number;
+            operatorCount: number;
+            fareRuleCount: number;
+        };
+        AdminVehicleTypeUpdateDto: {
+            name: string;
+            description: string | null;
+        };
+        AdminAmenityListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                vehicleCount: number;
+            }[];
+        };
+        AdminAmenityInputDto: {
+            code: string;
+            name: string;
+        };
+        AdminAmenityDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            vehicleCount: number;
+        };
+        AdminCatalogDeactivateDto: {
+            reason: string;
+        };
         VehicleListResponseDto_Output: {
             items: {
                 /** Format: uuid */
@@ -1035,6 +6948,15 @@ export interface components {
                 } | null;
                 seatMapLocked: boolean;
                 amenityIds: string[];
+                images: {
+                    /** Format: uuid */
+                    id: string;
+                    objectKey: string;
+                    /** Format: uri */
+                    url: string;
+                    position: number;
+                    caption: string | null;
+                }[];
                 /** @enum {string} */
                 status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
                 description: string | null;
@@ -1067,6 +6989,15 @@ export interface components {
             } | null;
             seatMapLocked: boolean;
             amenityIds: string[];
+            images: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uri */
+                url: string;
+                position: number;
+                caption: string | null;
+            }[];
             /** @enum {string} */
             status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
             description: string | null;
@@ -1084,6 +7015,63 @@ export interface components {
             /** @enum {string} */
             status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
             description: string | null;
+        };
+        VehicleImageUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        VehicleImageUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        VehicleImagesInputDto: {
+            images: {
+                objectKey: string;
+                caption: string | null;
+            }[];
+        };
+        VehicleImagesResponseDto_Output: {
+            images: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uri */
+                url: string;
+                position: number;
+                caption: string | null;
+            }[];
+        };
+        AdminVehicleImageListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                url: string;
+                caption: string | null;
+                position: number;
+                isCover: boolean;
+                /** Format: uuid */
+                vehicleId: string;
+                plateNumber: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            operators: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
+        AdminRemoveVehicleImageInputDto: {
+            reason: string;
         };
         SeatMapListResponseDto_Output: {
             items: {
@@ -1276,17 +7264,241 @@ export interface components {
             rejectionReason: string | null;
             catalogStopPointId: string | null;
         };
+        AdminSharedStopPointListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                address: string;
+                /** Format: uuid */
+                provinceId: string;
+                /** Format: uuid */
+                wardId: string;
+                latitude: number;
+                longitude: number;
+                description: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                provinceName: string;
+                legalBasis: string | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                routeCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminSharedStopPointDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+            address: string;
+            /** Format: uuid */
+            provinceId: string;
+            /** Format: uuid */
+            wardId: string;
+            latitude: number;
+            longitude: number;
+            description: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            provinceName: string;
+            legalBasis: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            routeCount: number;
+        };
+        AdminSharedStopPointInputDto: {
+            name: string;
+            address: string;
+            /** Format: uuid */
+            provinceId: string;
+            /** Format: uuid */
+            wardId: string;
+            latitude: number;
+            longitude: number;
+            description: string | null;
+            /** @enum {string} */
+            type: "BUS_STATION" | "PICKUP_POINT" | "REST_STOP";
+            legalBasis: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        AdminStopPointProposalListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                address: string;
+                /** Format: uuid */
+                provinceId: string;
+                /** Format: uuid */
+                wardId: string;
+                latitude: number;
+                longitude: number;
+                description: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                provinceName: string;
+                legalBasis: string;
+                /** @enum {string} */
+                status: "PENDING" | "APPROVED" | "REJECTED";
+                rejectionReason: string | null;
+                catalogStopPointId: string | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                nearby: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    latitude: number;
+                    longitude: number;
+                    distanceMeters: number;
+                    routeCount: number;
+                }[];
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminStopPointProposalDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+            address: string;
+            /** Format: uuid */
+            provinceId: string;
+            /** Format: uuid */
+            wardId: string;
+            latitude: number;
+            longitude: number;
+            description: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            provinceName: string;
+            legalBasis: string;
+            /** @enum {string} */
+            status: "PENDING" | "APPROVED" | "REJECTED";
+            rejectionReason: string | null;
+            catalogStopPointId: string | null;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            nearby: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                latitude: number;
+                longitude: number;
+                distanceMeters: number;
+                routeCount: number;
+            }[];
+        };
+        AdminStopPointProposalApprovalDto: {
+            name: string;
+            address: string;
+            /** Format: uuid */
+            provinceId: string;
+            /** Format: uuid */
+            wardId: string;
+            latitude: number;
+            longitude: number;
+            description: string | null;
+            /** @enum {string} */
+            type: "BUS_STATION" | "PICKUP_POINT";
+            legalBasis: string;
+        };
+        StopPointReasonInputDto: {
+            reason: string;
+        };
+        AdminOperatorStopPointListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                address: string;
+                /** Format: uuid */
+                provinceId: string;
+                /** Format: uuid */
+                wardId: string;
+                latitude: number;
+                longitude: number;
+                description: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                provinceName: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+                suspensionReason: string | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                routeCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminOperatorStopPointDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+            address: string;
+            /** Format: uuid */
+            provinceId: string;
+            /** Format: uuid */
+            wardId: string;
+            latitude: number;
+            longitude: number;
+            description: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            provinceName: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+            suspensionReason: string | null;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            routeCount: number;
+        };
         RouteListResponseDto_Output: {
             items: {
                 /** Format: uuid */
                 id: string;
                 name: string;
                 /** @enum {string} */
-                status: "ACTIVE" | "INACTIVE";
+                nameSource: "AUTO" | "MANUAL";
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
                 totalDistanceMeters: number;
                 totalDurationSeconds: number;
                 /** @enum {string} */
                 metricsSource: "GOONG" | "ESTIMATE";
+                parentRouteId: string | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1294,6 +7506,27 @@ export interface components {
                 stopCount: number;
                 originName: string;
                 destinationName: string;
+                subRoutes: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    /** @enum {string} */
+                    nameSource: "AUTO" | "MANUAL";
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE" | "DRAFT";
+                    totalDistanceMeters: number;
+                    totalDurationSeconds: number;
+                    /** @enum {string} */
+                    metricsSource: "GOONG" | "ESTIMATE";
+                    parentRouteId: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    updatedAt: string;
+                    stopCount: number;
+                    originName: string;
+                    destinationName: string;
+                }[];
             }[];
             nextCursor: string | null;
         };
@@ -1302,15 +7535,51 @@ export interface components {
             id: string;
             name: string;
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            nameSource: "AUTO" | "MANUAL";
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
             totalDistanceMeters: number;
             totalDurationSeconds: number;
             /** @enum {string} */
             metricsSource: "GOONG" | "ESTIMATE";
+            parentRouteId: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            parentRouteName: string | null;
+            needsReview: boolean;
+            subRoutes: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                nameSource: "AUTO" | "MANUAL";
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
+                totalDistanceMeters: number;
+                totalDurationSeconds: number;
+                from: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                to: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                needsReview: boolean;
+                fare: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE";
+                    minPrice: number | null;
+                    maxPrice: number | null;
+                } | null;
+            }[];
+            suggestedName: string | null;
             note: string | null;
             stops: {
                 sequence: number;
@@ -1329,12 +7598,32 @@ export interface components {
                 allowDropoff: boolean;
                 distanceMetersFromPrevious: number | null;
                 durationSecondsFromPrevious: number | null;
+                measuredDurationSecondsFromPrevious: number | null;
             }[];
+        };
+        RouteNamePreviewInputDto: {
+            stops: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+                note: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                durationMinutesFromPrevious?: number | null;
+            }[];
+            routeId?: string | null;
+        };
+        RouteNamePreviewDto_Output: {
+            name: string;
         };
         RouteInputDto: {
             name: string;
+            /**
+             * @default MANUAL
+             * @enum {string}
+             */
+            nameSource: "AUTO" | "MANUAL";
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
             note: string | null;
             stops: {
                 catalogStopPointId: string | null;
@@ -1342,6 +7631,153 @@ export interface components {
                 note: string | null;
                 allowPickup: boolean;
                 allowDropoff: boolean;
+                durationMinutesFromPrevious?: number | null;
+            }[];
+        };
+        SubRouteSuggestionListDto_Output: {
+            items: {
+                from: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                to: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                name: string;
+                totalDistanceMeters: number;
+                totalDurationSeconds: number;
+                suggestedRules: {
+                    vehicleTypeId: string | null;
+                    seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                    validFrom: string | null;
+                    validTo: string | null;
+                    price: number;
+                }[] | null;
+            }[];
+        };
+        SubRouteInputDto: {
+            from: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            };
+            to: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            };
+            name: string;
+            /** @enum {string} */
+            nameSource: "AUTO" | "MANUAL";
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
+            note: string | null;
+        };
+        AdminRoutePageDto_Output: {
+            items: {
+                trips: number;
+                completedTrips: number;
+                cancelledTrips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number | null;
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                origin: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                } | null;
+                destination: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                } | null;
+                stopCount: number;
+                distanceMeters: number;
+                durationSeconds: number;
+                upcomingTrips: number;
+                averageRating: number | null;
+                reviewCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+        };
+        AdminRouteDetailDto_Output: {
+            trips: number;
+            completedTrips: number;
+            cancelledTrips: number;
+            seats: number;
+            ticketsSold: number;
+            ticketRevenue: number | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            origin: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            destination: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            stopCount: number;
+            distanceMeters: number;
+            durationSeconds: number;
+            upcomingTrips: number;
+            averageRating: number | null;
+            reviewCount: number;
+            note: string | null;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+            stops: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                shared: boolean;
+                provinceName: string | null;
+                latitude: number;
+                longitude: number;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                distanceMetersFromPrevious: number | null;
+                durationSecondsFromPrevious: number | null;
+            }[];
+            nextTrips: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                departureAt: string;
+                status: string;
+                vehiclePlate: string | null;
+                seats: number;
+                ticketsSold: number;
             }[];
         };
         TripListResponseDto_Output: {
@@ -1367,7 +7803,200 @@ export interface components {
             }[];
             nextCursor: string | null;
         };
-        TripResponseDto_Output: {
+        TripInputDto: {
+            /** Format: uuid */
+            routeId: string;
+            vehicleId: string | null;
+            /** Format: date-time */
+            departureAt: string;
+            stopTimes: string[] | null;
+            onlineSaleCutoffMinutes: number;
+            note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
+        };
+        TripSalesDto_Output: {
+            soldSeats: number;
+            holdingSeats: number;
+            activeBookings: number;
+            pendingBookings: number;
+            refundOnCancel: number;
+            changes: {
+                /** Format: uuid */
+                id: string;
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
+                affectedBookings: number;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        TripChangeInputDto: {
+            /** Format: date-time */
+            departureAt: string;
+            stopTimes: string[] | null;
+            /** Format: uuid */
+            vehicleId: string;
+            stops: {
+                sequence: number;
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            }[];
+            reason: string;
+        };
+        TripStatusInputDto: {
+            /** @enum {string} */
+            status: "OPEN_FOR_SALE" | "LOCKED" | "DRAFT" | "CANCELLED";
+            reason: string | null;
+        };
+        TripSeatStatusInputDto: {
+            seatCodes: string[];
+            /** @enum {string} */
+            status: "BLOCKED" | "AVAILABLE";
+            note: string | null;
+        };
+        AdminTripPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                vehiclePlate: string | null;
+                seats: number;
+                ticketsSold: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+        };
+        AdminTripDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            /** @enum {string} */
+            status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            vehiclePlate: string | null;
+            seats: number;
+            ticketsSold: number;
+            statusReason: string | null;
+            departedAt: string | null;
+            completedAt: string | null;
+            onlineSaleCutoffMinutes: number;
+            vehicleTypeName: string | null;
+            stops: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+            }[];
+            seatSummary: {
+                available: number;
+                holding: number;
+                booked: number;
+                checkedIn: number;
+                blocked: number;
+            };
+            staff: {
+                username: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+            }[];
+            bookingCount: number;
+            ticketRevenue: number | null;
+            manifest: {
+                ticketCode: string;
+                seatCode: string;
+                fullName: string;
+                companionName: string | null;
+                phone: string | null;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                bookingCode: string;
+                /** @enum {string} */
+                channel: "ONLINE" | "COUNTER";
+                guest: boolean;
+                userId: string | null;
+            }[];
+        };
+        TripScheduleListResponseDto_Output: {
+            items: {
+                subRouteIds: string[];
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                vehicleId: string | null;
+                vehiclePlateNumber: string | null;
+                departureTime: string;
+                durationMinutes: number;
+                daysOfWeek: number[];
+                /** Format: date */
+                startDate: string;
+                /** Format: date */
+                endDate: string;
+                onlineSaleCutoffMinutes: number;
+                note: string | null;
+                tripCount: number;
+                lastGeneratedAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        TripScheduleResponseDto_Output: {
+            subRouteIds: string[];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1375,32 +8004,356 @@ export interface components {
             routeName: string;
             vehicleId: string | null;
             vehiclePlateNumber: string | null;
+            departureTime: string;
+            durationMinutes: number;
+            daysOfWeek: number[];
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            onlineSaleCutoffMinutes: number;
+            note: string | null;
+            tripCount: number;
+            lastGeneratedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TripScheduleInputDto: {
+            /** Format: uuid */
+            routeId: string;
+            vehicleId: string | null;
+            departureTime: string;
+            daysOfWeek: number[];
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            onlineSaleCutoffMinutes: number;
+            note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
+        };
+        TripScheduleGenerateInputDto: {
+            openForSale: boolean;
+        };
+        TripScheduleGenerateResponseDto_Output: {
+            created: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date */
+                serviceDate: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE";
+                notOpenedReasons: string[];
+            }[];
+            skipped: {
+                /** Format: date */
+                serviceDate: string;
+                /** @enum {string} */
+                reason: "EXISTS" | "PAST" | "VEHICLE_CONFLICT";
+            }[];
+        };
+        TripAssignmentPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                routeName: string;
+                vehiclePlateNumber: string | null;
+                driver: {
+                    /** Format: uuid */
+                    employeeId: string;
+                    username: string;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "LOCKED" | "DISABLED";
+                } | null;
+                conflict: {
+                    /** Format: uuid */
+                    tripId: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                } | null;
+                reasonRequired: boolean;
+                editable: boolean;
+            }[];
+            nextCursor: string | null;
+        };
+        DriverAssignmentInputDto: {
+            employeeId: string | null;
+            reason: string | null;
+        };
+        TripAssignmentDto_Output: {
+            /** Format: uuid */
+            tripId: string;
             /** Format: date-time */
             departureAt: string;
             /** Format: date-time */
             arrivalAt: string;
             /** @enum {string} */
             status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
-            seatCount: number;
-            /** Format: date-time */
-            createdAt: string;
+            routeName: string;
+            vehiclePlateNumber: string | null;
+            driver: {
+                /** Format: uuid */
+                employeeId: string;
+                username: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+            } | null;
+            conflict: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            } | null;
+            reasonRequired: boolean;
+            editable: boolean;
+        };
+        PublicContentListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "FAQ" | "BANNER" | "PAGE";
+                /** @enum {string} */
+                placement: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+                title: string;
+                slug: string | null;
+                bodyMarkdown: string;
+                imageUrl: string | null;
+                linkUrl: string | null;
+                displayOrder: number;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        PublicContentItemDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "FAQ" | "BANNER" | "PAGE";
+            /** @enum {string} */
+            placement: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+            title: string;
+            slug: string | null;
+            bodyMarkdown: string;
+            imageUrl: string | null;
+            linkUrl: string | null;
+            displayOrder: number;
             /** Format: date-time */
             updatedAt: string;
+        };
+        ContentPagePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "FAQ" | "BANNER" | "PAGE";
+                /** @enum {string} */
+                placement: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+                title: string;
+                slug: string | null;
+                /** @enum {string} */
+                status: "DRAFT" | "PUBLISHED";
+                displayOrder: number;
+                imageUrl: string | null;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        ContentImageUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        ContentImageUploadResponseDto_Output: {
+            uploadUrl: string;
+            objectKey: string;
+            publicUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        ContentPageDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "FAQ" | "BANNER" | "PAGE";
+            /** @enum {string} */
+            placement: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+            title: string;
+            slug: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED";
+            displayOrder: number;
+            imageUrl: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            bodyMarkdown: string;
+            imageKey: string | null;
+            linkUrl: string | null;
+            publishedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            updatedByName: string | null;
+        };
+        ContentPageInputDto: {
+            /** @enum {string} */
+            type: "FAQ" | "BANNER" | "PAGE";
+            /** @enum {string} */
+            placement: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+            title: string;
+            slug: string | null;
+            bodyMarkdown: string;
+            imageKey: string | null;
+            linkUrl: string | null;
+            displayOrder: number;
+        };
+        ContentPageStatusInputDto: {
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED";
+        };
+        TripSearchResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                operator: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    slug: string;
+                    logoUrl?: string | null;
+                    averageRating: number | null;
+                    reviewCount: number;
+                };
+                routeName: string;
+                segmentTitle: string;
+                vehicleType: {
+                    name: string;
+                    /** @enum {string} */
+                    form: "SEATER" | "SLEEPER" | "CABIN";
+                    /** @enum {string} */
+                    class: "STANDARD" | "LIMOUSINE";
+                };
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                durationMinutes: number;
+                availableSeats: number;
+                minPrice: number;
+                vehicleCoverImageUrl: string | null;
+                amenities: {
+                    id: string;
+                    name: string;
+                }[];
+                /** Format: date-time */
+                onlineSaleClosesAt: string;
+            }[];
+            total: number;
+            page: number;
+            limit: number;
+            facets: {
+                operators: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    count: number;
+                }[];
+                priceMin: number | null;
+                priceMax: number | null;
+            };
+            widenedToProvince: {
+                from: boolean;
+                to: boolean;
+            };
+        };
+        PublicTripDto_Output: {
+            /** Format: uuid */
+            tripId: string;
+            operator: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                slug: string;
+                logoUrl?: string | null;
+                hotline: string | null;
+                averageRating: number | null;
+                reviewCount: number;
+            };
+            routeName: string;
+            segment: {
+                pickupSequence: number;
+                dropoffSequence: number;
+                title: string;
+            } | null;
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            /** Format: date-time */
+            onlineSaleClosesAt: string;
             note: string | null;
+            vehicleType: {
+                name: string;
+                /** @enum {string} */
+                form: "SEATER" | "SLEEPER" | "CABIN";
+                /** @enum {string} */
+                class: "STANDARD" | "LIMOUSINE";
+            };
+            amenities: {
+                id: string;
+                name: string;
+            }[];
+            vehicleImages: {
+                url: string;
+                caption: string | null;
+            }[];
             stops: {
                 sequence: number;
                 /** @enum {string} */
                 role: "ORIGIN" | "INTERMEDIATE" | "DESTINATION";
-                catalogStopPointId: string | null;
-                stopPointId: string | null;
                 name: string;
                 address: string;
                 /** @enum {string} */
                 type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                latitude: number;
+                longitude: number;
                 /** Format: date-time */
                 plannedAt: string;
+                pickupWindowStart: string | null;
+                pickupWindowEnd: string | null;
                 allowPickup: boolean;
                 allowDropoff: boolean;
+                pickupOpen: boolean;
                 note: string | null;
             }[];
             seats: {
@@ -1411,19 +8364,3464 @@ export interface components {
                 /** @enum {string} */
                 type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
                 /** @enum {string} */
-                status: "AVAILABLE" | "HOLDING" | "BOOKED" | "CHECKED_IN" | "BLOCKED";
+                status: "AVAILABLE" | "UNAVAILABLE";
+                price: number | null;
+            }[];
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+        };
+        SeatHoldInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            seatCodes: string[];
+            pickupSequence: number;
+            dropoffSequence: number;
+        };
+        SeatHoldResponseDto_Output: {
+            /** Format: uuid */
+            holdId: string;
+            /** Format: uuid */
+            tripId: string;
+            pickup: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                code: string;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                price: number;
+            }[];
+            subtotal: number;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        BookingInputDto: {
+            /** Format: uuid */
+            holdId: string;
+            contact: {
+                fullName: string;
+                phone: string;
+                /** Format: email */
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                phone: string | null;
+                companionName?: string | null;
+            }[];
+            note: string | null;
+            expectedTotal: number;
+            userVoucherId?: string | null;
+            promotionCode?: string | null;
+        };
+        CreatedBookingDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                fullName: string;
+                phone: string | null;
+                companionName: string | null;
+                price: number;
+            }[];
+            note: string | null;
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            /** @default null */
+            discountFunding: ("OPERATOR" | "PLATFORM") | null;
+            total: number;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            /** Format: date-time */
+            expiresAt: string;
+            payment: {
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                amount: number;
+                paidAt: string | null;
+            } | null;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                qrToken: string;
+            }[];
+            refunds: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            tripChanges: {
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** Format: date-time */
+            createdAt: string;
+            accessToken: string;
+        };
+        BookingResponseDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                fullName: string;
+                phone: string | null;
+                companionName: string | null;
+                price: number;
+            }[];
+            note: string | null;
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            /** @default null */
+            discountFunding: ("OPERATOR" | "PLATFORM") | null;
+            total: number;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            /** Format: date-time */
+            expiresAt: string;
+            payment: {
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                amount: number;
+                paidAt: string | null;
+            } | null;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                qrToken: string;
+            }[];
+            refunds: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            tripChanges: {
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        OperatorBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                /** Format: date-time */
+                createdAt: string;
+                contactName: string;
+                contactPhoneMasked: string;
+                guest: boolean;
+                trip: {
+                    /** Format: uuid */
+                    tripId: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    routeName: string;
+                    vehiclePlateNumber: string | null;
+                };
+                seatCodes: string[];
+                cancelledTicketCount: number;
+                total: number;
+                payment: {
+                    /** @enum {string} */
+                    provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                    /** @enum {string} */
+                    status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                    paidAt: string | null;
+                } | null;
+            }[];
+            nextCursor: string | null;
+        };
+        OperatorBookingDetailDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: date-time */
+            createdAt: string;
+            contactName: string;
+            contactPhoneMasked: string;
+            guest: boolean;
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                routeName: string;
+                vehiclePlateNumber: string | null;
+            };
+            seatCodes: string[];
+            cancelledTicketCount: number;
+            total: number;
+            payment: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                paidAt: string | null;
+            } | null;
+            contactEmailMasked: string | null;
+            note: string | null;
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                passengerName: string;
+                companionName: string | null;
+                phoneMasked: string | null;
+                ticketCode: string | null;
+                ticketStatus: ("VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED") | null;
+            }[];
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            /** @default null */
+            discountFunding: ("OPERATOR" | "PLATFORM") | null;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            histories: {
+                fromStatus: ("PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED") | null;
+                /** @enum {string} */
+                toStatus: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                reason: string | null;
+                actor: string;
+                /** Format: date-time */
+                createdAt: string;
             }[];
         };
-        TripInputDto: {
+        BookingContactDto_Output: {
+            fullName: string;
+            phone: string;
+            email: string | null;
+            passengers: {
+                seatCode: string;
+                phone: string | null;
+            }[];
+        };
+        TripPassengerListDto_Output: {
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                routeName: string;
+                vehiclePlateNumber: string | null;
+                seatCount: number;
+            };
+            summary: {
+                sold: number;
+                checkedIn: number;
+                notBoarded: number;
+                noShow: number;
+            };
+            pickups: {
+                sequence: number;
+                name: string;
+            }[];
+            items: {
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                phoneMasked: string | null;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                guest: boolean;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                };
+                ticketCode: string;
+                /** @enum {string} */
+                ticketStatus: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            }[];
+        };
+        PaymentInputDto: {
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+        };
+        PaymentResponseDto_Output: {
             /** Format: uuid */
-            routeId: string;
-            vehicleId: string | null;
+            paymentId: string;
+            paymentCode: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            /** @enum {string} */
+            status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            amount: number;
+            paymentUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+            transfer?: {
+                qrCode: string;
+                bin: string;
+                accountNumber: string;
+                accountName: string;
+                amount: string;
+                description: string;
+                paymentLinkId: string;
+            };
+        };
+        AdminPaymentPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                paymentId: string;
+                paymentCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                amount: number;
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reconcileReason: string | null;
+                failureCode: string | null;
+                reconcileResolved: boolean;
+                /** Format: date-time */
+                createdAt: string;
+                paidAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            reconcileOpen: number;
+        };
+        AdminPaymentDetailDto_Output: {
+            /** Format: uuid */
+            paymentId: string;
+            paymentCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            amount: number;
+            /** @enum {string} */
+            status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            reconcileReason: string | null;
+            failureCode: string | null;
+            reconcileResolved: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            paidAt: string | null;
+            providerTxnId: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            lastCallbackAt: string | null;
+            amountMatches: boolean | null;
+            booking: {
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                contactName: string;
+                seatCodes: string[];
+                subtotal: number;
+                serviceFee: number;
+                discount: number;
+                total: number;
+                /** Format: date-time */
+                createdAt: string;
+            };
+            allocation: {
+                commissionAmount: number;
+                commissionRateBps: number | null;
+                operatorNet: number;
+            } | null;
+            histories: {
+                fromStatus: ("INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING") | null;
+                /** @enum {string} */
+                toStatus: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            tickets: {
+                ticketCode: string;
+                seatCode: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                /** Format: date-time */
+                issuedAt: string;
+            }[];
+            ledger: {
+                /** @enum {string} */
+                entryType: "PAYMENT_CAPTURED" | "COMMISSION" | "REFUND" | "COMMISSION_REVERSAL" | "PLATFORM_FUNDED_DISCOUNT" | "PLATFORM_FUNDED_DISCOUNT_REVERSAL" | "PAYOUT" | "ADJUSTMENT";
+                amount: number;
+                /** Format: date-time */
+                eligibleAt: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            refunds: {
+                /** Format: uuid */
+                refundId: string;
+                refundCode: string;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                amount: number;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            canRefund: boolean;
+        };
+        TicketResponseDto_Output: {
+            /** Format: uuid */
+            ticketId: string;
+            ticketCode: string;
+            /** @enum {string} */
+            status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            seatCode: string;
+            /** @enum {string} */
+            seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+            passengerName: string;
+            companionName: string | null;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            bookingStatus: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            qrToken: string;
+            /** Format: date-time */
+            issuedAt: string;
+            checkedInAt: string | null;
+        };
+        TicketLookupOtpInputDto: {
+            bookingCode?: string;
+            /** Format: email */
+            email: string;
+        };
+        TicketLookupOtpResponseDto_Output: {
+            maskedEmail: string;
+            expiresInSeconds: number;
+            resendAfterSeconds: number;
+            maxAttempts: number;
+        };
+        TicketLookupVerifyInputDto: {
+            bookingCode?: string;
+            /** Format: email */
+            email: string;
+            otp: string;
+        };
+        TicketLookupSessionDto_Output: {
+            lookupToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        TicketLookupSessionInputDto: {
+            lookupToken: string;
+        };
+        TicketLookupBookingListDto_Output: {
+            maskedEmail: string;
+            /** @enum {string} */
+            scope: "BOOKING" | "EMAIL";
+            hasAccount: boolean;
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                routeName: string;
+                operatorName: string;
+                /** Format: date-time */
+                departureAt: string;
+                ticketCount: number;
+                ticketStatuses: string[];
+                total: number;
+                bookedWithAccount: boolean;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        TicketLookupInputDto: {
+            lookupToken: string;
+            /** Format: uuid */
+            bookingId?: string;
+        };
+        TicketLookupAccessDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            accessToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        CancellationQuoteDto_Output: {
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                price: number;
+                cancellable: boolean;
+                reason: string | null;
+            }[];
+            tier: {
+                minHoursBefore: number;
+                refundPercent: number;
+            } | null;
+            refundPercent: number;
+            selectedTotal: number;
+            refundAmount: number;
+            nonRefundable: number;
+        };
+        CancellationInputDto: {
+            ticketIds: string[];
+            expectedRefund: number;
+            reason: string | null;
+        };
+        CancellationResultDto_Output: {
+            booking: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    operatorName: string;
+                    operatorHotline: string | null;
+                    vehicleTypeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string;
+                };
+                passengers: {
+                    seatCode: string;
+                    /** @enum {string} */
+                    seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                    fullName: string;
+                    phone: string | null;
+                    companionName: string | null;
+                    price: number;
+                }[];
+                note: string | null;
+                subtotal: number;
+                serviceFee: number;
+                discount: number;
+                /** @default null */
+                discountFunding: ("OPERATOR" | "PLATFORM") | null;
+                total: number;
+                cancellationPolicy: {
+                    tiers: {
+                        minHoursBefore: number;
+                        refundPercent: number;
+                    }[];
+                };
+                /** Format: date-time */
+                expiresAt: string;
+                payment: {
+                    paymentCode: string;
+                    /** @enum {string} */
+                    provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                    /** @enum {string} */
+                    status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                    amount: number;
+                    paidAt: string | null;
+                } | null;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    companionName: string | null;
+                    /** @enum {string} */
+                    status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                    qrToken: string;
+                }[];
+                refunds: {
+                    refundCode: string;
+                    amount: number;
+                    /** @enum {string} */
+                    status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                tripChanges: {
+                    kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                    before: {
+                        /** Format: date-time */
+                        departureAt: string;
+                        /** Format: date-time */
+                        arrivalAt: string;
+                        vehiclePlateNumber: string | null;
+                        stops: {
+                            sequence: number;
+                            name: string;
+                        }[];
+                    };
+                    after: {
+                        /** Format: date-time */
+                        departureAt: string;
+                        /** Format: date-time */
+                        arrivalAt: string;
+                        vehiclePlateNumber: string | null;
+                        stops: {
+                            sequence: number;
+                            name: string;
+                        }[];
+                    };
+                    reason: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                /** Format: date-time */
+                createdAt: string;
+            };
+            refund: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+            } | null;
+        };
+        AdminRefundPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                refundId: string;
+                refundCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                paymentId: string;
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                source: "CUSTOMER" | "OPERATOR" | "PLATFORM";
+                amount: number;
+                refundPercent: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                failureCode: string | null;
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminRefundDetailDto_Output: {
+            /** Format: uuid */
+            refundId: string;
+            refundCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            paymentId: string;
+            paymentCode: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            source: "CUSTOMER" | "OPERATOR" | "PLATFORM";
+            amount: number;
+            refundPercent: number;
+            /** @enum {string} */
+            status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+            failureCode: string | null;
+            reason: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            paidAmount: number;
+            /** @enum {string} */
+            paymentStatus: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            attempt: number;
+            providerRefundId: string | null;
+            bankReference: string | null;
+            processedAt: string | null;
+            tickets: {
+                ticketCode: string;
+                seatCode: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            }[];
+            histories: {
+                fromStatus: ("REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED") | null;
+                /** @enum {string} */
+                toStatus: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            canRetry: boolean;
+            canResolve: boolean;
+        };
+        RefundReasonInputDto: {
+            reason: string;
+        };
+        RefundResolveInputDto: {
+            reference: string;
+            reason: string;
+        };
+        PayoutPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                payoutId: string;
+                payoutCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: date */
+                period: string;
+                /** @enum {string} */
+                status: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                grossAmount: number;
+                commissionAmount: number;
+                refundAmount: number;
+                adjustmentAmount: number;
+                amount: number;
+                commissionRateBps: number | null;
+                holdReason: string | null;
+                bank: {
+                    bankName: string;
+                    accountNumberMasked: string;
+                    accountHolder: string;
+                } | null;
+                paidAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        AdminPayoutStatsDto_Output: {
+            pendingReview: {
+                count: number;
+                amount: number;
+            };
+            readyToTransfer: {
+                count: number;
+                amount: number;
+            };
+            onHold: {
+                count: number;
+                amount: number;
+            };
+            paidThisMonth: {
+                count: number;
+                amount: number;
+            };
+        };
+        PayoutDetailDto_Output: {
+            /** Format: uuid */
+            payoutId: string;
+            payoutCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** Format: date */
+            period: string;
+            /** @enum {string} */
+            status: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+            grossAmount: number;
+            commissionAmount: number;
+            refundAmount: number;
+            adjustmentAmount: number;
+            amount: number;
+            commissionRateBps: number | null;
+            holdReason: string | null;
+            bank: {
+                bankName: string;
+                accountNumberMasked: string;
+                accountHolder: string;
+            } | null;
+            paidAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            trips: {
+                tripId: string | null;
+                departureAt: string | null;
+                routeName: string | null;
+                vehiclePlateNumber: string | null;
+                bookingCount: number;
+                grossAmount: number;
+                commissionAmount: number;
+                refundAdjustmentAmount: number;
+                amount: number;
+            }[];
+            checks: {
+                ledgerMatches: boolean;
+                noPendingRefunds: boolean;
+                bankVerified: boolean;
+            };
+            bankReference: string | null;
+            transferredAt: string | null;
+            confirmationNote: string | null;
+            cancelReason: string | null;
+            histories: {
+                fromStatus: ("PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED") | null;
+                /** @enum {string} */
+                toStatus: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        PayoutReasonInputDto: {
+            reason: string;
+        };
+        PayoutConfirmInputDto: {
+            bankReference: string;
+            /** Format: date-time */
+            transferredAt: string;
+            note: string;
+        };
+        PayoutBankAccountDto_Output: {
+            bankName: string;
+            accountNumber: string;
+            accountHolder: string;
+        };
+        FinanceSummaryDto_Output: {
+            heldBalance: number;
+            eligibleAmount: number;
+            pendingAmount: number;
+            lastPayout: {
+                /** Format: uuid */
+                payoutId: string;
+                amount: number;
+                /** Format: date-time */
+                paidAt: string;
+            } | null;
+            payoutDelayDays: number;
+        };
+        FinanceBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                trip: {
+                    /** Format: uuid */
+                    tripId: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    routeName: string;
+                };
+                grossAmount: number;
+                commissionAmount: number;
+                refundAdjustmentAmount: number;
+                netAmount: number;
+                /** @enum {string} */
+                state: "WAITING_TRIP" | "ON_HOLD" | "ELIGIBLE" | "IN_PAYOUT" | "PAID" | "REFUNDED";
+                /** Format: date-time */
+                eligibleAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        EmployeeAssignmentListDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                vehiclePlateNumber: string | null;
+                origin: string;
+                destination: string;
+                ticketCount: number;
+                checkedInCount: number;
+            }[];
+        };
+        TripManifestDto_Output: {
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                vehiclePlateNumber: string | null;
+                origin: string;
+                destination: string;
+                ticketCount: number;
+                checkedInCount: number;
+            };
+            passengers: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                phoneMasked: string;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                checkedInAt: string | null;
+            }[];
+        };
+        TicketVerifyInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            code: string;
+        };
+        TicketVerifyResultDto_Output: {
+            /** @enum {string} */
+            result: "OK" | "WRONG_TRIP" | "ALREADY_CHECKED_IN" | "CANCELLED" | "REFUNDED" | "NO_SHOW" | "USED";
+            ticket: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                phoneMasked: string;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                checkedInAt: string | null;
+            } | null;
+            ticketCode: string;
+            ticketTrip: {
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+            } | null;
+        };
+        CheckInInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            code: string;
+            /** @enum {string} */
+            status: "CHECKED_IN" | "NO_SHOW";
+        };
+        CheckInResultDto_Output: {
+            ticket: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                companionName: string | null;
+                phoneMasked: string;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    pickupWindowStart: string | null;
+                    pickupWindowEnd: string | null;
+                };
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                checkedInAt: string | null;
+            };
+            checkedInCount: number;
+            ticketCount: number;
+        };
+        TripOperationInputDto: {
+            /** @enum {string} */
+            status: "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED";
+            note: string | null;
+        };
+        EmployeeAssignmentDto_Output: {
+            /** Format: uuid */
+            tripId: string;
+            /** @enum {string} */
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+            routeName: string;
             /** Format: date-time */
             departureAt: string;
             /** Format: date-time */
             arrivalAt: string;
-            stopTimes: string[] | null;
+            /** @enum {string} */
+            status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            vehiclePlateNumber: string | null;
+            origin: string;
+            destination: string;
+            ticketCount: number;
+            checkedInCount: number;
+        };
+        OperatorOverviewDto_Output: {
+            today: {
+                trips: number;
+                running: number;
+                ticketsSold: number;
+                seats: number;
+            };
+            nextWeek: {
+                trips: number;
+                ticketsSold: number;
+                seats: number;
+            };
+            month: {
+                grossRevenue: number;
+                ticketsSold: number;
+                completedTrips: number;
+            };
+            attention: {
+                tripsWithoutDriver: number;
+                draftTrips: number;
+                pendingRefunds: number;
+            };
+            upcoming: {
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                vehiclePlateNumber: string | null;
+                ticketsSold: number;
+                seats: number;
+                driverName: string | null;
+            }[];
+        };
+        OperatorReportDto_Output: {
+            totals: {
+                grossRevenue: number;
+                trips: number;
+                completedTrips: number;
+                ticketsSold: number;
+                bookings: number;
+                seats: number;
+                cancelledTickets: number;
+                refundedTickets: number;
+                averageRating: number | null;
+                reviewCount: number;
+            };
+            byRoute: {
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                trips: number;
+                completedTrips: number;
+                seats: number;
+                ticketsSold: number;
+                grossRevenue: number;
+            }[];
+            employees: {
+                /** Format: uuid */
+                employeeId: string;
+                loginName: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+                assignedTrips: number;
+                completedTrips: number;
+                ticketsChecked: number;
+                incidentsReported: number;
+            }[];
+        };
+        AdminOverviewDto_Output: {
+            gmv: number;
+            previousGmv: number;
+            bookings: {
+                total: number;
+                confirmed: number;
+                cancelledOrExpired: number;
+            };
+            tickets: {
+                issued: number;
+                refunded: number;
+            };
+            escrow: {
+                held: number;
+                eligible: number;
+                pending: number;
+                onHold: number;
+                commissionInRange: number;
+            };
+            daily: {
+                /** Format: date */
+                date: string;
+                gmv: number;
+            }[];
+            queues: {
+                payoutsPendingReview: number;
+                refundsFailed: number;
+                reconcileOpen: number;
+            };
+        };
+        AdminReportDto_Output: {
+            totals: {
+                gmv: number;
+                bookings: number;
+                tickets: number;
+                netRevenue: number;
+                reconcileOpen: number;
+                trips: number;
+                completedTrips: number;
+                seats: number;
+                ticketsSold: number;
+                operatorCancelledTrips: number;
+                tripsWithSales: number;
+                supportTickets: number;
+                disputesOpened: number;
+            };
+            byOperator: {
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                trips: number;
+                ticketsSold: number;
+                seats: number;
+                gmv: number;
+                refunded: number;
+                averageRating: number | null;
+                reviewCount: number;
+            }[];
+            paymentMethods: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                amount: number;
+                count: number;
+            }[];
+            byRoute: {
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                originName: string | null;
+                destinationName: string | null;
+                trips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number;
+            }[];
+            byRegion: {
+                /** Format: uuid */
+                originProvinceId: string;
+                originName: string;
+                /** Format: uuid */
+                destinationProvinceId: string;
+                destinationName: string;
+                routes: number;
+                operators: number;
+                trips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number;
+            }[];
+        };
+        CustomerTicketListDto_Output: {
+            items: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                subject: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                reporterParty: "PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM";
+                reporterName: string;
+                /** @enum {string} */
+                category: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+                /** @enum {string} */
+                priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+                /** @enum {string} */
+                handler: "PLATFORM" | "OPERATOR";
+                /** @enum {string} */
+                status: "NEW" | "IN_PROGRESS" | "WAITING_OPERATOR" | "WAITING_CUSTOMER" | "ESCALATED" | "RESOLVED" | "CLOSED";
+                assignee: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                } | null;
+                disputeId: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                lastMessageAt: string;
+            }[];
+        };
+        CustomerTicketInputDto: {
+            /** @enum {string} */
+            category: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+            /**
+             * @default MEDIUM
+             * @enum {string}
+             */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            subject: string;
+            body: string;
+            /** @default [] */
+            attachments: {
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        TicketDetailDto_Output: {
+            /** Format: uuid */
+            ticketId: string;
+            ticketCode: string;
+            subject: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            reporterParty: "PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM";
+            reporterName: string;
+            /** @enum {string} */
+            category: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+            /** @enum {string} */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** @enum {string} */
+            handler: "PLATFORM" | "OPERATOR";
+            /** @enum {string} */
+            status: "NEW" | "IN_PROGRESS" | "WAITING_OPERATOR" | "WAITING_CUSTOMER" | "ESCALATED" | "RESOLVED" | "CLOSED";
+            assignee: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+            } | null;
+            disputeId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastMessageAt: string;
+            /** @enum {string} */
+            requestedPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            contactEmailMasked: string | null;
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                vehiclePlateNumber: string | null;
+            };
+            messages: {
+                /** Format: uuid */
+                messageId: string;
+                /** @enum {string} */
+                party: "PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM";
+                authorName: string;
+                body: string;
+                /** Format: date-time */
+                createdAt: string;
+                attachments: {
+                    /** Format: uuid */
+                    attachmentId: string;
+                    fileName: string;
+                    contentType: string;
+                    sizeBytes: number;
+                }[];
+            }[];
+            payments: {
+                /** Format: uuid */
+                paymentId: string;
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                amount: number;
+            }[];
+            validTickets: number;
+            dispute: {
+                /** Format: uuid */
+                disputeId: string;
+                disputeCode: string;
+                /** @enum {string} */
+                status: "OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED";
+            } | null;
+        };
+        MessageInputDto: {
+            body: string;
+            /** @default [] */
+            attachments: {
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        TicketPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                subject: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                reporterParty: "PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM";
+                reporterName: string;
+                /** @enum {string} */
+                category: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+                /** @enum {string} */
+                priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+                /** @enum {string} */
+                handler: "PLATFORM" | "OPERATOR";
+                /** @enum {string} */
+                status: "NEW" | "IN_PROGRESS" | "WAITING_OPERATOR" | "WAITING_CUSTOMER" | "ESCALATED" | "RESOLVED" | "CLOSED";
+                assignee: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                } | null;
+                disputeId: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                lastMessageAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            unclassified: number;
+        };
+        AssigneeListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                role: string;
+            }[];
+        };
+        ClassifyInputDto: {
+            /** @enum {string} */
+            category: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+            /** @enum {string} */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /** @enum {string} */
+            handler: "PLATFORM" | "OPERATOR";
+            assigneeId: string | null;
+        };
+        AdminMessageInputDto: {
+            body: string;
+            /** @default [] */
+            attachments: {
+                objectKey: string;
+                fileName: string;
+            }[];
+            /** @default false */
+            requestInfo: boolean;
+        };
+        TicketStatusInputDto: {
+            /** @enum {string} */
+            status: "RESOLVED" | "CLOSED";
+            /** @default null */
             note: string | null;
+        };
+        DirectDisputeInputDto: {
+            /** Format: uuid */
+            bookingId: string;
+            title: string;
+            /** @default null */
+            customerRequest: string | null;
+            reason: string;
+        };
+        DisputeDetailDto_Output: {
+            /** Format: uuid */
+            disputeId: string;
+            disputeCode: string;
+            title: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            paidAmount: number;
+            /** @enum {string} */
+            status: "OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED";
+            responseDueAt: string | null;
+            overdue: boolean;
+            assignee: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+            } | null;
+            supportTicketId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            customerRequest: string | null;
+            supportTicketCode: string | null;
+            bookingTotal: number;
+            refundableAmount: number;
+            customerName: string;
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                departedAt: string | null;
+                vehiclePlateNumber: string | null;
+            };
+            firstCheckInAt: string | null;
+            tripChangeNotified: boolean;
+            cancellationTiers: {
+                minHoursBefore: number;
+                refundPercent: number;
+            }[];
+            events: {
+                /** Format: uuid */
+                eventId: string;
+                /** @enum {string} */
+                kind: "STATUS" | "EVIDENCE" | "REQUEST";
+                /** @enum {string} */
+                party: "PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM";
+                actorName: string;
+                fromStatus: ("OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED") | null;
+                toStatus: ("OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED") | null;
+                body: string | null;
+                target: ("PASSENGER" | "GUEST" | "OPERATOR" | "PLATFORM" | "SYSTEM") | null;
+                dueAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                attachments: {
+                    /** Format: uuid */
+                    attachmentId: string;
+                    fileName: string;
+                    contentType: string;
+                    sizeBytes: number;
+                }[];
+            }[];
+            decision: {
+                /** @enum {string} */
+                decision: "REFUND" | "NO_REFUND" | "OTHER";
+                amount: number | null;
+                reason: string;
+                /** Format: date-time */
+                decidedAt: string;
+                refund: {
+                    /** Format: uuid */
+                    refundId: string;
+                    refundCode: string;
+                    /** @enum {string} */
+                    status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                } | null;
+            } | null;
+        };
+        EscalateInputDto: {
+            /** @default null */
+            title: string | null;
+            /** @default null */
+            customerRequest: string | null;
+            reason: string;
+        };
+        DisputePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                disputeId: string;
+                disputeCode: string;
+                title: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                paidAmount: number;
+                /** @enum {string} */
+                status: "OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED";
+                responseDueAt: string | null;
+                overdue: boolean;
+                assignee: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                } | null;
+                supportTicketId: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            open: number;
+        };
+        RequestEvidenceInputDto: {
+            /** @enum {string} */
+            party: "PASSENGER" | "OPERATOR";
+            message: string;
+            /** Format: date-time */
+            dueAt: string;
+        };
+        DisputeStatusInputDto: {
+            /** @enum {string} */
+            status: "UNDER_REVIEW" | "ESCALATED" | "CLOSED";
+            reason: string;
+        };
+        DisputeDecisionInputDto: {
+            /** @enum {string} */
+            decision: "REFUND" | "NO_REFUND" | "OTHER";
+            /** @default null */
+            amount: number | null;
+            reason: string;
+        };
+        EvidenceInputDto: {
+            body: string;
+            /** @default [] */
+            attachments: {
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        CustomerDisputeListDto_Output: {
+            items: {
+                /** Format: uuid */
+                disputeId: string;
+                disputeCode: string;
+                title: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                paidAmount: number;
+                /** @enum {string} */
+                status: "OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED";
+                responseDueAt: string | null;
+                overdue: boolean;
+                assignee: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                } | null;
+                supportTicketId: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        CustomerReviewDto_Output: {
+            review: {
+                /** Format: uuid */
+                reviewId: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                authorName: string;
+                rating: number;
+                comment: string | null;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** @enum {string} */
+                status: "VISIBLE" | "HELD" | "HIDDEN";
+                operatorReply: string | null;
+                operatorRepliedAt: string | null;
+                operatorReportedAt: string | null;
+                operatorReportReason: string | null;
+                moderationReason: string | null;
+                signals: ("SPAM" | "OPERATOR_REPORTED" | "DISPUTED" | "REPEATED")[];
+                /** Format: date-time */
+                createdAt: string;
+            } | null;
+            canReview: boolean;
+        };
+        ReviewInputDto: {
+            rating: number;
+            /** @default null */
+            comment: string | null;
+        };
+        ReviewDto_Output: {
+            /** Format: uuid */
+            reviewId: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            authorName: string;
+            rating: number;
+            comment: string | null;
+            routeName: string;
+            /** Format: date-time */
+            departureAt: string;
+            /** @enum {string} */
+            status: "VISIBLE" | "HELD" | "HIDDEN";
+            operatorReply: string | null;
+            operatorRepliedAt: string | null;
+            operatorReportedAt: string | null;
+            operatorReportReason: string | null;
+            moderationReason: string | null;
+            signals: ("SPAM" | "OPERATOR_REPORTED" | "DISPUTED" | "REPEATED")[];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ReviewPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                reviewId: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                authorName: string;
+                rating: number;
+                comment: string | null;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** @enum {string} */
+                status: "VISIBLE" | "HELD" | "HIDDEN";
+                operatorReply: string | null;
+                operatorRepliedAt: string | null;
+                operatorReportedAt: string | null;
+                operatorReportReason: string | null;
+                moderationReason: string | null;
+                signals: ("SPAM" | "OPERATOR_REPORTED" | "DISPUTED" | "REPEATED")[];
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            average: number | null;
+            validCount: number;
+        };
+        ReplyInputDto: {
+            reply: string;
+        };
+        ReportInputDto: {
+            reason: string;
+        };
+        ModerationInputDto: {
+            /** @enum {string} */
+            action: "HOLD" | "HIDE" | "SHOW";
+            /** @default null */
+            reason: string | null;
+        };
+        PromotionRouteOptionsDto_Output: {
+            items: {
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                operatorName: string;
+            }[];
+        };
+        PromotionPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                promotionId: string;
+                code: string;
+                name: string;
+                /** @enum {string} */
+                scope: "PLATFORM" | "OPERATOR";
+                operatorId: string | null;
+                operatorName: string | null;
+                /** @enum {string} */
+                discountType: "PERCENT" | "AMOUNT";
+                discountValue: number;
+                maxDiscount: number | null;
+                minOrder: number;
+                routeId: string | null;
+                routeIds: string[];
+                routeNames: string[];
+                routeName: string | null;
+                tripId: string | null;
+                /** Format: date-time */
+                startsAt: string;
+                /** Format: date-time */
+                endsAt: string;
+                usageLimit: number;
+                usedCount: number;
+                /** @enum {string} */
+                status: "DRAFT" | "ACTIVE" | "PAUSED" | "ENDED";
+                /** @enum {string} */
+                display: "DRAFT" | "SCHEDULED" | "RUNNING" | "PAUSED" | "ENDED";
+                editable: boolean;
+                joined: boolean | null;
+                participants: number | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            stats: {
+                running: number;
+                scheduled: number;
+                drafts: number;
+                paused: number;
+                redemptions: number;
+                discount: number;
+                revenue: number;
+            };
+        };
+        PromotionDto_Output: {
+            /** Format: uuid */
+            promotionId: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            scope: "PLATFORM" | "OPERATOR";
+            operatorId: string | null;
+            operatorName: string | null;
+            /** @enum {string} */
+            discountType: "PERCENT" | "AMOUNT";
+            discountValue: number;
+            maxDiscount: number | null;
+            minOrder: number;
+            routeId: string | null;
+            routeIds: string[];
+            routeNames: string[];
+            routeName: string | null;
+            tripId: string | null;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            usageLimit: number;
+            usedCount: number;
+            /** @enum {string} */
+            status: "DRAFT" | "ACTIVE" | "PAUSED" | "ENDED";
+            /** @enum {string} */
+            display: "DRAFT" | "SCHEDULED" | "RUNNING" | "PAUSED" | "ENDED";
+            editable: boolean;
+            joined: boolean | null;
+            participants: number | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PromotionInputDto: {
+            code: string;
+            name: string;
+            /** @enum {string} */
+            discountType: "PERCENT" | "AMOUNT";
+            discountValue: number;
+            /** @default null */
+            maxDiscount: number | null;
+            /** @default 0 */
+            minOrder: number;
+            /** @default null */
+            routeId: string | null;
+            /** @default [] */
+            routeIds: string[];
+            /** @default null */
+            tripId: string | null;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            usageLimit: number;
+        };
+        PromotionStatusInputDto: {
+            /** @enum {string} */
+            status: "ACTIVE" | "PAUSED" | "ENDED";
+        };
+        PermissionPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                operatorSlug: string;
+                enabled: boolean;
+                maxPercent: number | null;
+                maxAmount: number | null;
+                routeIds: string[];
+                routeNames: string[];
+                maxDurationDays: number;
+                monthlyBudget: number | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        PermissionInputDto: {
+            enabled: boolean;
+            /** @default null */
+            maxPercent: number | null;
+            /** @default null */
+            maxAmount: number | null;
+            /** @default [] */
+            routeIds: string[];
+            /** @default 30 */
+            maxDurationDays: number;
+            /** @default null */
+            monthlyBudget: number | null;
+        };
+        PermissionDto_Output: {
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            operatorSlug: string;
+            enabled: boolean;
+            maxPercent: number | null;
+            maxAmount: number | null;
+            routeIds: string[];
+            routeNames: string[];
+            maxDurationDays: number;
+            monthlyBudget: number | null;
+        };
+        ParticipationInputDto: {
+            joined: boolean;
+        };
+        PublicPromotionListDto_Output: {
+            items: {
+                code: string;
+                name: string;
+                /** @enum {string} */
+                scope: "PLATFORM" | "OPERATOR";
+                operatorName: string | null;
+                /** @enum {string} */
+                discountType: "PERCENT" | "AMOUNT";
+                discountValue: number;
+                maxDiscount: number | null;
+                minOrder: number;
+                /** Format: date-time */
+                endsAt: string;
+            }[];
+        };
+        PromotionCheckInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            code?: string;
+            /** Format: uuid */
+            userVoucherId?: string;
+            subtotal: number;
+        };
+        PromotionCheckDto_Output: {
+            code: string;
+            name: string;
+            discount: number;
+            total: number;
+        };
+        LoyaltyMemberDto_Output: {
+            userId: string;
+            name: string | null;
+            email: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            /** Format: date-time */
+            memberSince: string;
+            availablePoints: number;
+            earned12m: number;
+            /** @enum {string} */
+            tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+            nextTier: {
+                /** @enum {string} */
+                tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                minPoints: number;
+                remaining: number;
+            } | null;
+            policyVersion: number | null;
+        };
+        LoyaltyTransactionPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "EARN" | "REDEEM" | "EXPIRE" | "ADJUST" | "REVERSAL";
+                points: number;
+                /** @enum {string} */
+                tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                sourceLabel: string;
+                reason: string | null;
+                policyVersion: number | null;
+                expiresAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            total: number;
+        };
+        PointAdjustInputDto: {
+            /** @enum {string} */
+            direction: "CREDIT" | "DEBIT";
+            points: number;
+            reason: string;
+        };
+        LoyaltyReportDto_Output: {
+            year: number;
+            quarter: number;
+            tier: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM") | null;
+            months: {
+                issued: number;
+                redeemed: number;
+                expired: number;
+                vouchersRedeemed: number;
+                vouchersUsed: number;
+                platformDiscount: number;
+                month: string;
+            }[];
+            totals: {
+                issued: number;
+                redeemed: number;
+                expired: number;
+                vouchersRedeemed: number;
+                vouchersUsed: number;
+                platformDiscount: number;
+            };
+        };
+        FareListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                ruleCount: number;
+                minPrice: number | null;
+                maxPrice: number | null;
+                hasDoubleSeatPrice: boolean;
+            }[];
+            nextCursor: string | null;
+        };
+        FareResponseDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            note: string | null;
+            rules: {
+                vehicleTypeId: string | null;
+                seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                validFrom: string | null;
+                validTo: string | null;
+                price: number;
+            }[];
+            bandWarnings: {
+                ruleIndex: number;
+                price: number;
+                /** Format: uuid */
+                bandId: string;
+                bandName: string;
+                minPrice: number | null;
+                maxPrice: number | null;
+                /** Format: date-time */
+                effectiveFrom: string;
+                /** Format: date-time */
+                effectiveTo: string;
+                message: string;
+            }[];
+        };
+        FareCreateInputDto: {
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            note: string | null;
+            rules: {
+                vehicleTypeId: string | null;
+                seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                validFrom: string | null;
+                validTo: string | null;
+                price: number;
+            }[];
+            /** Format: uuid */
+            routeId: string;
+        };
+        FareUpdateInputDto: {
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            note: string | null;
+            rules: {
+                vehicleTypeId: string | null;
+                seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                validFrom: string | null;
+                validTo: string | null;
+                price: number;
+            }[];
+        };
+        FareRevisionListResponseDto_Output: {
+            items: {
+                /** @enum {string} */
+                action: "fare.create" | "fare.update";
+                actorId: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                before: {
+                    /** Format: uuid */
+                    routeId: string;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE";
+                    note: string | null;
+                    rules: {
+                        vehicleTypeId: string | null;
+                        seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                        validFrom: string | null;
+                        validTo: string | null;
+                        price: number;
+                    }[];
+                } | null;
+                after: {
+                    /** Format: uuid */
+                    routeId: string;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE";
+                    note: string | null;
+                    rules: {
+                        vehicleTypeId: string | null;
+                        seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                        validFrom: string | null;
+                        validTo: string | null;
+                        price: number;
+                    }[];
+                };
+            }[];
+            nextCursor: string | null;
+        };
+        ApplicationCreateInputDto: {
+            operatorName: string;
+            contactName: string;
+            contactEmail: string;
+            /** @constant */
+            acceptTerms: true;
+        };
+        ApplicationAccessLinkInputDto: {
+            contactEmail: string;
+            applicationCode: string;
+        };
+        ApplicationResponseDto_Output: {
+            applicationCode: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+            operatorName: string;
+            contactName: string;
+            contactEmail: string;
+            contactEmailVerifiedAt: string | null;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            address: string | null;
+            displayName: string | null;
+            description: string | null;
+            bankName: string | null;
+            bankAccountNumberMasked: string | null;
+            bankAccountHolder: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                objectKey: string;
+                fileName: string;
+                contentType: string;
+                sizeBytes: number;
+                /** Format: date-time */
+                uploadedAt: string;
+            }[];
+            missing: string[];
+            reviewNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            submittedAt: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            linkExpiresAt: string;
+        };
+        ApplicationUpdateInputDto: {
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            address: string | null;
+            displayName: string | null;
+            description: string | null;
+            bankName: string | null;
+            bankAccountNumber?: string | null;
+            bankAccountHolder: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        DocumentUploadInputDto: {
+            /** @enum {string} */
+            type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            /** @enum {string} */
+            contentType: "application/pdf" | "image/jpeg" | "image/png";
+            sizeBytes: number;
+            fileName: string;
+        };
+        DocumentUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        DocumentDownloadResponseDto_Output: {
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AdminApplicationListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                applicationCode: string;
+                /** @enum {string} */
+                status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+                operatorName: string;
+                legalName: string | null;
+                taxCode: string | null;
+                contactName: string;
+                contactEmail: string;
+                /** Format: date-time */
+                submittedAt: string;
+                reviewedAt: string | null;
+                duplicates: ("CONTACT_EMAIL" | "TAX_CODE" | "BANK_ACCOUNT")[];
+            }[];
+            nextCursor: string | null;
+        };
+        AdminApplicationDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            applicationCode: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+            operatorName: string;
+            contactName: string;
+            contactEmail: string;
+            contactEmailVerifiedAt: string | null;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            address: string | null;
+            displayName: string | null;
+            description: string | null;
+            bankName: string | null;
+            bankAccountNumberMasked: string | null;
+            bankAccountHolder: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                fileName: string;
+                contentType: string;
+                sizeBytes: number;
+                /** Format: date-time */
+                uploadedAt: string;
+            }[];
+            reviewNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            submittedAt: string | null;
+            reviewedAt: string | null;
+            duplicates: {
+                contactEmail: {
+                    /** Format: uuid */
+                    id: string;
+                    applicationCode: string;
+                    operatorName: string;
+                    /** @enum {string} */
+                    status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+                }[];
+                taxCode: {
+                    /** Format: uuid */
+                    id: string;
+                    applicationCode: string;
+                    operatorName: string;
+                    /** @enum {string} */
+                    status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+                }[];
+                bankAccount: {
+                    /** Format: uuid */
+                    id: string;
+                    applicationCode: string;
+                    operatorName: string;
+                    /** @enum {string} */
+                    status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+                }[];
+            };
+            operator: {
+                /** Format: uuid */
+                operatorId: string;
+                operatorSlug: string;
+                ownerUsername: string;
+                credentialDeliveryPending: boolean;
+            } | null;
+            history: {
+                /** @enum {string} */
+                event: "CREATED" | "EMAIL_VERIFIED" | "SUBMITTED" | "NEEDS_INFO" | "REJECTED" | "APPROVED";
+                /** Format: date-time */
+                at: string;
+                note: string | null;
+            }[] | null;
+        };
+        ApprovalInputDto: {
+            operatorSlug: string;
+            ownerUsername: string;
+        };
+        ApprovalResponseDto_Output: {
+            applicationCode: string;
+            /** @constant */
+            status: "APPROVED";
+            /** Format: uuid */
+            operatorId: string;
+            operatorSlug: string;
+            ownerUsername: string;
+            credentialDeliveryPending: boolean;
+        };
+        DecisionInputDto: {
+            reason: string;
+        };
+        DecisionResponseDto_Output: {
+            applicationCode: string;
+            /** @enum {string} */
+            status: "NEEDS_INFO" | "REJECTED";
+            emailDelivered: boolean;
+        };
+        AdminAuditLogListDto_Output: {
+            items: {
+                id: string;
+                /** Format: date-time */
+                createdAt: string;
+                actorId: string | null;
+                actorName: string | null;
+                actorRole: string | null;
+                /** @enum {string} */
+                actorType: "PLATFORM" | "OPERATOR" | "EMPLOYEE" | "PASSENGER" | "SYSTEM" | "UNKNOWN";
+                action: string;
+                /** @enum {string} */
+                module: "AUTH" | "ACCOUNT" | "OPERATOR_KYC" | "CATALOG" | "STOP_POINT" | "VEHICLE" | "TRIP" | "FARE" | "AUDIT" | "OTHER";
+                /** @enum {string} */
+                result: "SUCCESS" | "FAILURE";
+                targetType: string;
+                targetId: string;
+                operator: {
+                    id: string;
+                    name: string;
+                } | null;
+                reason: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminAuditLogDetailDto_Output: {
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            actorId: string | null;
+            actorName: string | null;
+            actorRole: string | null;
+            /** @enum {string} */
+            actorType: "PLATFORM" | "OPERATOR" | "EMPLOYEE" | "PASSENGER" | "SYSTEM" | "UNKNOWN";
+            action: string;
+            /** @enum {string} */
+            module: "AUTH" | "ACCOUNT" | "OPERATOR_KYC" | "CATALOG" | "STOP_POINT" | "VEHICLE" | "TRIP" | "FARE" | "AUDIT" | "OTHER";
+            /** @enum {string} */
+            result: "SUCCESS" | "FAILURE";
+            targetType: string;
+            targetId: string;
+            operator: {
+                id: string;
+                name: string;
+            } | null;
+            reason: string | null;
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: {
+                [key: string]: unknown;
+            } | null;
+            ip: string | null;
+            device: string | null;
+            requestId: string | null;
+            related: {
+                id: string;
+                /** Format: date-time */
+                createdAt: string;
+                actorId: string | null;
+                actorName: string | null;
+                actorRole: string | null;
+                /** @enum {string} */
+                actorType: "PLATFORM" | "OPERATOR" | "EMPLOYEE" | "PASSENGER" | "SYSTEM" | "UNKNOWN";
+                action: string;
+                /** @enum {string} */
+                module: "AUTH" | "ACCOUNT" | "OPERATOR_KYC" | "CATALOG" | "STOP_POINT" | "VEHICLE" | "TRIP" | "FARE" | "AUDIT" | "OTHER";
+                /** @enum {string} */
+                result: "SUCCESS" | "FAILURE";
+                targetType: string;
+                targetId: string;
+                operator: {
+                    id: string;
+                    name: string;
+                } | null;
+                reason: string | null;
+            }[];
+        };
+        ArticleCategoryListDto_Output: {
+            items: {
+                name: string;
+                slug: string;
+                articleCount: number;
+            }[];
+        };
+        ArticlePageDto_Output: {
+            items: {
+                title: string;
+                slug: string;
+                summary: string;
+                coverImageUrl: string | null;
+                featured: boolean;
+                category: {
+                    name: string;
+                    slug: string;
+                };
+                /** Format: date-time */
+                publishedAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        ArticleDto_Output: {
+            title: string;
+            slug: string;
+            summary: string;
+            coverImageUrl: string | null;
+            featured: boolean;
+            category: {
+                name: string;
+                slug: string;
+            };
+            /** Format: date-time */
+            publishedAt: string;
+            contentMarkdown: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminArticlePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+                slug: string;
+                summary: string;
+                /** Format: uuid */
+                categoryId: string;
+                categoryName: string;
+                coverImageKey: string | null;
+                coverImageUrl: string | null;
+                featured: boolean;
+                /** @enum {string} */
+                status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                publishedAt: string | null;
+                viewCount: number;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminArticleImageUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        AdminArticleImageUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            publicUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AdminArticleDto_Output: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            slug: string;
+            summary: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            coverImageKey: string | null;
+            coverImageUrl: string | null;
+            featured: boolean;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            publishedAt: string | null;
+            viewCount: number;
+            /** Format: date-time */
+            updatedAt: string;
+            contentMarkdown: string;
+            /** Format: date-time */
+            createdAt: string;
+            updatedByName: string | null;
+        };
+        AdminArticleInputDto: {
+            title: string;
+            slug: string;
+            summary: string;
+            contentMarkdown: string;
+            /** Format: uuid */
+            categoryId: string;
+            coverImageKey: string | null;
+            featured: boolean;
+        };
+        AdminArticlePublishDto: {
+            publishedAt?: string | null;
+        };
+        AdminArticleCategoryListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                slug: string;
+                displayOrder: number;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                articleCount: number;
+            }[];
+        };
+        AdminArticleCategoryInputDto: {
+            name: string;
+            slug: string;
+            displayOrder: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        AdminArticleCategoryDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            displayOrder: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            articleCount: number;
+        };
+        AdminOperatorPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                slug: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "SUSPENDED";
+                suspendedReason: string | null;
+                suspendedAt: string | null;
+                /** Format: date-time */
+                approvedAt: string;
+                applicationId: string | null;
+                owner: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    email: string | null;
+                    credentialDeliveryPending: boolean;
+                } | null;
+                routeCount: number;
+                openTripCount: number;
+                bankChangePending: boolean;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminOperatorDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED";
+            suspendedReason: string | null;
+            suspendedAt: string | null;
+            /** Format: date-time */
+            approvedAt: string;
+            applicationId: string | null;
+            owner: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                credentialDeliveryPending: boolean;
+            } | null;
+            routeCount: number;
+            openTripCount: number;
+            bankChangePending: boolean;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            publicEmail: string | null;
+            address: string | null;
+            description: string | null;
+            bankAccount: {
+                bankName: string;
+                accountNumber: string;
+                accountHolder: string;
+                verifiedAt: string | null;
+            } | null;
+            vehicleCount: number;
+            employeeCount: number;
+            stats: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+                trips: number;
+                completedTrips: number;
+                cancelledTrips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number | null;
+                refunded: number | null;
+                averageRating: number | null;
+                reviewCount: number;
+            };
+        };
+        AdminOperatorVehicleListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                plateNumber: string;
+                vehicleTypeName: string;
+                seatCount: number | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
+                upcomingTripCount: number;
+            }[];
+        };
+        AdminOperatorSuspendDto: {
+            reason: string;
+        };
+        AdminBankChangeDto_Output: {
+            /** Format: uuid */
+            changeId: string;
+            operatorName: string;
+            legalName: string | null;
+            taxCode: string | null;
+            current: {
+                bankName: string;
+                accountNumber: string;
+                accountHolder: string;
+                verifiedAt: string | null;
+            } | null;
+            requested: {
+                bankName: string;
+                accountNumber: string;
+                accountHolder: string;
+                reason: string | null;
+                /** Format: date-time */
+                requestedAt: string;
+                requestedBy: string | null;
+            };
+        };
+        AdminBankChangeApproveDto: {
+            /** Format: uuid */
+            changeId: string;
+        };
+        AdminBankChangeRejectDto: {
+            /** Format: uuid */
+            changeId: string;
+            reason: string;
+        };
+        OperatorProfileResponseDto_Output: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            displayName: string;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            publicEmail: string | null;
+            address: string | null;
+            description: string | null;
+            logoUrl: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED";
+            suspendedReason: string | null;
+            approvedAt: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                fileName: string;
+                contentType: string;
+                sizeBytes: number;
+                /** Format: date-time */
+                uploadedAt: string;
+            }[];
+            bankAccount: {
+                bankName: string;
+                accountNumberMasked: string;
+                accountHolder: string;
+                verifiedAt: string | null;
+            } | null;
+            bankChange: {
+                /** @enum {string} */
+                status: "PENDING" | "REJECTED";
+                bankName: string;
+                accountNumberMasked: string;
+                accountHolder: string;
+                reason: string | null;
+                reviewNote: string | null;
+                /** Format: date-time */
+                requestedAt: string;
+                reviewedAt: string | null;
+            } | null;
+        };
+        OperatorProfileUpdateDto: {
+            displayName: string;
+            hotline: string;
+            publicEmail: string;
+            address: string;
+            description: string | null;
+        };
+        LogoUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        LogoUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        LogoAttachInputDto: {
+            objectKey: string;
+        };
+        KycUploadInputDto: {
+            /** @enum {string} */
+            contentType: "application/pdf" | "image/jpeg" | "image/png";
+            sizeBytes: number;
+        };
+        KycUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        KycReplaceInputDto: {
+            objectKey: string;
+            fileName: string;
+        };
+        KycDownloadResponseDto_Output: {
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        BankChangeInputDto: {
+            bankName: string;
+            accountNumber: string;
+            accountHolder: string;
+            reason: string;
+        };
+        PolicyOverviewDto_Output: {
+            /** @enum {string} */
+            type: "CANCELLATION" | "SEAT_HOLD" | "PAYOUT" | "LOYALTY";
+            operatorId: string | null;
+            operatorName: string | null;
+            versions: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "CANCELLATION" | "SEAT_HOLD" | "PAYOUT" | "LOYALTY";
+                operatorId: string | null;
+                operatorName: string | null;
+                version: number;
+                /** @enum {string} */
+                status: "DRAFT" | "PUBLISHED" | "CANCELLED";
+                /** @enum {string} */
+                state: "DRAFT" | "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+                rules: {
+                    tiers: {
+                        minHoursBefore: number;
+                        refundPercent: number;
+                    }[];
+                } | {
+                    holdMinutes: number;
+                } | {
+                    delayDays: number;
+                    /** @constant */
+                    channel: "BANK_TRANSFER";
+                    /** @constant */
+                    manualConfirmation: true;
+                    minimumAmount: number | null;
+                } | {
+                    earnUnit: number;
+                    pointValue: number;
+                    minRedeemPoints: number;
+                    pointExpiryMonths: number;
+                    voucherValidityDays: number;
+                    tiers: {
+                        /** @enum {string} */
+                        tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                        minPoints: number;
+                        multiplierPercent: number;
+                    }[];
+                };
+                description: string | null;
+                changeReason: string | null;
+                effectiveFrom: string | null;
+                createdBy: string | null;
+                publishedAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            activeOperatorCount: number;
+            overrides: {
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                operatorSlug: string;
+                /** @enum {string} */
+                state: "DRAFT" | "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+            }[];
+        };
+        PolicyDraftCreateDto: {
+            rules: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            } | {
+                holdMinutes: number;
+            } | {
+                delayDays: number;
+                /** @constant */
+                channel: "BANK_TRANSFER";
+                /** @constant */
+                manualConfirmation: true;
+                minimumAmount: number | null;
+            } | {
+                earnUnit: number;
+                pointValue: number;
+                minRedeemPoints: number;
+                pointExpiryMonths: number;
+                voucherValidityDays: number;
+                tiers: {
+                    /** @enum {string} */
+                    tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                    minPoints: number;
+                    multiplierPercent: number;
+                }[];
+            };
+            description: string | null;
+            effectiveFrom: string | null;
+            operatorId: string | null;
+        };
+        PolicyVersionDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "CANCELLATION" | "SEAT_HOLD" | "PAYOUT" | "LOYALTY";
+            operatorId: string | null;
+            operatorName: string | null;
+            version: number;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "CANCELLED";
+            /** @enum {string} */
+            state: "DRAFT" | "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+            rules: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            } | {
+                holdMinutes: number;
+            } | {
+                delayDays: number;
+                /** @constant */
+                channel: "BANK_TRANSFER";
+                /** @constant */
+                manualConfirmation: true;
+                minimumAmount: number | null;
+            } | {
+                earnUnit: number;
+                pointValue: number;
+                minRedeemPoints: number;
+                pointExpiryMonths: number;
+                voucherValidityDays: number;
+                tiers: {
+                    /** @enum {string} */
+                    tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                    minPoints: number;
+                    multiplierPercent: number;
+                }[];
+            };
+            description: string | null;
+            changeReason: string | null;
+            effectiveFrom: string | null;
+            createdBy: string | null;
+            publishedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PolicyDraftUpdateDto: {
+            rules: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            } | {
+                holdMinutes: number;
+            } | {
+                delayDays: number;
+                /** @constant */
+                channel: "BANK_TRANSFER";
+                /** @constant */
+                manualConfirmation: true;
+                minimumAmount: number | null;
+            } | {
+                earnUnit: number;
+                pointValue: number;
+                minRedeemPoints: number;
+                pointExpiryMonths: number;
+                voucherValidityDays: number;
+                tiers: {
+                    /** @enum {string} */
+                    tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                    minPoints: number;
+                    multiplierPercent: number;
+                }[];
+            };
+            description: string | null;
+            effectiveFrom: string | null;
+        };
+        PolicyPublishDto: {
+            changeReason: string;
+        };
+        PolicyCancelDto: {
+            reason: string;
+        };
+        FareBandListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                minPrice: number | null;
+                maxPrice: number | null;
+                /** Format: date-time */
+                effectiveFrom: string;
+                /** Format: date-time */
+                effectiveTo: string;
+                message: string;
+                reason: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "CANCELLED";
+                /** @enum {string} */
+                state: "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+                cancelReason: string | null;
+                createdBy: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        FareBandCreateDto: {
+            name: string;
+            minPrice: number | null;
+            maxPrice: number | null;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo: string;
+            message: string;
+            reason: string;
+        };
+        FareBandDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            minPrice: number | null;
+            maxPrice: number | null;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo: string;
+            message: string;
+            reason: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "CANCELLED";
+            /** @enum {string} */
+            state: "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+            cancelReason: string | null;
+            createdBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CommissionOverviewDto_Output: {
+            default: {
+                rateBps: number;
+                /** Format: date-time */
+                effectiveFrom: string;
+            } | null;
+            /** @constant */
+            counterDefaultRateBps: 0;
+            overrides: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                operatorId: string;
+                /** @enum {string} */
+                channel: "ONLINE" | "COUNTER";
+                operatorName: string;
+                operatorSlug: string;
+                rateBps: number;
+                /** Format: date-time */
+                effectiveFrom: string;
+                effectiveTo: string | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "CANCELLED";
+                /** @enum {string} */
+                state: "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+                reason: string;
+                cancelReason: string | null;
+                createdBy: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        CommissionRuleCreateDto: {
+            /** Format: uuid */
+            operatorId: string;
+            /**
+             * @default ONLINE
+             * @enum {string}
+             */
+            channel: "ONLINE" | "COUNTER";
+            rateBps: number;
+            /** Format: date-time */
+            effectiveFrom: string;
+            effectiveTo: string | null;
+            reason: string;
+        };
+        CommissionRuleDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            operatorId: string;
+            /** @enum {string} */
+            channel: "ONLINE" | "COUNTER";
+            operatorName: string;
+            operatorSlug: string;
+            rateBps: number;
+            /** Format: date-time */
+            effectiveFrom: string;
+            effectiveTo: string | null;
+            /** @enum {string} */
+            status: "ACTIVE" | "CANCELLED";
+            /** @enum {string} */
+            state: "SCHEDULED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+            reason: string;
+            cancelReason: string | null;
+            createdBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CommissionRuleUpdateDto: {
+            rateBps: number;
+            /** Format: date-time */
+            effectiveFrom: string;
+            effectiveTo: string | null;
+            reason: string;
+        };
+        CommissionRuleCancelDto: {
+            reason: string;
+        };
+        SystemIntegrationsDto_Output: {
+            /** Format: date-time */
+            checkedAt: string;
+            environment: string;
+            items: {
+                key: string;
+                name: string;
+                category: string;
+                /** @enum {string} */
+                status: "UP" | "DOWN" | "CONFIGURED" | "LOCAL" | "NOT_CONFIGURED" | "NOT_INTEGRATED" | "DISABLED";
+                latencyMs: number | null;
+                detail: string;
+            }[];
+        };
+        BackgroundJobsDto_Output: {
+            /** Format: date-time */
+            checkedAt: string;
+            available: boolean;
+            jobs: {
+                queue: string;
+                name: string;
+                label: string;
+                schedule: string | null;
+                nextRunAt: string | null;
+                lastRun: {
+                    /** @enum {string} */
+                    state: "completed" | "failed" | "active";
+                    /** Format: date-time */
+                    at: string;
+                    processed: number | null;
+                    error: string | null;
+                    attempts: number;
+                } | null;
+                failedCount: number;
+            }[];
+            queues: {
+                name: string;
+                waiting: number;
+                active: number;
+                delayed: number;
+                failed: number;
+            }[];
+        };
+        AdminPassengerPageDto_Output: {
+            items: {
+                id: string;
+                name: string | null;
+                email: string;
+                providers: string[];
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                lockedReason: string | null;
+                lockedAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                lastLoginAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminPassengerDetailDto_Output: {
+            id: string;
+            name: string | null;
+            email: string;
+            providers: string[];
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            lockedReason: string | null;
+            lockedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            lastLoginAt: string | null;
+            emailVerified: boolean;
+            phone: string | null;
+            loyaltyPoints: number | null;
+            savedPassengerCount: number;
+            bookingCount: number;
+            ticketCount: number;
+            supportTicketCount: number;
+            totalPaid: number | null;
+        };
+        AdminPassengerBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                bookingCode: string;
+                status: string;
+                /** Format: date-time */
+                createdAt: string;
+                total: number | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                passengers: {
+                    fullName: string;
+                    companionName: string | null;
+                    seatCode: string;
+                    ticketStatus: string | null;
+                }[];
+                paymentId: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminAccountLockDto: {
+            reason: string;
+        };
+        AdminEmployeePageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                lastLoginAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            operators: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
+        AdminPlatformAccountListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                /** @enum {string} */
+                role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                mfaEnabled: boolean;
+                passwordChangeRequired: boolean;
+                credentialDeliveryPending: boolean;
+                lockedReason: string | null;
+                lockedAt: string | null;
+                lastLoginAt: string | null;
+                isSelf: boolean;
+            }[];
+            grantable: {
+                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+            };
+        };
+        AdminPlatformAccountCreateDto: {
+            username: string;
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+        };
+        AdminPlatformAccountDto_Output: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            email: string | null;
+            /** @enum {string} */
+            role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            mfaEnabled: boolean;
+            passwordChangeRequired: boolean;
+            credentialDeliveryPending: boolean;
+            lockedReason: string | null;
+            lockedAt: string | null;
+            lastLoginAt: string | null;
+            isSelf: boolean;
+        };
+        AdminPlatformPermissionsUpdateDto: {
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+            reason: string;
         };
     };
     responses: never;
@@ -1434,6 +11832,2794 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    SalesOfficeController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_assignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeAssignmentsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_replaceAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeAssignmentsInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_trips: {
+        parameters: {
+            query: {
+                officeId: string;
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterTripListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_report: {
+        parameters: {
+            query: {
+                officeId: string;
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterReportDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_hold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterHoldInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterHoldDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_getHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterHoldDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã nhả phiên giữ chỗ. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_list: {
+        parameters: {
+            query: {
+                officeId: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterBookingInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_collect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterReceiptInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterReceiptResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Mã thao tác hoặc tham chiếu chuyển khoản đã được sử dụng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterCommissionController_overview: {
+        parameters: {
+            query: {
+                operatorId: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterCommissionOverviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterCommissionController_settle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterCommissionSettlementInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterCommissionSettlementDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorDepartureController_depart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripDepartureInputDto"];
+            };
+        };
+        responses: {
+            /** @description Mốc khởi hành thực tế (giờ máy chủ). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripDepartureDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description TRIP_NOT_FOUND (kể cả khác nhà xe). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description TRIP_STATUS_TRANSITION_INVALID — chuyến chưa mở bán hoặc đã hủy. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationController_history: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nhật ký gửi thông báo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationLogDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_list: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Danh sách chiến dịch. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bản nháp. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nội dung có thể gắn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignOptionsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_estimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AudienceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Số người sẽ nhận. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceEstimateDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chiến dịch. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bản nháp đã sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignTestInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi thử. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignTestResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_TEST_RECIPIENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignSendInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã xếp lịch gửi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_QUIET_HOURS` · `CAMPAIGN_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReconciliationController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReconciliationController_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationRequestDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationRecordDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PreferenceController_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tùy chọn nhận thông báo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PreferenceController_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferenceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tùy chọn đã lưu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PreferenceController_device: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Thiết bị nhận push. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PreferenceController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PreferenceController_history: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nhật ký thông báo của tôi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationLogDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hộp thư của tôi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số tin chưa đọc. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeIncidentController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeIncidentController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IncidentInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeIncidentController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentUploadInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorIncidentController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorIncidentController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IncidentResolutionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorIncidentController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminIncidentController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminIncidentController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeJourneyLogController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyLogPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeJourneyLogController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JourneyLogInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyLogDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorJourneyLogController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyLogPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminJourneyLogController_list: {
+        parameters: {
+            query?: {
+                tripId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyLogPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PickupWindowController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+                sequence: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PickupWindowInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerProfileDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PassengerProfileUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerProfileDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_saved: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPassengerListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_createSaved: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedPassengerInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPassengerDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_updateSaved: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                passengerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedPassengerInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedPassengerDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_deleteSaved: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                passengerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_bookings: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerBookingPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_tickets: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerTicketPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_supportTickets: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerSupportPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerProfileController_disputes: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerDisputePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicOperatorProfileController_get: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                operatorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicOperatorProfileDto_Output"];
+                };
+            };
+        };
+    };
+    PassengerLoyaltyController_member: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerLoyaltyDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerLoyaltyController_transactions: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                type?: "EARN" | "REDEEM" | "EXPIRE" | "ADJUST" | "REVERSAL";
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerLoyaltyTransactionsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerLoyaltyController_redeem: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8–128 ký tự chữ, số, gạch ngang hoặc gạch dưới. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyRedemptionInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserVoucherDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerLoyaltyController_vouchers: {
+        parameters: {
+            query?: {
+                status?: "AVAILABLE" | "RESERVED" | "USED" | "EXPIRED";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserVoucherPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerLoyaltyController_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveVoucherInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserVoucherDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AppController_health: {
         parameters: {
             query?: never;
@@ -1761,6 +14947,62 @@ export interface operations {
             };
         };
     };
+    AuthController_counterLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile). */
+                "X-Auth-Transport"?: "cookie" | "bearer";
+                /** @description Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit). */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialLoginDto"];
+            };
+        };
+        responses: {
+            /** @description Cổng bán vé: SALES_STAFF hoặc OPERATOR_OWNER; giữ luồng đổi mật khẩu và MFA của tài khoản. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
+                };
+            };
+            /** @description `X-Auth-Transport` sai (`AUTH_TRANSPORT_INVALID`) hoặc gửi cả Bearer lẫn cookie (`AUTH_TRANSPORT_AMBIGUOUS`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Sai thông tin đăng nhập hoặc tài khoản không dùng cổng bán vé. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Cookie mode: CSRF thiếu/sai (`AUTH_CSRF_INVALID`), Origin ngoài allowlist (`AUTH_ORIGIN_FORBIDDEN`) hoặc tài khoản bị khóa. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AuthController_employeeLogin: {
         parameters: {
             query?: never;
@@ -2014,6 +15256,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                };
+            };
+        };
+    };
+    AuthController_oauthIdToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description OAuth provider native (v1: google). */
+                provider: "google";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthIdTokenDto"];
+            };
+        };
+        responses: {
+            /** @description Xác minh Google ID token từ SDK native và cấp access/refresh token Passenger. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                };
+            };
+            /** @description Google ID token không hợp lệ hoặc đã hết hạn. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
         };
@@ -2653,6 +15931,344 @@ export interface operations {
             };
         };
     };
+    OperatorManagerController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản quản lý của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản đã tạo; `credentialDeliveryPending` = chưa gửi được email. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_USERNAME_CONFLICT` — tên đăng nhập đã dùng trong nhà xe. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cập nhật. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerReasonDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cấp lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_resetMfa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerReasonDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi đặt lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     CatalogController_listProvinces: {
         parameters: {
             query?: never;
@@ -2777,6 +16393,900 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AmenityListResponseDto_Output"];
+                };
+            };
+        };
+    };
+    CatalogController_listPopularRoutes: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tuyến phổ biến (gộp mọi nhà xe theo cặp tỉnh). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PopularRouteListResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CatalogController_listFeaturedOperators: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nhà xe tiêu biểu kèm tuyến đang mở bán. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedOperatorListResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CatalogController_listPlaces: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gợi ý địa điểm, khớp sát nhất trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSuggestionListResponseDto_Output"];
+                };
+            };
+            /** @description Từ khoá dưới 2 ký tự / query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_listProvinces: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "ACTIVE" | "INACTIVE";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang tỉnh / thành, theo mã. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProvincePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_createProvince: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminProvinceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tỉnh / thành vừa thêm. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProvinceDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_CODE_CONFLICT` — mã đã có. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_renameProvince: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCatalogRenameDto"];
+            };
+        };
+        responses: {
+            /** @description Tỉnh / thành sau khi đổi tên. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProvinceDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_listWards: {
+        parameters: {
+            query?: {
+                provinceId?: string;
+                q?: string;
+                status?: "ACTIVE" | "INACTIVE";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang phường / xã, theo mã. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminWardPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_createWard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminWardInputDto"];
+            };
+        };
+        responses: {
+            /** @description Phường / xã vừa thêm. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminWardDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_CODE_CONFLICT` — mã đã có. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_renameWard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCatalogRenameDto"];
+            };
+        };
+        responses: {
+            /** @description Phường / xã sau khi đổi tên. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminWardDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_listVehicleTypes: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mọi loại xe, theo mã. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVehicleTypeListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_createVehicleType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminVehicleTypeInputDto"];
+            };
+        };
+        responses: {
+            /** @description Loại xe vừa thêm. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVehicleTypeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_CODE_CONFLICT` — mã đã có. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_updateVehicleType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminVehicleTypeUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Loại xe sau khi sửa tên / mô tả. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVehicleTypeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_listAmenities: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mọi tiện ích, theo mã. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAmenityListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_createAmenity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAmenityInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tiện ích vừa thêm. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAmenityDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_CODE_CONFLICT` — mã đã có. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_renameAmenity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCatalogRenameDto"];
+            };
+        };
+        responses: {
+            /** @description Tiện ích sau khi đổi tên. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAmenityDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_deactivate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "provinces" | "wards" | "vehicle-types" | "amenities";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCatalogDeactivateDto"];
+            };
+        };
+        responses: {
+            /** @description Đã ngừng dùng. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_STATE_INVALID` — đang ngừng dùng rồi. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogController_activate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "provinces" | "wards" | "vehicle-types" | "amenities";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã dùng lại. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_STATE_INVALID` — đang dùng rồi. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
         };
@@ -3030,6 +17540,269 @@ export interface operations {
             };
             /** @description `CATALOG_ITEM_UNAVAILABLE`. */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    VehicleImageController_createUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleImageUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImageUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file hoặc dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_IMAGE_UPLOAD_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho lưu ảnh không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    VehicleImageController_replace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleImagesInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bộ ảnh sau khi thay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImagesResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (chú thích quá dài, ảnh lặp). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_IMAGE_INVALID` / `VEHICLE_IMAGE_LIMIT_EXCEEDED`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho lưu ảnh không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminVehicleImageController_list: {
+        parameters: {
+            query?: {
+                operatorId?: string;
+                uploadedSince?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang ảnh phương tiện. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVehicleImageListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminVehicleImageController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                imageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRemoveVehicleImageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gỡ ảnh. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_IMAGE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — ảnh chưa bị gỡ. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3713,12 +18486,684 @@ export interface operations {
             };
         };
     };
+    AdminSharedStopPointController_list: {
+        parameters: {
+            query?: {
+                type?: "BUS_STATION" | "PICKUP_POINT" | "REST_STOP";
+                provinceId?: string;
+                status?: "ACTIVE" | "INACTIVE";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang điểm dùng chung. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSharedStopPointListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSharedStopPointController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSharedStopPointInputDto"];
+            };
+        };
+        responses: {
+            /** @description Điểm vừa tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSharedStopPointDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (thiếu căn cứ công bố…). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_UNAVAILABLE` — tỉnh / phường không còn hiệu lực hoặc lệch nhau. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSharedStopPointController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một điểm dùng chung. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSharedStopPointDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSharedStopPointController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSharedStopPointInputDto"];
+            };
+        };
+        responses: {
+            /** @description Điểm sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSharedStopPointDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_UNAVAILABLE` — tỉnh / phường không còn hiệu lực hoặc lệch nhau. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminStopPointProposalController_list: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "APPROVED" | "REJECTED";
+                type?: "BUS_STATION" | "PICKUP_POINT";
+                operatorId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang đề xuất. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStopPointProposalListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminStopPointProposalController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một đề xuất. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStopPointProposalDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_PROPOSAL_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminStopPointProposalController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminStopPointProposalApprovalDto"];
+            };
+        };
+        responses: {
+            /** @description Đề xuất đã duyệt. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStopPointProposalDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_PROPOSAL_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_PROPOSAL_STATE_INVALID` — không còn Chờ duyệt. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_UNAVAILABLE` — tỉnh / phường không còn hiệu lực hoặc lệch nhau. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminStopPointProposalController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StopPointReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đề xuất đã từ chối. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStopPointProposalDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_PROPOSAL_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_PROPOSAL_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorStopPointController_list: {
+        parameters: {
+            query?: {
+                operatorId?: string;
+                type?: "OFFICE" | "REST_STOP";
+                provinceId?: string;
+                status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang điểm riêng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorStopPointListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorStopPointController_suspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StopPointReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Điểm đã khóa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorStopPointDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_STATE_INVALID` — đang bị khóa rồi. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorStopPointController_unsuspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Điểm đã mở khóa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorStopPointDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_STATE_INVALID` — không bị khóa. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     RouteController_list: {
         parameters: {
             query?: {
-                status?: "ACTIVE" | "INACTIVE";
+                status?: "ACTIVE" | "INACTIVE" | "DRAFT";
                 cursor?: string;
                 limit?: number;
+                includeSubRoutes?: "true" | "false";
             };
             header?: never;
             path?: never;
@@ -3951,7 +19396,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `ROUTE_NAME_CONFLICT`. */
+            /** @description `ROUTE_NAME_CONFLICT`, `ROUTE_IS_SUB_ROUTE` (tuyến con sửa qua tuyến chính). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3971,6 +19416,395 @@ export interface operations {
             };
             /** @description `ROUTING_PROVIDER_UNAVAILABLE` — không đổi gì. */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_previewName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteNamePreviewInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tên tự động, đã tránh trùng tuyến khác của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteNamePreviewDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_subRouteSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gợi ý tuyến con (chưa có tuyến con cùng hai đầu). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubRouteSuggestionListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_IS_SUB_ROUTE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_createSubRoute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubRouteInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tuyến con đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NAME_CONFLICT`, `SUB_ROUTE_CONFLICT`, `ROUTE_IS_SUB_ROUTE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUB_ROUTE_BOUNDS_INVALID`, `SUB_ROUTE_NOT_READY` (bật khi chưa có bảng giá). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_updateSubRoute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+                subRouteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubRouteInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tuyến con sau khi thay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NAME_CONFLICT`, `SUB_ROUTE_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUB_ROUTE_BOUNDS_INVALID`, `SUB_ROUTE_NOT_READY`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRouteController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                operatorId?: string;
+                status?: "ACTIVE" | "INACTIVE" | "DRAFT";
+                originProvinceId?: string;
+                destinationProvinceId?: string;
+                from?: string;
+                to?: string;
+                sort?: "sold" | "revenue" | "trips" | "fill" | "name";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang tuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRoutePageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (kỳ tối đa 366 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRouteController_detail: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết tuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRouteDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND`. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4213,7 +20047,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `TRIP_NOT_EDITABLE` (không còn nháp) / `VEHICLE_SCHEDULE_CONFLICT`. */
+            /** @description `TRIP_NOT_EDITABLE` (không còn nháp) / `VEHICLE_SCHEDULE_CONFLICT` / `TRIP_BLOCKED_SEATS_MISSING` (xe mới thiếu ghế đang khóa). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -4224,6 +20058,11843 @@ export interface operations {
             };
             /** @description `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE` / `TRIP_STOP_TIMES_INVALID`. */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripController_sales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tình hình bán + lịch sử đổi / hủy chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSalesDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripController_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripChangeInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi đổi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_CHANGE_NOT_ALLOWED` (trạng thái / đang có khách thanh toán) / `TRIP_SEATS_UNMAPPABLE` (xe mới thiếu chỗ đã bán — `reasons`) / `VEHICLE_SCHEDULE_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_CHANGE_EMPTY` / `TRIP_STOPS_INVALID` / `TRIP_STOP_TIMES_INVALID` / `VEHICLE_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được lịch sử — chuyến không đổi, thử lại. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripController_changeStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi đổi trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (vd hủy thiếu lý do). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_STATUS_TRANSITION_INVALID` (chuyển sai bảng, hoặc thu hồi nháp khi đã có vé). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_READY_FOR_SALE` — `reasons` liệt kê mọi điều kiện mở bán chưa đạt (BR-39). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được lịch sử — chuyến không đổi, thử lại. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripController_setSeatStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripSeatStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi khóa / mở ghế. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (vd trùng mã ghế). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_SEAT_NOT_AVAILABLE` (ghế đang giữ / đã bán) / `TRIP_NOT_EDITABLE` (chuyến đã hủy / khởi hành). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_SEAT_UNKNOWN` (mã ghế không thuộc chuyến). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminTripController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                routeId?: string;
+                status?: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTripPageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (kỳ tối đa 92 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminTripController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTripDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký lượt xem — không trả dữ liệu. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripScheduleController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lịch còn hiệu lực trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripScheduleListResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripScheduleController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripScheduleInputDto"];
+            };
+        };
+        responses: {
+            /** @description Lịch đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripScheduleResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (ngày kết thúc trước ngày bắt đầu…). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripScheduleController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scheduleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lịch chuyến lặp lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripScheduleResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_SCHEDULE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripScheduleController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scheduleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripScheduleInputDto"];
+            };
+        };
+        responses: {
+            /** @description Lịch sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripScheduleResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_SCHEDULE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripScheduleController_generate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scheduleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripScheduleGenerateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến đã sinh và ngày bỏ qua. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripScheduleGenerateResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_SCHEDULE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeAssignmentController_list: {
+        parameters: {
+            query: {
+                date: string;
+                routeId?: string;
+                state?: "ASSIGNED" | "UNASSIGNED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang chuyến theo giờ khởi hành. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripAssignmentPageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeAssignmentController_assignDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DriverAssignmentInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi phân công. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripAssignmentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DRIVER_SCHEDULE_CONFLICT` / `TRIP_NOT_ASSIGNABLE` (chuyến đã hủy / hoàn thành). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `EMPLOYEE_NOT_ASSIGNABLE` / `ASSIGNMENT_REASON_REQUIRED`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — phân công không đổi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ContentPageController_list: {
+        parameters: {
+            query: {
+                type: "FAQ" | "BANNER" | "PAGE";
+                placement?: "HOME" | "FOOTER" | "BOOKING" | "TICKET" | "ACCOUNT";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mục đang hiển thị theo thứ tự. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicContentListDto_Output"];
+                };
+            };
+        };
+    };
+    ContentPageController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Trang tĩnh. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicContentItemDto_Output"];
+                };
+            };
+            /** @description `CONTENT_PAGE_NOT_FOUND` (không có / chưa hiển thị). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_list: {
+        parameters: {
+            query?: {
+                type?: "FAQ" | "BANNER" | "PAGE";
+                status?: "DRAFT" | "PUBLISHED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang nội dung + tổng số khớp bộ lọc. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPagePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentPageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Nội dung đã tạo (bản nháp). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_IMAGE_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh lỗi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_createImageUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentImageUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên + khóa ảnh. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentImageUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho ảnh không truy cập được. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết nội dung. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentPageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Nội dung sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_TYPE_IMMUTABLE` / `CONTENT_IMAGE_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminContentPageController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentPageStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Nội dung sau khi đổi trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CONTENT_PAGE_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicTripController_search: {
+        parameters: {
+            query?: {
+                fromProvinceId?: string;
+                fromWardId?: string;
+                fromAreaId?: string;
+                fromStopPointId?: string;
+                toProvinceId?: string;
+                toWardId?: string;
+                toAreaId?: string;
+                toStopPointId?: string;
+                date?: string;
+                passengers?: number;
+                operatorId?: string;
+                vehicleForm?: "SEATER" | "SLEEPER" | "CABIN";
+                vehicleClass?: "STANDARD" | "LIMOUSINE";
+                departureFrom?: string;
+                departureTo?: string;
+                priceMin?: number;
+                priceMax?: number;
+                amenityIds?: string;
+                sort?: "departure" | "price" | "price_desc" | "duration" | "rating";
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang chuyến đang mở bán khớp truy vấn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSearchResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicTripController_get: {
+        parameters: {
+            query?: {
+                pickupSequence?: number;
+                dropoffSequence?: number;
+            };
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTripDto_Output"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (không tồn tại hoặc không hiển thị). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeatHoldInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã giữ chỗ. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatHoldResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_CONFLICT` / `SEAT_NOT_AVAILABLE` (`reasons` = mã chỗ). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_STOPS_INVALID` / `TRIP_SEAT_UNKNOWN`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Hệ thống giữ chỗ gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Giữ chỗ đang hiệu lực. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatHoldResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã bỏ giữ chỗ. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tạo booking `PENDING_PAYMENT`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedBookingDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED` — giữ chỗ hết hạn / không phải của người gọi. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_SNAPSHOT_CHANGED` (`reasons[0]` = tổng mới) / `BOOKING_ALREADY_CREATED` / `TRIP_NOT_ON_SALE` / `SEAT_NOT_AVAILABLE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_PASSENGERS_MISMATCH` / `SEAT_HOLD_STOPS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Hệ thống giữ chỗ / cơ sở dữ liệu bận. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Booking. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_list: {
+        parameters: {
+            query: {
+                date: string;
+                tripId?: string;
+                status?: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang đơn (liên hệ đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorBookingPageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết đơn (liên hệ đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorBookingDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_revealContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liên hệ đầy đủ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingContactDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không trả dữ liệu. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_passengers: {
+        parameters: {
+            query?: {
+                pickupSequence?: number;
+                ticketStatus?: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                q?: string;
+            };
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Danh sách hành khách (số điện thoại đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripPassengerListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_exportPassengers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tệp CSV (UTF-8, có BOM). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không xuất. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PaymentController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInputDto"];
+            };
+        };
+        responses: {
+            /** @description Payment `PROCESSING` kèm link thanh toán. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_EXPIRED` / `BOOKING_INVALID_STATE` / `PAYMENT_IN_PROGRESS`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_AMOUNT_OUT_OF_RANGE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_PROVIDER_ERROR`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_PROVIDER_UNAVAILABLE` — cổng chưa cấu hình. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPaymentController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                status?: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reconcile?: "open";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang giao dịch, mới trước + tổng + số cần đối soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPaymentPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPaymentController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết giao dịch: dòng thời gian, phân bổ số tiền, vé, sổ giữ hộ, hoàn tiền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPaymentDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Vé kèm nội dung mã QR. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_requestOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupOtpInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận yêu cầu (mã chỉ được gửi khi đúng mã đặt vé + email, hoặc email có đơn trong 12 tháng). */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupOtpResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ / email. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_verifyOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupVerifyInputDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên tra cứu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupSessionDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_OTP_INVALID` — sai mã (kèm số lần thử còn lại), hết hạn hoặc hết lượt. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_listBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupSessionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Danh sách đơn + email có tài khoản không. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupBookingListDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_grantBookingAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupInputDto"];
+            };
+        };
+        responses: {
+            /** @description Mã truy cập phụ (dùng ở header `X-Booking-Token`). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupAccessDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_REQUIRES_LOGIN` — đơn đặt bằng tài khoản. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_lookup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupInputDto"];
+            };
+        };
+        responses: {
+            /** @description Booking kèm vé. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên không có / hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CancellationController_quote: {
+        parameters: {
+            query: {
+                /** @description Mã vé, phân tách bằng dấu phẩy. */
+                ticketIds: string;
+            };
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Điều kiện hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CancellationQuoteDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_TICKETS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CancellationController_cancel: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancellationInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã hủy vé. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CancellationResultDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_NOT_ALLOWED` (`reasons` = từng vé + lý do) / `REFUND_AMOUNT_CHANGED` (`reasons[0]` = số mới). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_TICKETS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                source?: "CUSTOMER" | "OPERATOR" | "PLATFORM";
+                status?: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang yêu cầu hoàn tiền, mới trước + tổng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết yêu cầu hoàn tiền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu đã chuyển về chờ hoàn qua cổng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundResolveInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu đã hoàn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_refundPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu hoàn tiền vừa tạo (chờ hoàn qua cổng). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_list: {
+        parameters: {
+            query?: {
+                period?: string;
+                operatorId?: string;
+                status?: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang kỳ chi trả, mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số kỳ chờ rà soát / sẵn sàng / đang giữ, đã chi trong tháng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPayoutStatsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết kỳ chi trả. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kỳ sau khi rà soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_hold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đang giữ lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kỳ chờ rà soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_confirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutConfirmInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đã chi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_TRANSFER_TIME_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_revealBank: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản nhận tiền đầy đủ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutBankAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số dư giữ hộ, đủ điều kiện / chờ, kỳ đã chi gần nhất. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSummaryDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_bookings: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                routeId?: string;
+                state?: "WAITING_TRIP" | "ON_HOLD" | "ELIGIBLE" | "IN_PAYOUT" | "PAID" | "REFUNDED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang giao dịch theo đơn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceBookingPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_payouts: {
+        parameters: {
+            query?: {
+                /** @description `YYYY-MM` */
+                month?: string;
+                status?: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang kỳ chi trả của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_payout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết kỳ chi trả. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeOperationsController_assignments: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chuyến được phân công, sắp theo giờ khởi hành. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeAssignmentListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeOperationsController_passengers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Danh sách hành khách (số điện thoại đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripManifestDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ASSIGNMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeOperationsController_verify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketVerifyInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kết quả soát vé. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketVerifyResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ASSIGNMENT_NOT_FOUND` / `TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeOperationsController_checkIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInInputDto"];
+            };
+        };
+        responses: {
+            /** @description Vé sau khi check-in + số khách đã lên. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckInResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ASSIGNMENT_NOT_FOUND` / `TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CHECK_IN_REJECTED` (sai chuyến / đã hủy / đã hoàn / đã check-in) / `CHECK_IN_CLOSED`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    EmployeeOperationsController_operate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripOperationInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi đổi trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeAssignmentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ASSIGNMENT_NOT_FOUND` (không phải tài xế của chuyến). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_OPERATION_INVALID` (sai thứ tự / chuyến đã hủy / đã hoàn thành). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReportingController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số liệu trang tổng quan Operator OS. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorOverviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReportingController_summary: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                routeId?: string;
+                vehicleId?: string;
+                status?: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Báo cáo theo kỳ (chuyến khởi hành trong kỳ). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorReportDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (khoảng ngày tối đa 366 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReportingController_export: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                routeId?: string;
+                vehicleId?: string;
+                status?: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tệp CSV (UTF-8, có BOM). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không xuất. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReportingController_overview: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                operatorId?: string;
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số liệu trang Tổng quan nền tảng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverviewDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReportingController_summary: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                operatorId?: string;
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Báo cáo toàn hệ thống theo kỳ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminReportDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (khoảng ngày tối đa 366 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReportingController_export: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                operatorId?: string;
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                group?: "operator" | "route" | "region";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tệp CSV (UTF-8, có BOM). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không xuất. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_list: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại của đơn, mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerTicketListDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND` — đơn không có / không thuộc người gọi. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerTicketInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi khiếu nại (`NEW`). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_ATTACHMENT_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại + trao đổi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_reply: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi; chờ khách / đã giải quyết → Vé Xe Nhanh xử lý tiếp. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID` — khiếu nại đã đóng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_upload: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải tệp lên kho riêng tư (5 phút). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho tệp riêng tư chưa sẵn sàng. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerSupportController_download: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem tệp (5 phút, có audit). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_ATTACHMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorSupportController_list: {
+        parameters: {
+            query?: {
+                status?: "NEW" | "IN_PROGRESS" | "WAITING_OPERATOR" | "WAITING_CUSTOMER" | "ESCALATED" | "RESOLVED" | "CLOSED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại đã chuyển cho nhà xe, cập nhật mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorSupportController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại + trao đổi (liên hệ khách đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND` (kể cả chưa chuyển cho nhà xe / của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorSupportController_reply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi phản hồi cho khách. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID` — khiếu nại đã đóng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorSupportController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải tệp minh chứng lên kho riêng tư (5 phút). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho tệp riêng tư chưa sẵn sàng. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorSupportController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem tệp (5 phút, có audit). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_ATTACHMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_list: {
+        parameters: {
+            query?: {
+                status?: "NEW" | "IN_PROGRESS" | "WAITING_OPERATOR" | "WAITING_CUSTOMER" | "ESCALATED" | "RESOLVED" | "CLOSED";
+                category?: "PAYMENT_REFUND" | "SCHEDULE" | "SERVICE_QUALITY" | "TICKET_CHANGE" | "OTHER";
+                operatorId?: string;
+                /** @description UUID tài khoản nền tảng hoặc `none`. */
+                assigneeId?: string;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại, cập nhật mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_assignees: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản nền tảng đang hoạt động. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssigneeListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khiếu nại, trao đổi, dữ liệu liên quan. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_classify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassifyInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã lưu phân loại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID` — đã đóng / đã chuyển tranh chấp. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_ASSIGNEE_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_reply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminMessageInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi phản hồi cho khách. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID` — khiếu nại đã đóng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã giải quyết / đã đóng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải tệp lên kho riêng tư (5 phút). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminSupportController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem tệp (5 phút, có audit). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_ATTACHMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_list: {
+        parameters: {
+            query?: {
+                /** @description Trạng thái hoặc `open`. */
+                status?: ("OPEN" | "WAITING_USER_EVIDENCE" | "WAITING_OPERATOR_RESPONSE" | "UNDER_REVIEW" | "ESCALATED" | "RESOLVED_REFUND" | "RESOLVED_NO_REFUND" | "CLOSED") | "open";
+                operatorId?: string;
+                due?: "overdue" | "upcoming";
+                /** @description UUID tài khoản nền tảng hoặc `none`. */
+                assigneeId?: string;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp, cập nhật mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_open: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectDisputeInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã mở tranh chấp trực tiếp từ đơn. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID` — đã có tranh chấp trực tiếp đang mở. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_escalate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EscalateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã mở tranh chấp từ khiếu nại. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUPPORT_STATE_INVALID` — đã chuyển tranh chấp / đã đóng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp: minh chứng hai bên, dữ liệu hệ thống, lịch sử. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_requestEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestEvidenceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã yêu cầu minh chứng (chờ khách / chờ nhà xe). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID` — đã có quyết định / hạn không hợp lệ. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisputeStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã đổi trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_decide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisputeDecisionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã ra quyết định; hoàn tiền → yêu cầu hoàn đã tạo, worker hoàn qua cổng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID` — đã có quyết định. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_REFUND_INVALID` — vượt phần khách đã trả còn lại / không có thanh toán qua cổng. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminDisputeController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải tệp lên kho riêng tư (5 phút). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorDisputeController_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorDisputeController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp (không gồm minh chứng của khách). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorDisputeController_respond: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi giải trình; đang chờ nhà xe → đang xem xét. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID` — đã có quyết định. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerDisputeController_list: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp của đơn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDisputeListDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_NOT_FOUND` — đơn không có / không thuộc người gọi. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerDisputeController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tranh chấp (không gồm minh chứng của nhà xe). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerDisputeController_respond: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+                disputeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi minh chứng; đang chờ khách → đang xem xét. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisputeDetailDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `DISPUTE_STATE_INVALID` — đã có quyết định. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerReviewController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đánh giá của đơn (nếu có) + đơn có đủ điều kiện đánh giá không. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerReviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_FOUND` — đơn không có / không phải của hành khách. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CustomerReviewController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi đánh giá. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_ALLOWED` — chuyến chưa hoàn thành / chưa đi / đã đánh giá. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReviewController_list: {
+        parameters: {
+            query?: {
+                routeId?: string;
+                rating?: number;
+                replied?: "yes" | "no";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đánh giá (trừ đã ẩn), mới trước, kèm điểm trung bình đánh giá hợp lệ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReviewController_reply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplyInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã lưu phản hồi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorReviewController_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã báo Vé Xe Nhanh xem xét. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_ALLOWED` — đã báo cáo. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReviewController_list: {
+        parameters: {
+            query?: {
+                /** @description VISIBLE / HELD / HIDDEN hoặc `attention`. */
+                status?: ("VISIBLE" | "HELD" | "HIDDEN") | "attention";
+                operatorId?: string;
+                rating?: number;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đánh giá kèm tín hiệu cần xem xét. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminReviewController_moderate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã giữ chờ / ẩn / hiển thị lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REVIEW_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_routeOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionRouteOptionsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_list: {
+        parameters: {
+            query?: {
+                scope?: "PLATFORM" | "OPERATOR";
+                display?: "DRAFT" | "SCHEDULED" | "RUNNING" | "PAUSED" | "ENDED";
+                q?: string;
+                routeId?: string;
+                operatorId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khuyến mãi theo phạm vi, mới tạo trước, kèm số liệu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tạo khuyến mãi nền tảng (nháp). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_CODE_TAKEN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khuyến mãi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_STATE_INVALID` (đã có đơn dùng mã / đã kết thúc) / `PROMOTION_CODE_TAKEN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã đổi trạng thái (gồm tạm dừng / kết thúc khuyến mãi của nhà xe). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_permissions: {
+        parameters: {
+            query?: {
+                q?: string;
+                enabled?: "yes" | "no";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nhà xe + quyền tự tạo khuyến mãi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPromotionController_setPermission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operatorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã lưu quyền + giới hạn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_GUARDRAIL` — tuyến không thuộc nhà xe. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_list: {
+        parameters: {
+            query?: {
+                scope?: "PLATFORM" | "OPERATOR";
+                display?: "DRAFT" | "SCHEDULED" | "RUNNING" | "PAUSED" | "ENDED";
+                q?: string;
+                routeId?: string;
+                operatorId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `scope=OPERATOR`: khuyến mãi của nhà xe; `PLATFORM`: khuyến mãi nền tảng để tham gia. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tạo khuyến mãi (nháp). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_CODE_TAKEN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_GUARDRAIL` — chưa được cấp quyền / vượt giới hạn. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_permission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quyền + giới hạn Vé Xe Nhanh cấp cho nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khuyến mãi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_STATE_INVALID` / `PROMOTION_CODE_TAKEN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_GUARDRAIL`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionStatusInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã đổi trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_GUARDRAIL` — kích hoạt khi vượt giới hạn hiện tại. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorPromotionController_participate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParticipationInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tham gia / rời khuyến mãi nền tảng (nhà xe chịu phần giảm). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_STATE_INVALID` — đã kết thúc. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicPromotionController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khuyến mãi đang chạy, còn lượt, sắp hết hạn trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicPromotionListDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicPromotionController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionCheckInputDto"];
+            };
+        };
+        responses: {
+            /** @description Số tiền giảm + tổng sau giảm. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionCheckDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_EXHAUSTED` / `VOUCHER_NOT_AVAILABLE` (voucher đang dùng cho đơn khác). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PROMOTION_INVALID` / `VOUCHER_NOT_AVAILABLE` (chưa đăng nhập) / `VOUCHER_EXPIRED` / `VOUCHER_NOT_APPLICABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminLoyaltyController_member: {
+        parameters: {
+            query: {
+                email: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản thành viên của hành khách. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyMemberDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `LOYALTY_MEMBER_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminLoyaltyController_transactions: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sổ điểm, mới nhất trước (chỉ ghi thêm). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTransactionPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `LOYALTY_MEMBER_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminLoyaltyController_adjust: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8–128 ký tự `[A-Za-z0-9_-]`; gửi lặp cùng khóa không ghi thêm giao dịch. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PointAdjustInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau điều chỉnh (gửi lại cùng khóa → không ghi thêm). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyMemberDto_Output"];
+                };
+            };
+            /** @description Dữ liệu / `Idempotency-Key` không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `LOYALTY_MEMBER_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `LOYALTY_INSUFFICIENT_POINTS` / `LOYALTY_REQUEST_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminLoyaltyController_report: {
+        parameters: {
+            query: {
+                year: number;
+                quarter: number;
+                tier?: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Báo cáo chương trình theo tháng của quý. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyReportDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    FareController_list: {
+        parameters: {
+            query?: {
+                routeId?: string;
+                status?: "ACTIVE" | "INACTIVE";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bảng giá của nhà xe (không kèm rule). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareListResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    FareController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FareCreateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bảng giá đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu sai / `FARE_RULES_OVERLAP`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_ROUTE_CONFLICT` (tuyến đã có bảng giá). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_UNAVAILABLE` / `CATALOG_ITEM_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được lịch sử giá — không tạo gì, thử lại. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    FareController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fareId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết bảng giá kèm rule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    FareController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fareId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FareUpdateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bảng giá sau khi thay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu sai / `FARE_RULES_OVERLAP`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CATALOG_ITEM_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được lịch sử giá — bảng giá không đổi, thử lại. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    FareController_revisions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                fareId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lịch sử thay đổi bảng giá. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareRevisionListResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationCreateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận; link (nếu hợp lệ) được gửi tới email liên hệ. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_requestAccessLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationAccessLinkInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận; khớp hồ sơ chưa có kết quả thì link mới được gửi. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ và trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_update: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationUpdateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi lưu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_DOCUMENT_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_createDocumentUpload: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file / dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_createDocumentDownload: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path: {
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem giấy tờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDownloadResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_submit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ đã gửi duyệt. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INCOMPLETE` (+ `reasons`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_list: {
+        parameters: {
+            query?: {
+                status?: "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+                q?: string;
+                submittedSince?: string;
+                duplicatesOnly?: "true" | "false";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang hàng đợi hồ sơ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminApplicationListResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết hồ sơ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminApplicationDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_createDocumentDownload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem giấy tờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDownloadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit / email / kho giấy tờ không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_approve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8–128 ký tự `[A-Za-z0-9_-]`; gửi lặp cùng khóa trả lại kết quả lần đầu. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã duyệt (hoặc kết quả của lần duyệt cùng khóa). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu / `Idempotency-Key` không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /**
+             * @description `AUTH_REAUTH_REQUIRED` — cần xác thực lại (TOTP).
+             *
+             *     Thiếu hoặc sai access token.
+             */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_SLUG_CONFLICT` hoặc `OPERATOR_APPLICATION_INVALID_STATE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt hạn mức gửi mật khẩu tạm (IAM-005). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit / email / kho giấy tờ không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_requestInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ đã chuyển `NEEDS_INFO`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `SUBMITTED` (hoặc đã duyệt bằng khóa khác). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit / email / kho giấy tờ không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ đã chuyển `REJECTED`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionResponseDto_Output"];
+                };
+            };
+            /**
+             * @description `AUTH_REAUTH_REQUIRED` — cần xác thực lại (TOTP).
+             *
+             *     Thiếu hoặc sai access token.
+             */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `SUBMITTED` (hoặc đã duyệt bằng khóa khác). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit / email / kho giấy tờ không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationReviewController_resendOwnerCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã gửi lại mật khẩu tạm. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalResponseDto_Output"];
+                };
+            };
+            /**
+             * @description `AUTH_REAUTH_REQUIRED` — cần xác thực lại (TOTP).
+             *
+             *     Thiếu hoặc sai access token.
+             */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` (chưa duyệt) / `ACCOUNT_STATE_CONFLICT` (đã gửi được rồi). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt hạn mức gửi mật khẩu tạm (IAM-005). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit / email / kho giấy tờ không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminAuditLogController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                actorType?: "PLATFORM" | "OPERATOR" | "EMPLOYEE" | "PASSENGER" | "SYSTEM";
+                module?: "AUTH" | "ACCOUNT" | "OPERATOR_KYC" | "CATALOG" | "STOP_POINT" | "VEHICLE" | "TRIP" | "FARE" | "AUDIT" | "OTHER";
+                result?: "SUCCESS" | "FAILURE";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang bản ghi audit. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditLogListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminAuditLogController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ObjectId (hex 24 ký tự). */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một bản ghi audit. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditLogDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `AUDIT_LOG_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ArticleController_listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chuyên mục theo thứ tự hiển thị. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleCategoryListDto_Output"];
+                };
+            };
+        };
+    };
+    ArticleController_list: {
+        parameters: {
+            query?: {
+                category?: string;
+                q?: string;
+                featured?: "true" | "false";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang bài viết. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticlePageDto_Output"];
+                };
+            };
+        };
+    };
+    ArticleController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một bài kèm nội dung Markdown. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleDto_Output"];
+                };
+            };
+            /** @description `ARTICLE_NOT_FOUND` — không có, chưa xuất bản, chưa tới giờ hoặc đã gỡ. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ArticleController_recordView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã ghi nhận (hoặc bỏ qua vì vừa xem). */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `ARTICLE_NOT_FOUND` — không có, chưa xuất bản, chưa tới giờ hoặc đã gỡ. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                categoryId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang bài viết. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticlePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bài nháp đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_CATEGORY_UNAVAILABLE` (chuyên mục ngừng dùng) / `ARTICLE_IMAGE_INVALID` (ảnh bìa). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_createImageUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleImageUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên + khóa object + địa chỉ công khai. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleImageUploadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một bài viết kèm nội dung Markdown. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bài sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_CATEGORY_UNAVAILABLE` (chuyên mục ngừng dùng) / `ARTICLE_IMAGE_INVALID` (ảnh bìa). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticlePublishDto"];
+            };
+        };
+        responses: {
+            /** @description Bài đã xuất bản. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_STATE_INVALID` — đang xuất bản rồi. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_INCOMPLETE` — chưa có nội dung. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleController_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bài đã gỡ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_STATE_INVALID` — bài chưa xuất bản. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleCategoryController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mọi chuyên mục theo thứ tự hiển thị. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleCategoryListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleCategoryController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleCategoryInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyên mục đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleCategoryDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_CATEGORY_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminArticleCategoryController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleCategoryInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyên mục sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleCategoryDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_CATEGORY_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ARTICLE_CATEGORY_SLUG_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit / kho ảnh không phản hồi — không lưu gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "ACTIVE" | "SUSPENDED";
+                bankChange?: "PENDING";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_vehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Xe của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorVehicleListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_suspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminOperatorSuspendDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tạm khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_STATE_INVALID` — đang bị khóa rồi. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_unsuspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã mở khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_STATE_INVALID` — không bị khóa. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_getBankChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Yêu cầu đang chờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminBankChangeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND` / `BANK_ACCOUNT_CHANGE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_approveBankChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminBankChangeApproveDto"];
+            };
+        };
+        responses: {
+            /** @description Đã xác minh. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BANK_ACCOUNT_CHANGE_NOT_FOUND` — đã xử lý / không còn chờ. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_rejectBankChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminBankChangeRejectDto"];
+            };
+        };
+        responses: {
+            /** @description Đã từ chối. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BANK_ACCOUNT_CHANGE_NOT_FOUND` — đã xử lý / không còn chờ. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperatorProfileUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_createLogoUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogoUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file hoặc dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho công khai không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_setLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoAttachInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi đổi logo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_LOGO_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho công khai / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_removeLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ sau khi gỡ logo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_createUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KycUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KycUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file hoặc dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho riêng tư chưa cấu hình / không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_replaceDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KycReplaceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi thay giấy tờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `KYC_DOCUMENT_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho riêng tư / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_createDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem giấy tờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KycDownloadResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `KYC_DOCUMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho riêng tư / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_requestBankChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankChangeInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ kèm yêu cầu đang chờ. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /**
+             * @description `AUTH_REAUTH_REQUIRED`.
+             *
+             *     Thiếu hoặc sai access token.
+             */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BANK_ACCOUNT_CHANGE_PENDING`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BANK_ACCOUNT_UNCHANGED`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_overview: {
+        parameters: {
+            query?: {
+                operatorId?: string;
+            };
+            header?: never;
+            path: {
+                type: "CANCELLATION" | "SEAT_HOLD" | "PAYOUT" | "LOYALTY";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Các phiên bản. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyOverviewDto_Output"];
+                };
+            };
+            /** @description `POLICY_RULES_INVALID` — phạm vi nhà xe cho loại không hỗ trợ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_createDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: "CANCELLATION" | "SEAT_HOLD" | "PAYOUT" | "LOYALTY";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyDraftCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Nháp vừa tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyVersionDto_Output"];
+                };
+            };
+            /** @description `POLICY_RULES_INVALID`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_VERSION_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một phiên bản. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyVersionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_VERSION_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_updateDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyDraftUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Nháp sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyVersionDto_Output"];
+                };
+            };
+            /** @description `POLICY_RULES_INVALID`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_VERSION_LOCKED`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyPublishDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên bản đã kích hoạt. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyVersionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_VERSION_LOCKED` / `POLICY_SCHEDULE_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_EFFECTIVE_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyCancelDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên bản đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyVersionDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_VERSION_LOCKED` — đã có hiệu lực. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_listFareBands: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Các khung giá. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareBandListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_createFareBand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FareBandCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Khung giá vừa tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareBandDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `POLICY_EFFECTIVE_INVALID` — đã kết thúc. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPolicyController_cancelFareBand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyCancelDto"];
+            };
+        };
+        responses: {
+            /** @description Khung giá đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FareBandDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_BAND_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `FARE_BAND_CLOSED`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCommissionController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mức mặc định + mức riêng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionOverviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCommissionController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionRuleCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Mức riêng vừa thêm. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionRuleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_NOT_FOUND` — nhà xe không tồn tại. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_OVERLAP`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_PERIOD_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCommissionController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionRuleUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Mức riêng sau khi sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionRuleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_OVERLAP`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_LOCKED` / `COMMISSION_PERIOD_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminCommissionController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionRuleCancelDto"];
+            };
+        };
+        responses: {
+            /** @description Mức riêng sau khi ngừng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionRuleDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `COMMISSION_RULE_LOCKED` — đã kết thúc / đã hủy. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SystemStatusController_integrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Trạng thái từng tích hợp. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemIntegrationsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SystemStatusController_jobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tác vụ nền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackgroundJobsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "ACTIVE" | "LOCKED" | "DISABLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang hành khách. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPassengerPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết hành khách. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPassengerDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký lượt xem — không trả dữ liệu. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_bookings: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang đơn đặt vé. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPassengerBookingPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_lock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountLockDto"];
+            };
+        };
+        responses: {
+            /** @description Đã khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_unlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã mở khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminEmployeeController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                operatorId?: string;
+                role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+                status?: "ACTIVE" | "LOCKED" | "DISABLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang nhân viên nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEmployeePageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                role?: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+                status?: "ACTIVE" | "LOCKED" | "DISABLED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mọi tài khoản quản trị. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlatformAccountCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản đã tạo; `credentialDeliveryPending` = chưa gửi được email. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
+                };
+            };
+            /** @description `PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /**
+             * @description `PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).
+             *
+             *     `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PLATFORM_ACCOUNT_CONFLICT` — trùng tên đăng nhập / email. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_TEMP_EMAIL_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản sau khi cấp lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` / `PLATFORM_ACCOUNT_SELF_ACTION`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_resetMfa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản sau khi đặt lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` / `PLATFORM_ACCOUNT_SELF_ACTION`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_lock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountLockDto"];
+            };
+        };
+        responses: {
+            /** @description Đã khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` / `PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_unlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã mở khóa. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_updatePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlatformPermissionsUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi phân quyền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
+                };
+            };
+            /** @description `PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /**
+             * @description `PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).
+             *
+             *     `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

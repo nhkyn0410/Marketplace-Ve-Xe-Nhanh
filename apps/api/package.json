@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs main",
     "dev:worker": "node scripts/dev.mjs worker",
-    "build": "pnpm --filter @vexenhanh/types build && tsc -p tsconfig.build.json",
+    "build": "prisma generate && pnpm --filter @vexenhanh/types build && tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:worker": "node dist/worker.js",
     "lint": "eslint .",
@@ -25,6 +25,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1151.0",
+    "@aws-sdk/s3-request-presigner": "^3.1151.0",
     "@bull-board/api": "^7.1.5",
     "@bull-board/express": "^7.1.5",
     "@nestjs/bullmq": "^11.0.4",
@@ -39,6 +41,7 @@
     "@sentry/nestjs": "^10.56.0",
     "@vexenhanh/types": "workspace:*",
     "better-auth": "^1.6.14",
+    "firebase-admin": "^14.5.0",
     "bullmq": "^5.78.0",
     "helmet": "^8.3.0",
     "ioredis": "^5.11.0",

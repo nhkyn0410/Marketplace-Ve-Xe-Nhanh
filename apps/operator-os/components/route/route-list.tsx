@@ -3,9 +3,9 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
-import { ArrowUpRight, CircleAlert, FileX2, MapPin, Pencil, Plus, RefreshCw } from "lucide-react";
+import { ArrowUpRight, CircleAlert, CornerDownRight, FileX2, MapPin, Pencil, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 
 import { listRoutes, type RouteStatus, type RouteSummary } from "../../lib/route/route-api";
 import {
@@ -187,53 +187,62 @@ function RouteTable({ items }: { items: RouteSummary[] }) {
           </tr>
         </thead>
         <tbody>
-          {items.map((route) => {
-            const state = ROUTE_STATUS[route.status];
-            const inactive = route.status === "INACTIVE";
-            return (
-              <tr key={route.id} className="h-[76px] border-b">
-                <td className={TABLE_CELL}>
-                  <div className="flex flex-col gap-1">
-                    <span className={`truncate font-semibold ${inactive ? "text-muted-foreground" : "text-vxn-teal-700"}`}>
-                      {route.name}
-                    </span>
-                    <span className="text-xs leading-[18px] text-muted-foreground">
-                      Cập nhật {formatDate(route.updatedAt)}
-                    </span>
-                  </div>
-                </td>
-                <td className={TABLE_CELL}>
-                  <div className={`flex flex-col gap-1 text-xs leading-[18px] ${inactive ? "text-muted-foreground" : ""}`}>
-                    <Endpoint dot="bg-primary" label="Điểm đầu" name={route.originName} />
-                    <Endpoint dot="bg-vxn-saffron-500" label="Điểm cuối" name={route.destinationName} />
-                  </div>
-                </td>
-                <td className={TABLE_CELL}>{stopCountLabel(route.stopCount)}</td>
-                <td className={TABLE_CELL}>
-                  {formatDistance(route.totalDistanceMeters)}
-                  {/* Môi trường chưa có khóa Goong: số liệu chỉ là ước lượng đường chim bay. */}
-                  {route.metricsSource === "ESTIMATE" && (
-                    <span className="block text-xs leading-[18px] text-muted-foreground">Ước lượng</span>
-                  )}
-                </td>
-                <td className={TABLE_CELL}>{formatDuration(route.totalDurationSeconds)}</td>
-                <td className={TABLE_CELL}>
-                  <Badge tone={state.tone}>{state.label}</Badge>
-                </td>
-                <td className={TABLE_CELL}>
-                  <Button asChild variant="ghost" className={`${BUTTON} w-24 text-vxn-fg-1`}>
-                    <Link href={`/routes/${route.id}`} aria-label={`Sửa tuyến ${route.name}`}>
-                      <Pencil className="size-[18px]" />
-                      Sửa
-                    </Link>
-                  </Button>
-                </td>
-              </tr>
-            );
-          })}
+          {items.map((route) => (
+            // Tuyến con (3.2) lồng ngay dưới tuyến chính.
+            <Fragment key={route.id}>
+              <RouteRow route={route} />
+              {route.subRoutes.map((sub) => (
+                <RouteRow key={sub.id} route={sub} sub />
+              ))}
+            </Fragment>
+          ))}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function RouteRow({ route, sub = false }: { route: Omit<RouteSummary, "subRoutes">; sub?: boolean }) {
+  const state = ROUTE_STATUS[route.status];
+  const inactive = route.status === "INACTIVE";
+  return (
+    <tr className={`border-b ${sub ? "h-16 bg-muted/30" : "h-[76px]"}`}>
+      <td className={TABLE_CELL}>
+        <div className={`flex gap-2 ${sub ? "pl-4" : ""}`}>
+          {sub && <CornerDownRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />}
+          <div className="flex min-w-0 flex-col gap-1">
+            <span className={`truncate font-semibold ${inactive ? "text-muted-foreground" : "text-vxn-teal-700"}`}>{route.name}</span>
+            <span className="text-xs leading-[18px] text-muted-foreground">
+              {sub ? "Tuyến con · " : ""}Cập nhật {formatDate(route.updatedAt)}
+            </span>
+          </div>
+        </div>
+      </td>
+      <td className={TABLE_CELL}>
+        <div className={`flex flex-col gap-1 text-xs leading-[18px] ${inactive ? "text-muted-foreground" : ""}`}>
+          <Endpoint dot="bg-primary" label="Điểm đầu" name={route.originName} />
+          <Endpoint dot="bg-vxn-saffron-500" label="Điểm cuối" name={route.destinationName} />
+        </div>
+      </td>
+      <td className={TABLE_CELL}>{stopCountLabel(route.stopCount)}</td>
+      <td className={TABLE_CELL}>
+        {formatDistance(route.totalDistanceMeters)}
+        {/* Môi trường chưa có khóa Goong: số liệu chỉ là ước lượng đường chim bay. */}
+        {route.metricsSource === "ESTIMATE" && <span className="block text-xs leading-[18px] text-muted-foreground">Ước lượng</span>}
+      </td>
+      <td className={TABLE_CELL}>{formatDuration(route.totalDurationSeconds)}</td>
+      <td className={TABLE_CELL}>
+        <Badge tone={state.tone}>{state.label}</Badge>
+      </td>
+      <td className={TABLE_CELL}>
+        <Button asChild variant="ghost" className={`${BUTTON} w-24 text-vxn-fg-1`}>
+          <Link href={`/routes/${route.id}`} aria-label={`Sửa ${sub ? "tuyến con" : "tuyến"} ${route.name}`}>
+            <Pencil className="size-[18px]" />
+            Sửa
+          </Link>
+        </Button>
+      </td>
+    </tr>
   );
 }
 

@@ -1,0 +1,236 @@
+import type { components } from "@vexenhanh/api-client";
+import type { TripDetailData, TripSearchResultItem } from "./types";
+import { formatDateVi, formatTimeVi } from "../format";
+
+/** Bộ lọc tìm chuyến được chuyển sang query của API công khai. */
+/** Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places` (`area` = khu vực: đơn vị hành chính cũ). */
+export type PlaceType = "province" | "ward" | "area" | "stopPoint";
+
+export interface SearchTripsParams {
+  readonly origin?: string;
+  /** Thiếu = tỉnh / thành (link cũ: tuyến phổ biến, nhà xe chỉ mang id tỉnh). */
+  readonly originType?: PlaceType;
+  readonly destination?: string;
+  readonly destinationType?: PlaceType;
+  readonly date?: string;
+  readonly passengers?: number;
+  readonly timeRange?: string;
+  readonly minPriceVnd?: string;
+  readonly maxPriceVnd?: string;
+  readonly seatType?: string;
+  readonly vehicleType?: string;
+  readonly operatorId?: string;
+  readonly sortBy?: "earliest" | "price_asc" | "fastest";
+  readonly page?: string;
+  /** Xem vé không cần nhập ngày (không gửi `date`): API trả chuyến sắp chạy trong vài ngày tới. */
+  readonly anyDate?: boolean;
+}
+
+/** Kiểm tra số nguyên an toàn tại biên API và chuyển tiền sang chuỗi VND. */
+export function apiMoney(value: number): string {
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid VND integer");
+  return BigInt(value).toString();
+}
+
+/**
+ * Khoảng giá từ URL (chuỗi số nguyên VND). Không phải số, hoặc giá từ lớn hơn giá đến → bỏ cả hai và báo `invalid` để
+ * trang nhắc người dùng, thay vì gửi lên API rồi nhận lỗi 400. So sánh bằng BigInt (không ép tiền sang number).
+ */
+export function priceRange(min?: string, max?: string): { readonly min?: string; readonly max?: string; readonly invalid: boolean } {
+  const read = (value?: string) => (value?.trim() ? (/^\d{1,12}$/.test(value.trim()) ? value.trim() : null) : undefined);
+  const [low, high] = [read(min), read(max)];
+  if (low === null || high === null || (low !== undefined && high !== undefined && BigInt(low) > BigInt(high))) {
+    return { invalid: true };
+  }
+  return { min: low, max: high, invalid: false };
+}
+
+/** Đọc loại điểm từ URL; giá trị lạ coi như tỉnh. */
+export function placeType(value: string | undefined): PlaceType {
+  return value === "ward" || value === "area" || value === "stopPoint" ? value : "province";
+}
+
+/** Hai điểm trùng hẳn (cùng loại, cùng mã) — không tìm được; khác loại thì cho tìm kể cả trong cùng tỉnh (vd TP.HCM → Vũng Tàu). */
+export function samePlace(a: { readonly type: PlaceType; readonly id: string }, b: { readonly type: PlaceType; readonly id: string }): boolean {
+  return a.type === b.type && a.id === b.id;
+}
+
+const DAY_MS = 86_400_000;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Ngày hôm nay theo giờ Việt Nam, dạng `YYYY-MM-DD`. */
+export function vnToday(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(now);
+}
+
+/** Cộng `days` ngày vào ngày `YYYY-MM-DD`. */
+export function addDays(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** 5 ngày quanh ngày đi (lùi 2 ngày, không lùi về trước hôm nay) cho dải đổi ngày nhanh, giống app. */
+export function stripDates(selected: string, today: string): string[] {
+  const from = ISO_DATE.test(selected) && selected > today ? addDays(selected, -2) : today;
+  const start = from < today ? today : from;
+  return Array.from({ length: 5 }, (_, index) => addDays(start, index));
+}
+
+/** Chặng khách đã chọn lúc tìm (điểm đón / trả theo `sequence`) và số khách — mang từ thẻ kết quả sang chi tiết, chọn chỗ. */
+export interface TripLeg {
+  readonly pickup?: number;
+  readonly dropoff?: number;
+  readonly passengers?: number;
+}
+
+/** Đọc chặng từ URL; giá trị lạ thì bỏ (trang dùng mặc định). */
+export function readTripLeg(
+  params: { readonly [key: string]: string | readonly string[] | string[] | undefined } | URLSearchParams | null | undefined
+): TripLeg {
+  const int = (key: string, max: number) => {
+    const raw = params instanceof URLSearchParams ? params.get(key) : params?.[key];
+    const value = typeof raw === "string" && /^\d{1,3}$/.test(raw) ? Number(raw) : 0;
+    return value >= 1 && value <= max ? value : undefined;
+  };
+  return { pickup: int("pickup", 999), dropoff: int("dropoff", 999), passengers: int("passengers", 10) };
+}
+
+/** Query của chặng (`pickup=2&dropoff=3&passengers=2`); rỗng khi không có gì. */
+export function tripLegQuery(leg: TripLeg): string {
+  return new URLSearchParams(Object.entries(leg).flatMap(([key, value]) => (value === undefined ? [] : [[key, String(value)]]))).toString();
+}
+
+/** Cookie giữ điều kiện tìm gần nhất để trang Khám phá mở lại đúng tuyến (như app giữ lần tìm trước). */
+export const LAST_SEARCH_COOKIE = "vxn_last_search";
+/** Tham số điều kiện hành trình (không gồm bộ lọc / sắp xếp / trang). */
+export const JOURNEY_KEYS = [
+  "origin", "originType", "originLabel", "destination", "destinationType", "destinationLabel", "date", "passengers"
+] as const;
+
+/** Tạo query tìm chuyến, giữ giá dưới dạng chuỗi và ngày theo giờ Việt Nam. */
+export function searchQuery(params: SearchTripsParams): URLSearchParams {
+  // Xem vé không nhập ngày (`anyDate`) thì không gửi `date`; còn lại giữ thứ tự cũ (date trước) cho URL ổn định.
+  const query = new URLSearchParams(
+    params.anyDate && !params.date ? { passengers: String(params.passengers ?? 1) } : { date: params.date || vnToday(), passengers: String(params.passengers ?? 1) }
+  );
+  const forms: Record<string, string> = { seat: "SEATER", sleeper: "SLEEPER", cabin: "CABIN" };
+  const keys: Record<PlaceType, string> = { province: "ProvinceId", ward: "WardId", area: "AreaId", stopPoint: "StopPointId" };
+  const values = {
+    [`from${keys[params.originType ?? "province"]}`]: params.origin,
+    [`to${keys[params.destinationType ?? "province"]}`]: params.destination,
+    operatorId: params.operatorId, priceMin: params.minPriceVnd, priceMax: params.maxPriceVnd,
+    vehicleForm: params.seatType ? forms[params.seatType] : undefined,
+    vehicleClass: params.vehicleType?.toUpperCase(), page: params.page,
+    sort: params.sortBy === "price_asc" ? "price" : params.sortBy === "fastest" ? "duration" : "departure"
+  };
+  for (const [key, value] of Object.entries(values)) if (value) query.set(key, value);
+  if (params.timeRange) {
+    // "06-12" → 06:00 – 11:59: API so sánh cả hai đầu, nên chuyến 12:00 chỉ thuộc khung "12-18".
+    const [from = "", to = ""] = params.timeRange.split("-");
+    query.set("departureFrom", `${from}:00`);
+    query.set("departureTo", `${String(Number(to) - 1).padStart(2, "0")}:59`);
+  }
+  return query;
+}
+
+const formNames = { SEATER: "Ghế ngồi", SLEEPER: "Giường nằm", CABIN: "Cabin" };
+const duration = (minutes: number) => `${Math.floor(minutes / 60)} giờ ${minutes % 60} phút`;
+const nextDay = (start: string, end: string) => formatDateVi(start) !== formatDateVi(end);
+
+/** Chuyển chuyến tìm được thành thẻ kết quả, không tự tạo đánh giá hay ảnh xe. */
+export function mapTripSearchItem(item: components["schemas"]["TripSearchResponseDto_Output"]["items"][number]): TripSearchResultItem {
+  return {
+    id: item.tripId, operatorId: item.operator.id, operatorName: item.operator.name,
+    operatorCode: item.operator.name.slice(0, 2).toUpperCase(), operatorRating: item.operator.averageRating ?? 0,
+    operatorRatingCountText: item.operator.reviewCount > 0 ? `${item.operator.reviewCount} đánh giá` : "Chưa có đánh giá",
+    vehicleType: item.vehicleType.name,
+    seatType: formNames[item.vehicleType.form], departureTime: formatTimeVi(item.pickup.plannedAt),
+    departureDateText: formatDateVi(item.pickup.plannedAt),
+    departureCity: item.pickup.name, departureStation: item.pickup.name,
+    arrivalTime: formatTimeVi(item.dropoff.plannedAt), arrivalCity: item.dropoff.name,
+    arrivalStation: item.dropoff.name, durationText: duration(item.durationMinutes), stopCountText: "",
+    isNextDay: nextDay(item.pickup.plannedAt, item.dropoff.plannedAt), priceVnd: apiMoney(item.minPrice),
+    availableSeats: item.availableSeats, amenities: item.amenities.map((a) => a.name),
+    imageUrl: item.vehicleCoverImageUrl ?? "", pickupSequence: item.pickup.sequence, dropoffSequence: item.dropoff.sequence
+  };
+}
+
+/** Chuyển chi tiết chuyến công khai thành dữ liệu màn hình khách hàng. */
+export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"]): TripDetailData {
+  const stops = [...trip.stops].sort((a, b) => a.sequence - b.sequence);
+  // Chặng khách đi (3.3): tiêu đề theo nơi đón / trả, giờ + điểm theo chặng; tên tuyến thành dòng phụ.
+  const segment = trip.segment;
+  const from = (segment && stops.find((s) => s.sequence === segment.pickupSequence)) || undefined;
+  const to = (segment && stops.find((s) => s.sequence === segment.dropoffSequence)) || undefined;
+  const startAt = from?.plannedAt ?? trip.departureAt;
+  const endAt = to?.plannedAt ?? trip.arrivalAt;
+  const prices = trip.seats.flatMap((s) => s.status === "AVAILABLE" && s.price !== null ? [BigInt(apiMoney(s.price))] : []);
+  const doublePrices = trip.seats.flatMap((s) => s.status === "AVAILABLE" && s.type.endsWith("DOUBLE") && s.price !== null ? [BigInt(apiMoney(s.price))] : []);
+  const min = (values: bigint[]) => values.length ? values.reduce((a, b) => a < b ? a : b).toString() : "";
+  return {
+    id: trip.tripId, operatorId: trip.operator.id, operatorName: trip.operator.name,
+    operatorCode: trip.operator.name.slice(0, 2).toUpperCase(), operatorRating: 0,
+    operatorRatingCountText: "Chưa có dữ liệu đánh giá", operatorPhone: trip.operator.hotline ?? "",
+    operatorEmail: "", operatorDescription: "", vehicleTypeName: trip.vehicleType.name,
+    seatTypeName: formNames[trip.vehicleType.form], vehicleClass: trip.vehicleType.class === "LIMOUSINE" ? "Limousine" : "Tiêu chuẩn",
+    statusBadge: "", routeName: segment?.title ?? trip.routeName,
+    routeMeta: segment ? `${trip.routeName} · ${formatDateVi(startAt)}` : formatDateVi(trip.departureAt),
+    departureTime: formatTimeVi(startAt), departureStation: from?.name ?? stops[0]?.name ?? "",
+    durationText: duration(Math.round((Date.parse(endAt) - Date.parse(startAt)) / 60000)),
+    stopsSummaryText: `${stops.length} điểm dừng`, arrivalTime: formatTimeVi(endAt),
+    arrivalStation: to?.name ?? stops.at(-1)?.name ?? "", isNextDay: nextDay(startAt, endAt),
+    photos: trip.vehicleImages.map((i) => ({ url: i.url, caption: i.caption ?? "" })),
+    photosCaption: "Ảnh xe từ nhà xe", remainingPhotosCount: Math.max(0, trip.vehicleImages.length - 5),
+    amenities: trip.amenities.map((a) => a.name),
+    timeline: stops.map((s) => ({ time: formatTimeVi(s.plannedAt), stationName: s.name, address: s.address,
+      stationType: s.type === "REST_STOP" ? "rest_stop" : s.type === "BUS_STATION" ? "bus_station" : "office",
+      stationTypeLabel: s.type === "REST_STOP" ? "Điểm nghỉ" : s.type === "BUS_STATION" ? "Bến xe" : s.type === "OFFICE" ? "Văn phòng" : "Điểm dừng",
+      isRestStop: s.type === "REST_STOP",
+      badges: s.sequence === from?.sequence ? ["Bạn lên xe"] : s.sequence === to?.sequence ? ["Bạn xuống xe"]
+        : [s.allowPickup ? (s.pickupOpen ? "Đón khách" : "Hết giờ bán online") : "", s.allowDropoff ? "Trả khách" : ""].filter(Boolean),
+      lat: s.latitude, lng: s.longitude })),
+    seatMap: trip.seats.map((s) => ({ id: s.code, label: s.code, floor: s.deck === 2 ? 2 : 1,
+      row: s.row, col: s.column, status: s.status === "AVAILABLE" ? "available" : "unavailable",
+      isDouble: s.type.endsWith("DOUBLE") })),
+    totalSeats: trip.seats.length, availableSeats: trip.seats.filter((s) => s.status === "AVAILABLE" && s.price !== null).length,
+    priceSingleVnd: min(prices), priceDoubleVnd: min(doublePrices),
+    stopSalesTimeText: `${formatTimeVi(trip.onlineSaleClosesAt)} ${formatDateVi(trip.onlineSaleClosesAt)}`,
+    cancellationPolicies: trip.cancellationPolicy.tiers.map((t) => ({ condition: `Trước giờ đi ít nhất ${t.minHoursBefore} giờ`, refundPercentText: `${t.refundPercent}%` })),
+    cancellationNote: trip.note ?? "Xem báo giá hoàn tiền trước khi xác nhận hủy.",
+    reviewsAverage: 0, reviewsCountText: "Xem đánh giá trên trang nhà xe", reviews: []
+  };
+}
+
+/** Một điểm đi / điểm đến trên URL `/trips`: `origin` + `originType` + `originLabel` (tên hiện lại trên ô). */
+export interface PlaceParam {
+  readonly type: PlaceType;
+  readonly id: string;
+  readonly label: string;
+}
+
+/** Tham số URL của một điểm; tỉnh không ghi `…Type` để link cũ vẫn đúng. */
+export function placeSearchParams(side: "origin" | "destination", place: PlaceParam): Record<string, string> {
+  return {
+    [side]: place.id,
+    ...(place.type === "province" ? {} : { [`${side}Type`]: place.type }),
+    [`${side}Label`]: place.label
+  };
+}
+
+/** Điểm ban đầu của ô tìm từ URL; link cũ chỉ có id tỉnh thì lấy tên từ danh sách tỉnh. */
+export function initialPlace(
+  id: string | undefined,
+  type: string | undefined,
+  label: string | undefined,
+  provinces: readonly { readonly id: string; readonly name: string }[]
+): PlaceParam | null {
+  if (!id) return null;
+  const resolvedType = placeType(type);
+  const name = label || (resolvedType === "province" ? provinces.find((province) => province.id === id)?.name : undefined);
+  return { type: resolvedType, id, label: name ?? "" };
+}
+
+/** `/trips/{id}` kèm chặng khách đi (`pickupSequence` + `dropoffSequence`) khi đủ hai điểm — máy chủ tính giá theo chặng. */
+export function publicTripPath(tripId: string, leg: TripLeg): string {
+  const path = `/trips/${encodeURIComponent(tripId)}`;
+  return leg.pickup !== undefined && leg.dropoff !== undefined ? `${path}?pickupSequence=${leg.pickup}&dropoffSequence=${leg.dropoff}` : path;
+}

@@ -13,6 +13,8 @@ Method | HTTP request | Description
 [**vehicleControllerGet**](OperatorVehiclesApi.md#vehiclecontrollerget) | **GET** /v1/operator/vehicles/{vehicleId} | 
 [**vehicleControllerList**](OperatorVehiclesApi.md#vehiclecontrollerlist) | **GET** /v1/operator/vehicles | 
 [**vehicleControllerUpdate**](OperatorVehiclesApi.md#vehiclecontrollerupdate) | **PUT** /v1/operator/vehicles/{vehicleId} | 
+[**vehicleImageControllerCreateUploadUrl**](OperatorVehiclesApi.md#vehicleimagecontrollercreateuploadurl) | **POST** /v1/operator/vehicles/{vehicleId}/images/upload-url | 
+[**vehicleImageControllerReplace**](OperatorVehiclesApi.md#vehicleimagecontrollerreplace) | **PUT** /v1/operator/vehicles/{vehicleId}/images | 
 
 
 # **vehicleControllerCreate**
@@ -173,6 +175,92 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**VehicleResponseDtoOutput**](VehicleResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vehicleImageControllerCreateUploadUrl**
+> VehicleImageUploadResponseDtoOutput vehicleImageControllerCreateUploadUrl(vehicleId, vehicleImageUploadInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorVehiclesApi();
+final String vehicleId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final VehicleImageUploadInputDto vehicleImageUploadInputDto = ; // VehicleImageUploadInputDto | 
+
+try {
+    final response = api.vehicleImageControllerCreateUploadUrl(vehicleId, vehicleImageUploadInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorVehiclesApi->vehicleImageControllerCreateUploadUrl: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **vehicleId** | **String**|  | 
+ **vehicleImageUploadInputDto** | [**VehicleImageUploadInputDto**](VehicleImageUploadInputDto.md)|  | 
+
+### Return type
+
+[**VehicleImageUploadResponseDtoOutput**](VehicleImageUploadResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vehicleImageControllerReplace**
+> VehicleImagesResponseDtoOutput vehicleImageControllerReplace(vehicleId, vehicleImagesInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorVehiclesApi();
+final String vehicleId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final VehicleImagesInputDto vehicleImagesInputDto = ; // VehicleImagesInputDto | 
+
+try {
+    final response = api.vehicleImageControllerReplace(vehicleId, vehicleImagesInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorVehiclesApi->vehicleImageControllerReplace: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **vehicleId** | **String**|  | 
+ **vehicleImagesInputDto** | [**VehicleImagesInputDto**](VehicleImagesInputDto.md)|  | 
+
+### Return type
+
+[**VehicleImagesResponseDtoOutput**](VehicleImagesResponseDtoOutput.md)
 
 ### Authorization
 

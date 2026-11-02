@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **sessionId** | **String** |  | 
 **accessExpiresAt** | [**DateTime**](DateTime.md) |  | 
 **mfaVerified** | **bool** |  | 
+**permissions** | **BuiltList&lt;String&gt;** |  | 
 **operatorId** | **String** |  | [optional] 
 **operatorSlug** | **String** |  | [optional] 
 

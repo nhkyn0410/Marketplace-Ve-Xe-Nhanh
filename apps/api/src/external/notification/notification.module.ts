@@ -3,12 +3,14 @@ import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { ConsoleEmailNotifier } from "./console-email-notifier";
 import { EMAIL_NOTIFIER, type EmailNotifier } from "./email-notifier";
 import { ResendEmailNotifier } from "./resend-email-notifier";
+import { PUSH_NOTIFIER, ServerPushNotifier } from "./push/push-notifier";
 
 /**
  * Chọn adapter EmailNotifier theo config: có RESEND_API_KEY → Resend; ngược lại → dev fallback không gửi OTP.
  */
 @Module({
   providers: [
+    { provide: PUSH_NOTIFIER, inject: [APP_CONFIG], useFactory: (config: AppConfig) => new ServerPushNotifier(config) },
     ConsoleEmailNotifier,
     {
       provide: EMAIL_NOTIFIER,
@@ -21,6 +23,6 @@ import { ResendEmailNotifier } from "./resend-email-notifier";
       }
     }
   ],
-  exports: [EMAIL_NOTIFIER]
+  exports: [EMAIL_NOTIFIER, PUSH_NOTIFIER]
 })
 export class NotificationModule {}

@@ -478,7 +478,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("MFA TOTP + back
       (await post("/auth/mfa/verify", { challengeToken: unlocked.challengeToken, code: enrolled.backupCodes[6] })).status,
     ).toBe(200);
     expect(await redis.exists(failKey)).toBe(0);
-  });
+  }, 30_000); // nhiều lần băm scrypt: quá 5 giây khi cả bộ test chạy song song
 
   it("⭐ ai ghi được Redis cũng không dựng được challenge: payload tự viết / ghép từ challenge khác → 401", async () => {
     const victim = await enroll(await createPlatformAccount());
@@ -505,7 +505,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("MFA TOTP + back
       await post("/auth/mfa/verify", { challengeToken: forged.challengeToken, code: victim.backupCodes[7] }),
     ).toMatchObject({ status: 401 });
     expect((await mfaRows(victim.accountId)).sessions).toHaveLength(1); // chỉ phiên enrollment
-  });
+  }, 30_000);
 
   it("script Lua trên Redis thật: tạo 1 lần, lease NX (BUSY), release/consume chỉ bằng đúng lease, hết hạn giữa chừng → không consume", async () => {
     const key = `mfa:challenge:script-${tag}`;

@@ -1,0 +1,905 @@
+{
+  "fileKey": "6c81q3DdHVS0anfDw2sVVj",
+  "assets": [
+    {
+      "name": "login-imgTinHiuWiFiPin",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgVector",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgVector1",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgIconNhanVienDiNon",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgGroup",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgGroup1",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgFrame",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "login-imgFrame1",
+      "nodeId": "1611:981"
+    },
+    {
+      "name": "trips-imgGroup",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgGroup1",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgTinHiuWiFiPin",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgIconNhanVienDiNon",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgGroup2",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgGroup3",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgNetDtTrai",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgGroup4",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgFrame",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "trips-imgFrame1",
+      "nodeId": "1751:893"
+    },
+    {
+      "name": "detail-imgGroup",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup1",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgTinHiuWiFiPin",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup2",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgFrame",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgNetDtTrai",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup3",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup4",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgFrame1",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgFrame2",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup5",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "detail-imgGroup6",
+      "nodeId": "1758:467"
+    },
+    {
+      "name": "manifest-imgGroup",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgGroup1",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgGroup2",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgTinHiuWiFiPin",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgGroup3",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgGroup4",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgFrame",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "manifest-imgFrame1",
+      "nodeId": "1769:479"
+    },
+    {
+      "name": "scanner-imgTinHiuWiFiPin",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgGroup",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgDenPinNutSetTtIcon",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgCaiDtCameraIcon",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgKhungNhnDinBnGoc",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgChMa",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgVector",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgVector1",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgFrame",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "scanner-imgFrame1",
+      "nodeId": "1788:547"
+    },
+    {
+      "name": "ticket-imgPapierLKhuytTht",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgCungVeMauHThng",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgVinVeLKhuyt",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgLine",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgTuynHaiNetCan",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgTinHiuWiFiPin",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgGroup",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgIconBus",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgFrame",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "ticket-imgFrame1",
+      "nodeId": "1818:557"
+    },
+    {
+      "name": "profile-imgTinHiuWiFiPin",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgNhanVienDngPhc",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgGroup",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgGroup1",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgEmployeeAppearanceIconSun",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgEmployeeAppearanceIconMoon",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgGroup2",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgFrame",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgFrame1",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgGroup3",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "profile-imgGroup4",
+      "nodeId": "1875:711"
+    },
+    {
+      "name": "contact-imgFrame",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "contact-imgFrame1",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "contact-imgTinHiuWiFiPin",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "contact-imgGroup",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "contact-imgTaiNgheHTr",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "contact-imgEmail",
+      "nodeId": "1998:839"
+    },
+    {
+      "name": "operations-imgFrame",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgFrame1",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgVutXemChiTitNhtTrinh",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgTinHiuWiFiPin",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgGroup",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgMinhHaChuynDangVnHanh",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "operations-imgFrame2",
+      "nodeId": "1941:774"
+    },
+    {
+      "name": "incident-imgFrame",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgFrame1",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgVutChnGiaTr",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgTinHiuWiFiPin",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgGroup",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgIconSC",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "incident-imgIconMaynh",
+      "nodeId": "1992:825"
+    },
+    {
+      "name": "darkprofile-imgEmployeeEmployeeAvatar",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgTinHiuWiFiPin",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgGroup",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgGroup1",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgEmployeeAppearanceIconSun",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgEmployeeAppearanceIconMoon",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgGroup2",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgFrame",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgFrame1",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgGroup3",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "darkprofile-imgGroup4",
+      "nodeId": "2064:929"
+    },
+    {
+      "name": "devices-imgBoMtPhien",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgDinThoi",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgDinThoiAndroid",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgFrame",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgFrame1",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgGroup",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "devices-imgTinHiuWiFiPin",
+      "nodeId": "1997:883"
+    },
+    {
+      "name": "journal-detail-imgDaDim",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgDngH",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgFrame",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgFrame1",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgGroup",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgTinHiuWiFiPin",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-detail-imgTinhTrngXe",
+      "nodeId": "1997:821"
+    },
+    {
+      "name": "journal-imgFrame",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "journal-imgFrame1",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "journal-imgGroup",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "journal-imgIconGhiChep",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "journal-imgTinHiuWiFiPin",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "journal-imgVutChnGiaTr",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-boarding-imgFrame",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgFrame1",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgGroup",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgMinhHaChuynDangVnHanh",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgTayKeoHinhXeBuytDangChy",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgTinHiuWiFiPin",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-boarding-imgVutXemChiTitNhtTrinh",
+      "nodeId": "2189:1491"
+    },
+    {
+      "name": "operation-refresh-failure-imgFrame",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgFrame1",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgIconBack",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgIconDocument",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgIconRight",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgIconWarning",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-failure-imgTinHiuWiFiPin",
+      "nodeId": "2397:1977"
+    },
+    {
+      "name": "operation-refresh-journal-imgFrame",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-journal-imgFrame1",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-journal-imgIconBack",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-journal-imgIconDocument",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-journal-imgIconRight",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-journal-imgTinHiuWiFiPin",
+      "nodeId": "1989:814"
+    },
+    {
+      "name": "operation-refresh-pending-imgFrame",
+      "nodeId": "2082:1374"
+    },
+    {
+      "name": "operation-refresh-pending-imgFrame1",
+      "nodeId": "2082:1374"
+    },
+    {
+      "name": "operation-refresh-pending-imgIconBack",
+      "nodeId": "2082:1374"
+    },
+    {
+      "name": "operation-refresh-pending-imgIllustrationSyncPending",
+      "nodeId": "2082:1374"
+    },
+    {
+      "name": "operation-refresh-pending-imgTinHiuWiFiPin",
+      "nodeId": "2082:1374"
+    },
+    {
+      "name": "state-refresh-imgIconBack",
+      "nodeId": "2081:1240"
+    },
+    {
+      "name": "state-refresh-imgIconClose",
+      "nodeId": "2081:1529"
+    },
+    {
+      "name": "state-refresh-imgIconDocument",
+      "nodeId": "2081:1476"
+    },
+    {
+      "name": "state-refresh-imgIconLock",
+      "nodeId": "2082:1621"
+    },
+    {
+      "name": "state-refresh-imgIconRight",
+      "nodeId": "2081:1240"
+    },
+    {
+      "name": "state-refresh-imgIconSearch",
+      "nodeId": "2081:1529"
+    },
+    {
+      "name": "state-refresh-imgIllustrationAccessDenied",
+      "nodeId": "2082:1621"
+    },
+    {
+      "name": "state-refresh-imgIllustrationPassengerEmpty",
+      "nodeId": "2081:1476"
+    },
+    {
+      "name": "state-refresh-imgIllustrationSearchEmpty",
+      "nodeId": "2081:1529"
+    },
+    {
+      "name": "state-refresh-imgIllustrationTripEmpty",
+      "nodeId": "2081:1240"
+    },
+    {
+      "name": "state-refresh-imgIllustrationTripError",
+      "nodeId": "2081:1401"
+    },
+    {
+      "name": "state-refresh-imgNhanVienAvatar",
+      "nodeId": "2081:1240"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgCungVeMauHThng",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgFrame",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgFrame1",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgLine",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgPapierLKhuytTht",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgTinHiuWiFiPin",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgTuynHaiNetCan",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgVinVeLKhuyt",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1834-668-imgXacNhnDuTichTrenVe",
+      "nodeId": "1834:668"
+    },
+    {
+      "name": "ticket-refresh-1905-767-imgFrame",
+      "nodeId": "1905:767"
+    },
+    {
+      "name": "ticket-refresh-1905-767-imgFrame1",
+      "nodeId": "1905:767"
+    },
+    {
+      "name": "ticket-refresh-1905-767-imgFrame2",
+      "nodeId": "1905:767"
+    },
+    {
+      "name": "ticket-refresh-1905-767-imgIconKhachVng",
+      "nodeId": "1905:767"
+    },
+    {
+      "name": "ticket-refresh-1905-767-imgTinHiuWiFiPin",
+      "nodeId": "1905:767"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgCungMauCtKhpGocVe",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgDngXeKhongChmLKhuyt",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgEmployeeTicketEmblemKhongTimThyVe",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgFrame",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgFrame1",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgIconBack",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgTinHiuWiFiPin",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgVeGiyCoLKhuyt",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1135-imgVinGocKhoetKhpHaiNa",
+      "nodeId": "2080:1135"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgCungMauCtKhpGocVe",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgDngXeKhongChmLKhuyt",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgEmployeeTicketEmblemVeThucChuynKhac",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgFrame",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgFrame1",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgIconBack",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgTinHiuWiFiPin",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgVeGiyCoLKhuyt",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1177-imgVinGocKhoetKhpHaiNa",
+      "nodeId": "2080:1177"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgCungMauCtKhpGocVe",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgDngXeKhongChmLKhuyt",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgEmployeeTicketEmblemVeDaHy",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgFrame",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgFrame1",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgIconBack",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgTinHiuWiFiPin",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgVeGiyCoLKhuyt",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1220-imgVinGocKhoetKhpHaiNa",
+      "nodeId": "2080:1220"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgCungMauCtKhpGocVe",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgDngXeKhongChmLKhuyt",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgEmployeeTicketEmblemVeDaHoanTin",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgFrame",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgFrame1",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgIconBack",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgTinHiuWiFiPin",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgVeGiyCoLKhuyt",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2080-1262-imgVinGocKhoetKhpHaiNa",
+      "nodeId": "2080:1262"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgCaiDtCameraIcon",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgDenPinNutSetTtIcon",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgFrame",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgFrame1",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgFrame2",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgGroup",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgIconWifi",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgTinHiuWiFiPin",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgVector",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "ticket-refresh-2082-1336-imgVector1",
+      "nodeId": "2082:1336"
+    },
+    {
+      "name": "profile-refresh-imgCacPhienDaThuHi",
+      "nodeId": "2000:959"
+    },
+    {
+      "name": "journal-error-imgTiLi",
+      "nodeId": "2000:1241"
+    },
+    {
+      "name": "seat-map-imgFrame",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgFrame1",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgDuTichDaLen",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgTinHiuWiFiPin",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgQuayLi",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgXacNhn",
+      "nodeId": "2527:1802"
+    }
+  ]
+}

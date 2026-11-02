@@ -57,6 +57,7 @@ import {
   MfaVerifyDto,
   type MfaVerifyResponse,
   MfaVerifyResponseDto,
+  OAuthIdTokenDto,
   OAuthInitDto,
   type OAuthRedirectResponse,
   OAuthRedirectResponseDto,
@@ -193,6 +194,22 @@ export class AuthController {
       transport,
       res
     );
+  }
+
+  /** Đăng nhập cổng bán vé: nhân viên bán vé hoặc chủ nhà xe; dùng chung namespace Operator. */
+  @Post("counter/login")
+  @HttpCode(200)
+  @NoStore()
+  @DualTransport()
+  @ApiBody({ type: CredentialLoginDto })
+  @ZodResponse({ status: 200, description: "Cổng bán vé: SALES_STAFF hoặc OPERATOR_OWNER; giữ luồng đổi mật khẩu và MFA của tài khoản.", type: CredentialLoginResponseDto })
+  @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập hoặc tài khoản không dùng cổng bán vé.", content: problemContent })
+  async counterLogin(@Body() dto: CredentialLoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<CredentialLoginResponse> {
+    const transport = resolveAuthTransport(req);
+    if (transport === "cookie") {
+      this.web.assertOriginScope(req, "operator");
+    }
+    return this.credentialLoginResponse(await this.authService.counterLogin(dto.identifier, dto.password, this.context(req)), transport, res);
   }
 
   /** Login nhân viên nhà xe cho app Nhân viên (chỉ Bearer). */
@@ -332,6 +349,33 @@ export class AuthController {
         toHeaders(req),
         this.context(req)
       )
+    );
+  }
+
+  /**
+   * Mobile lấy Google ID token bằng SDK native rồi đổi trực tiếp sang phiên nội bộ.
+   * Không dùng browser cookie bridge và không đưa access/refresh token vào deep-link URL.
+   */
+  @Post("oauth/:provider/id-token")
+  @BearerOnly()
+  @HttpCode(200)
+  @NoStore()
+  @ApiParam({ name: "provider", enum: SUPPORTED_OAUTH, description: "OAuth provider native (v1: google)." })
+  @ApiBody({ type: OAuthIdTokenDto })
+  @ZodResponse({
+    status: 200,
+    description: "Xác minh Google ID token từ SDK native và cấp access/refresh token Passenger.",
+    type: AuthTokenResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Google ID token không hợp lệ hoặc đã hết hạn.", content: problemContent })
+  async oauthIdToken(
+    @Param("provider") provider: string,
+    @Body() dto: OAuthIdTokenDto,
+    @Req() req: Request
+  ): Promise<AuthTokenResponse> {
+    assertBearerOnly(req);
+    return toTokenResponse(
+      await this.authService.oauthIdToken(provider, dto.idToken, this.context(req))
     );
   }
 

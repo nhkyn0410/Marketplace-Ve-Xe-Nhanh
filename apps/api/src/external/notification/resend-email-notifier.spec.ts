@@ -52,3 +52,87 @@ describe("ResendEmailNotifier temporary password", () => {
   });
 });
 
+
+describe("ResendEmailNotifier operator application decision (NTF-15)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("needs-info: escapes the Admin's reason and carries the new link; rejected: reason only, no link", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+    const base = { email: "lienhe@example.com", applicationCode: "OA-2026-043152", operatorName: "Sao <Việt>" };
+
+    await notifier.sendOperatorApplicationDecision({
+      ...base,
+      decision: "NEEDS_INFO",
+      reason: "Bổ sung <b>giấy phép</b>",
+      link: "https://operator.example/register/application#token=abc",
+      expiresAt: new Date("2026-10-18T00:00:00.000Z"),
+    });
+    await notifier.sendOperatorApplicationDecision({ ...base, decision: "REJECTED", reason: "Giấy tờ giả" });
+
+    const [needsInfo, rejected] = fetchMock.mock.calls.map(
+      (call) => JSON.parse(call[1].body as string) as { subject: string; html: string },
+    );
+    expect(needsInfo!.subject).toContain("cần bổ sung");
+    expect(needsInfo!.html).toContain("Bổ sung &lt;b&gt;giấy phép&lt;/b&gt;");
+    expect(needsInfo!.html).toContain("Sao &lt;Việt&gt;");
+    expect(needsInfo!.html).toContain('href="https://operator.example/register/application#token=abc"');
+    expect(rejected!.subject).toContain("không được duyệt");
+    expect(rejected!.html).toContain("Giấy tờ giả");
+    expect(rejected!.html).not.toContain("href=");
+  });
+});
+
+describe("ResendEmailNotifier stop point decision (TASK-ADM-004)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("bốn quyết định có tiêu đề riêng; lý do / tên điểm do người dùng nhập được escape", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+    const base = { email: "owner@example.com", operatorName: "Sao <Việt>", stopPointName: "Điểm <A>" };
+
+    await notifier.sendStopPointDecision({ ...base, decision: "PROPOSAL_APPROVED", sharedName: "Điểm đón <B>" });
+    await notifier.sendStopPointDecision({ ...base, decision: "PROPOSAL_REJECTED", reason: "Thiếu <QĐ>" });
+    await notifier.sendStopPointDecision({ ...base, decision: "SUSPENDED", reason: "Sai tọa độ" });
+    await notifier.sendStopPointDecision({ ...base, decision: "UNSUSPENDED" });
+
+    const [approved, rejected, suspended, unsuspended] = fetchMock.mock.calls.map(
+      (call) => JSON.parse(call[1].body as string) as { subject: string; html: string },
+    );
+    expect(approved!.subject).toContain("đã được duyệt");
+    expect(approved!.html).toContain("Điểm đón &lt;B&gt;");
+    expect(rejected!.subject).toContain("chưa được duyệt");
+    expect(rejected!.html).toContain("Thiếu &lt;QĐ&gt;");
+    expect(suspended!.subject).toContain("bị khóa");
+    expect(suspended!.html).toContain("Sai tọa độ");
+    expect(unsuspended!.subject).toContain("mở khóa");
+    // Tiêu đề là chữ thường (không phải HTML) nên giữ nguyên; phần HTML phải escape.
+    for (const body of [approved, rejected, suspended, unsuspended]) {
+      expect(body!.html).toContain("Điểm &lt;A&gt;");
+      expect(body!.html).not.toContain("<A>");
+    }
+  });
+
+  it("email gỡ ảnh xe: biển số, chú thích, lý do; HTML được escape", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+
+    await notifier.sendVehicleImageRemoved({
+      email: "owner@example.com",
+      operatorName: "Sao <Việt>",
+      plateNumber: "51B12345",
+      caption: "Khoang <giường>",
+      reason: "Ảnh có <giấy tờ>",
+    });
+
+    const sent = JSON.parse(fetchMock.mock.calls[0]![1].body as string) as { subject: string; html: string };
+    expect(sent.subject).toContain("51B12345");
+    expect(sent.html).toContain("Khoang &lt;giường&gt;");
+    expect(sent.html).toContain("Ảnh có &lt;giấy tờ&gt;");
+    expect(sent.html).toContain("Sao &lt;Việt&gt;");
+    expect(sent.html).not.toContain("<giấy tờ>");
+  });
+});

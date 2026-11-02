@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { VehicleStatus } from "../../database/prisma.types";
 import { SeatMapSummarySchema } from "./seat-map.dto";
+import { VehicleImageSchema } from "./vehicle-image.dto";
 
 /**
  * Biển số chuẩn hoá trước khi lưu và so trùng (giả định A1): `51b-123.45` → `51B12345`. Nhờ vậy cách
@@ -57,6 +58,9 @@ export const VehicleResponseSchema = z.object({
   // trước; server vẫn kiểm lại khi ghi (409 `SEAT_MAP_IN_USE`).
   seatMapLocked: z.boolean(),
   amenityIds: z.array(z.uuid()),
+  // TRN-009: bộ ảnh công khai theo thứ tự hiển thị, phần tử đầu là ảnh đại diện. Chỉ đổi qua `PUT …/images`,
+  // `POST` / `PUT` xe không đụng tới.
+  images: z.array(VehicleImageSchema),
   status: z.enum(VehicleStatus),
   description: z.string().nullable(),
   createdAt: z.iso.datetime(),

@@ -18,6 +18,10 @@ export type SeatMap = Schemas["SeatMapResponseDto_Output"];
 export type SeatMapInput = Schemas["SeatMapInputDto"];
 export type Seat = SeatMap["seats"][number];
 export type SeatType = Seat["type"];
+export type VehicleImageUploadInput = Schemas["VehicleImageUploadInputDto"];
+export type VehicleImageUpload = Schemas["VehicleImageUploadResponseDto_Output"];
+export type VehicleImagesInput = Schemas["VehicleImagesInputDto"];
+export type VehicleImages = Schemas["VehicleImagesResponseDto_Output"];
 
 /** Số dòng mỗi lần tải danh sách xe (mặc định của API). */
 export const VEHICLE_PAGE_SIZE = 20;
@@ -63,6 +67,32 @@ export function createVehicle(input: VehicleInput): Promise<Vehicle> {
 /** Thay toàn bộ thông tin một xe (PUT gửi đủ mọi trường). */
 export function updateVehicle(vehicleId: string, input: VehicleInput): Promise<Vehicle> {
   return apiRequest<Vehicle>(`/operator/vehicles/${vehicleId}`, { method: "PUT", body: input });
+}
+
+/** Xin URL để tải một ảnh xe thẳng lên kho (hiệu lực 5 phút, TASK-TRN-009). */
+export function requestVehicleImageUpload(vehicleId: string, input: VehicleImageUploadInput): Promise<VehicleImageUpload> {
+  return apiRequest<VehicleImageUpload>(`/operator/vehicles/${vehicleId}/images/upload-url`, { method: "POST", body: input });
+}
+
+/**
+ * Tải file lên đúng URL API vừa cấp. Gửi thẳng tới kho (R2, hoặc route dev của API khi chạy local) nên không kèm
+ * cookie; `Content-Type` phải đúng loại đã khai khi xin URL.
+ */
+export async function uploadVehicleImageFile(uploadUrl: string, file: Blob): Promise<void> {
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+    credentials: "omit"
+  });
+  if (!response.ok) {
+    throw new Error(`Tải ảnh lên kho thất bại (${response.status}).`);
+  }
+}
+
+/** Thay toàn bộ bộ ảnh của xe theo thứ tự; ảnh đầu là ảnh đại diện. */
+export function replaceVehicleImages(vehicleId: string, input: VehicleImagesInput): Promise<VehicleImages> {
+  return apiRequest<VehicleImages>(`/operator/vehicles/${vehicleId}/images`, { method: "PUT", body: input });
 }
 
 /** Loại xe đang dùng được trong catalog Platform (công khai). */

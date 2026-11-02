@@ -164,6 +164,17 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
       reason: "New driver",
     });
     expect(created.status).toBe("ACTIVE");
+    // Màn Nhân viên cần biết ai còn dùng mật khẩu tạm và mật khẩu tạm hết hạn lúc nào (24 giờ — Q3).
+    expect(created.passwordChangeRequired).toBe(true);
+    const expiresIn = new Date(created.temporaryPasswordExpiresAt!).getTime() - Date.now();
+    expect(expiresIn).toBeGreaterThan(23 * 3_600_000);
+    expect(expiresIn).toBeLessThanOrEqual(24 * 3_600_000);
+    const listed = (await employees.list(owner, tenantAuthz, { limit: 20 })).items.find((row) => row.id === created.id);
+    expect(listed).toMatchObject({
+      passwordChangeRequired: true,
+      temporaryPasswordExpiresAt: created.temporaryPasswordExpiresAt,
+    });
+    expect(listed).not.toHaveProperty("passwordHash");
     expect((await employees.list(owner, tenantAuthz, { limit: 20 })).items.map((row) => row.id)).toContain(created.id);
     await expect(employees.update(owner, tenantAuthz, foreignEmployee, {
       role: "TICKET_STAFF", reason: "Wrong tenant",

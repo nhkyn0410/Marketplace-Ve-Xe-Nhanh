@@ -20,6 +20,8 @@ part 'trip_response_dto_output_stops_inner.g.dart';
 /// * [address] 
 /// * [type] 
 /// * [plannedAt] 
+/// * [pickupWindowStart] 
+/// * [pickupWindowEnd] 
 /// * [allowPickup] 
 /// * [allowDropoff] 
 /// * [note] 
@@ -50,6 +52,12 @@ abstract class TripResponseDtoOutputStopsInner implements Built<TripResponseDtoO
 
   @BuiltValueField(wireName: r'plannedAt')
   DateTime get plannedAt;
+
+  @BuiltValueField(wireName: r'pickupWindowStart')
+  DateTime? get pickupWindowStart;
+
+  @BuiltValueField(wireName: r'pickupWindowEnd')
+  DateTime? get pickupWindowEnd;
 
   @BuiltValueField(wireName: r'allowPickup')
   bool get allowPickup;
@@ -122,6 +130,16 @@ class _$TripResponseDtoOutputStopsInnerSerializer implements PrimitiveSerializer
     yield serializers.serialize(
       object.plannedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'pickupWindowStart';
+    yield object.pickupWindowStart == null ? null : serializers.serialize(
+      object.pickupWindowStart,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'pickupWindowEnd';
+    yield object.pickupWindowEnd == null ? null : serializers.serialize(
+      object.pickupWindowEnd,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'allowPickup';
     yield serializers.serialize(
@@ -218,6 +236,22 @@ class _$TripResponseDtoOutputStopsInnerSerializer implements PrimitiveSerializer
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.plannedAt = valueDes;
+          break;
+        case r'pickupWindowStart':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.pickupWindowStart = valueDes;
+          break;
+        case r'pickupWindowEnd':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.pickupWindowEnd = valueDes;
           break;
         case r'allowPickup':
           final valueDes = serializers.deserialize(

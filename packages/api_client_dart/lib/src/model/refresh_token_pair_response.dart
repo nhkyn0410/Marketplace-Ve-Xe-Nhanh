@@ -29,7 +29,7 @@ abstract class RefreshTokenPairResponse implements Built<RefreshTokenPairRespons
   // enum tokenTypeEnum {  Bearer,  };
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'scope')
   RefreshTokenPairResponseScopeEnum get scope;
@@ -42,7 +42,7 @@ abstract class RefreshTokenPairResponse implements Built<RefreshTokenPairRespons
   String get refreshToken;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   RefreshTokenPairResponse._();
 
@@ -78,9 +78,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
       specifiedType: const FullType(RefreshTokenPairResponseTokenTypeEnum),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
+    yield object.expiresIn == null ? null : serializers.serialize(
       object.expiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     yield r'scope';
     yield serializers.serialize(
@@ -98,9 +98,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
       specifiedType: const FullType(String),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
+    yield object.refreshExpiresIn == null ? null : serializers.serialize(
       object.refreshExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
   }
 
@@ -142,8 +142,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'scope':
@@ -170,8 +171,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         default:

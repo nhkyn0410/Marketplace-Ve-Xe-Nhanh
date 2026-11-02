@@ -19,6 +19,7 @@ part 'auth_me_response_dto_output.g.dart';
 /// * [sessionId] 
 /// * [accessExpiresAt] 
 /// * [mfaVerified] 
+/// * [permissions] 
 /// * [operatorId] 
 /// * [operatorSlug] 
 @BuiltValue()
@@ -44,6 +45,9 @@ abstract class AuthMeResponseDtoOutput implements Built<AuthMeResponseDtoOutput,
 
   @BuiltValueField(wireName: r'mfaVerified')
   bool get mfaVerified;
+
+  @BuiltValueField(wireName: r'permissions')
+  BuiltList<String> get permissions;
 
   @BuiltValueField(wireName: r'operatorId')
   String? get operatorId;
@@ -108,6 +112,11 @@ class _$AuthMeResponseDtoOutputSerializer implements PrimitiveSerializer<AuthMeR
     yield serializers.serialize(
       object.mfaVerified,
       specifiedType: const FullType(bool),
+    );
+    yield r'permissions';
+    yield serializers.serialize(
+      object.permissions,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
     );
     if (object.operatorId != null) {
       yield r'operatorId';
@@ -194,6 +203,13 @@ class _$AuthMeResponseDtoOutputSerializer implements PrimitiveSerializer<AuthMeR
             specifiedType: const FullType(bool),
           ) as bool;
           result.mfaVerified = valueDes;
+          break;
+        case r'permissions':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.permissions.replace(valueDes);
           break;
         case r'operatorId':
           final valueDes = serializers.deserialize(

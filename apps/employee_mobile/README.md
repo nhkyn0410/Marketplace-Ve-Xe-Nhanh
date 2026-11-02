@@ -1,17 +1,102 @@
-# employee_mobile
+# Vé Xe Nhanh — giao diện nhân viên / tài xế
 
-A new Flutter project.
+Giao diện Flutter theo [thiết kế Figma](https://www.figma.com/design/6c81q3DdHVS0anfDw2sVVj/UI-UX?node-id=1611-981).
 
-## Getting Started
+## Chạy trong VS Code trên máy này
 
-This project is a starting point for a Flutter application.
+1. Mở folder `D:\Marketplace-Ve-Xe-Nhanh`.
+2. Chọn **Run and Debug → Tài xế - Chrome**, nhấn **F5**.
+3. Nhập tài khoản nhân viên thật dạng `nhaxe/username` và mật khẩu đã được cấp trên backend.
+4. Kéo nút màu cam sang phải để đăng nhập. Danh sách chỉ tải những chuyến được phân công của ngày đang chọn.
 
-A few resources to get you started if this is your first Flutter project:
+VS Code được cấu hình cục bộ dùng Flutter **3.47.2** trong `.tools/flutter`.
+SDK và cấu hình máy không được commit. Trên máy khác, cài SDK theo `.fvmrc` của repo.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Hoặc chạy từ PowerShell:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+cd D:\Marketplace-Ve-Xe-Nhanh\apps\employee_mobile
+..\..\.tools\flutter\bin\flutter.bat pub get
+..\..\.tools\flutter\bin\flutter.bat run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+API phải đang hoạt động, có dữ liệu chuyến/phân công và vé được phát hành hợp lệ. `API_BASE_URL` chỉ chứa origin, không thêm `/v1`.
+
+Điện thoại Android kết nối USB có thể chuyển tiếp API localhost của laptop:
+
+```powershell
+& "$env:LOCALAPPDATA\Android\sdk\platform-tools\adb.exe" -s ee520560 reverse tcp:3000 tcp:3000
+..\..\.tools\flutter\bin\flutter.bat run -d ee520560 --dart-define=API_BASE_URL=http://127.0.0.1:3000
+```
+
+Thay `ee520560` bằng ID điện thoại từ `flutter devices` nếu chạy trên máy khác. Máy ảo mặc định dùng `http://10.0.2.2:3000`. Bản release cần API HTTPS.
+
+### Soát vé thật
+
+Camera gửi nguyên token QR lên API xác minh, không đổi chữ hoa/thường. Chỉ token QR do hệ thống phát hành được chấp nhận trong luồng camera; QR chứa mã vé gõ tay, URL hoặc nội dung bất kỳ bị từ chối.
+
+Luồng tự động theo yêu cầu giao diện: quét → loading → xác minh → check-in → Đã lên xe. Hai API `/v1/employee/tickets/verify` và `/v1/employee/check-ins` xác minh quyền/phân công/nhà xe/chuyến/trạng thái trên server. Chỉ sau khi API check-in trả thành công mới cập nhật danh sách/ghế. Vé quét lại không tăng số khách; mất mạng hoặc timeout không báo thành công và cần kiểm tra lại trạng thái vé trước khi thử lại.
+
+Tài xế được phân công có thể vận hành chuyến qua API: Đón khách → Khởi hành → Đang chạy → Hoàn thành. Giao diện chỉ cập nhật sau khi máy chủ xác nhận; lỗi giữ trạng thái cũ và cho thử lại. Tải lại danh sách/manifest lấy trạng thái mới từ máy chủ. Khi hoàn thành, API chuyển vé đã lên xe sang `USED`, vé chưa lên sang `NO_SHOW`.
+
+Nhật trình, sự cố và quản lý hồ sơ/thiết bị chưa được tích hợp API. Thao tác ghi nhật trình/sự cố trên chuyến thật vẫn bị chặn.
+
+## Các màn đã có
+
+- Đăng nhập nhân viên, liên hệ nhà xe.
+- Chuyến của tôi, đổi ngày, chi tiết chuyến, ngày không có nhiệm vụ.
+- Hành khách: tìm theo tên/mã vé/số đã che, lọc trạng thái, kéo làm mới.
+- Quét QR → Đã lên xe → Sơ đồ 36 ghế → Quét vé tiếp; đã bỏ màn nhập mã và bước đối chiếu cũ theo Figma mới.
+- Vận hành chuyến, ghi và xem nhật trình, biểu mẫu báo sự cố.
+- Cá nhân, chế độ sáng/tối, thiết bị đăng nhập, đăng xuất.
+
+## Bản thiết kế cập nhật
+
+Đối chiếu Figma tại [Giao diện Tài Xế](https://www.figma.com/design/6c81q3DdHVS0anfDw2sVVj/UI-UX?node-id=1484-3742):
+
+- Kết quả vé: không tìm thấy, sai chuyến, đã hủy, hoàn tiền; màn lên xe thành công với tiến độ động.
+- Cập nhật khách: chưa lên, vắng mặt sau khi bắt đầu đón, cần xử lý và ghi chú cục bộ.
+- Vận hành: chờ cập nhật, lỗi/thử lại, hoàn thành và lịch sử được giữ trong phiên.
+- Nhật trình: điểm dừng, kiểm tra xe, lỗi lưu và danh sách chưa đồng bộ. Không báo đã đồng bộ khi chưa có API.
+- Chi tiết nhật trình: có trạng thái tải lỗi, thử lại và khóa thao tác trong lúc tải; không tạo bản ghi giả nếu vẫn chưa có dữ liệu.
+- Thiết bị: xác nhận trước khi kết thúc phiên mẫu, hủy xác nhận và trạng thái chỉ còn thiết bị hiện tại.
+- Chuyến/hành khách: giao diện tải, lỗi, trống, không tìm thấy và ngoài phạm vi phân công.
+
+Mã vé thử trên chuyến MX102: `VX102001` (hợp lệ), `VX10200X` (không tìm thấy), `VX103001` (sai chuyến), `VX102CANCEL` (đã hủy), `VX102REFUND` (hoàn tiền). Đây là dữ liệu kiểm tra giao diện, không phải vé thật.
+
+Trang đối chiếu riêng cho các trạng thái khó gặp:
+
+```powershell
+..\..\.tools\flutter\bin\flutter.bat run -d chrome -t lib/preview_gallery.dart
+```
+
+Trang này không nằm trong điều hướng ứng dụng chính và vẫn dùng dữ liệu mẫu. Chọn **Camera · Mở webcam thật** để thử camera của máy với vé mẫu; mục **Soát vé · Bố cục quét QR** chỉ hiển thị thiết kế tĩnh. Dữ liệu mẫu không được dùng để quyết định kết quả soát vé ở ứng dụng chính.
+
+Trên trình duyệt laptop, ứng dụng ưu tiên webcam trước ở 1280 × 720; trên Android/iOS vẫn ưu tiên camera sau. Nếu mở camera lỗi, **Thử mở camera** giải phóng phiên cũ rồi tạo lại; **Đổi camera** thử hướng còn lại. Thông báo phân biệt thiếu quyền, không có webcam và webcam đang bận hoặc bị Windows chặn.
+
+Thao tác xác nhận dùng **vuốt sang phải** trên tay kéo màu cam.
+Theo yêu cầu giao diện, không hiển thị dòng hướng dẫn vuốt ở chân màn hình hoặc dưới nút; áp dụng cả cho các màn thêm sau.
+Dữ liệu chuyến mẫu nằm ở ngày **14/10/2026**; đổi sang ngày khác sẽ hiện trạng thái trống.
+
+## Phạm vi bản minh họa
+
+Đây là giao diện dùng dữ liệu mẫu, **chưa kết nối API hoặc xác thực tài khoản thật**.
+Không nhập mật khẩu thật. Mật khẩu mẫu không được lưu hoặc gửi đi.
+Thay đổi hành khách, trạng thái chuyến và nhật trình chỉ tồn tại trong phiên;
+lịch sử cập nhật trạng thái được giữ khi mở lại màn Vận hành trong cùng phiên.
+Camera cần được cấp quyền trên thiết bị hoặc trình duyệt; đèn pin và đổi camera tùy khả năng thiết bị. Chưa xác minh bằng camera điện thoại thật. QR mẫu chỉ chứa mã vé như `VX102001`; kết quả được đối chiếu và cập nhật cục bộ, không xác thực vé thật. Email, thu hồi phiên và ảnh minh chứng hiện là thao tác minh họa.
+Số điện thoại hành khách chỉ chứa dữ liệu đã che.
+
+SVG được tải từ Figma vào `assets/figma`; font Inter và giấy phép ở `assets/fonts`.
+Ứng dụng không tải ảnh từ URL Figma tạm thời khi chạy.
+
+## Kiểm tra
+
+```powershell
+..\..\.tools\flutter\bin\flutter.bat analyze
+..\..\.tools\flutter\bin\flutter.bat test
+..\..\.tools\flutter\bin\flutter.bat build web --no-web-resources-cdn
+```
+
+Chưa thực hiện review độc lập bằng `code-reviewer` / `security-auditor`;
+theo `CLAUDE.md`, các bước đó chỉ chạy khi người phụ trách yêu cầu rõ.

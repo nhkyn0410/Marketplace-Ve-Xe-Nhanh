@@ -15,9 +15,10 @@ part 'trip_input_dto.g.dart';
 /// * [routeId] 
 /// * [vehicleId] 
 /// * [departureAt] 
-/// * [arrivalAt] 
 /// * [stopTimes] 
+/// * [onlineSaleCutoffMinutes] 
 /// * [note] 
+/// * [subRouteIds] 
 @BuiltValue()
 abstract class TripInputDto implements Built<TripInputDto, TripInputDtoBuilder> {
   @BuiltValueField(wireName: r'routeId')
@@ -29,21 +30,25 @@ abstract class TripInputDto implements Built<TripInputDto, TripInputDtoBuilder> 
   @BuiltValueField(wireName: r'departureAt')
   DateTime get departureAt;
 
-  @BuiltValueField(wireName: r'arrivalAt')
-  DateTime get arrivalAt;
-
   @BuiltValueField(wireName: r'stopTimes')
   BuiltList<DateTime>? get stopTimes;
 
+  @BuiltValueField(wireName: r'onlineSaleCutoffMinutes')
+  int get onlineSaleCutoffMinutes;
+
   @BuiltValueField(wireName: r'note')
   String? get note;
+
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String>? get subRouteIds;
 
   TripInputDto._();
 
   factory TripInputDto([void updates(TripInputDtoBuilder b)]) = _$TripInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(TripInputDtoBuilder b) => b;
+  static void _defaults(TripInputDtoBuilder b) => b
+      ..subRouteIds = ListBuilder();
 
   @BuiltValueSerializer(custom: true)
   static Serializer<TripInputDto> get serializer => _$TripInputDtoSerializer();
@@ -76,21 +81,28 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
       object.departureAt,
       specifiedType: const FullType(DateTime),
     );
-    yield r'arrivalAt';
-    yield serializers.serialize(
-      object.arrivalAt,
-      specifiedType: const FullType(DateTime),
-    );
     yield r'stopTimes';
     yield object.stopTimes == null ? null : serializers.serialize(
       object.stopTimes,
       specifiedType: const FullType.nullable(BuiltList, [FullType(DateTime)]),
+    );
+    yield r'onlineSaleCutoffMinutes';
+    yield serializers.serialize(
+      object.onlineSaleCutoffMinutes,
+      specifiedType: const FullType(int),
     );
     yield r'note';
     yield object.note == null ? null : serializers.serialize(
       object.note,
       specifiedType: const FullType.nullable(String),
     );
+    if (object.subRouteIds != null) {
+      yield r'subRouteIds';
+      yield serializers.serialize(
+        object.subRouteIds,
+        specifiedType: const FullType(BuiltList, [FullType(String)]),
+      );
+    }
   }
 
   @override
@@ -136,13 +148,6 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
           ) as DateTime;
           result.departureAt = valueDes;
           break;
-        case r'arrivalAt':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(DateTime),
-          ) as DateTime;
-          result.arrivalAt = valueDes;
-          break;
         case r'stopTimes':
           final valueDes = serializers.deserialize(
             value,
@@ -151,6 +156,13 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
           if (valueDes == null) continue;
           result.stopTimes.replace(valueDes);
           break;
+        case r'onlineSaleCutoffMinutes':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.onlineSaleCutoffMinutes = valueDes;
+          break;
         case r'note':
           final valueDes = serializers.deserialize(
             value,
@@ -158,6 +170,14 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>?;
+          if (valueDes == null) continue;
+          result.subRouteIds.replace(valueDes);
           break;
         default:
           unhandled.add(key);

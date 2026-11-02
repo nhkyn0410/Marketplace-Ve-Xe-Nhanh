@@ -15,3 +15,14 @@ export function requireTenant(authz: Authorization): { db: DbScope; operatorId: 
   }
   return { db: authz.db, operatorId: authz.db.operatorId };
 }
+
+/**
+ * Ngữ cảnh tenant cho thao tác của Employee (grant `assigned` — TASK-EMP-002): TenantGuard trao scope cả tenant, nên service
+ * dùng hàm này PHẢI tự lọc theo phân công của chính nhân viên trước khi đọc / ghi dữ liệu chuyến.
+ */
+export function requireAssignedTenant(authz: Authorization): { db: DbScope; operatorId: string } {
+  if (authz.scope !== "assigned" || authz.db?.kind !== "tenant") {
+    throw tenantScopeViolation();
+  }
+  return { db: authz.db, operatorId: authz.db.operatorId };
+}

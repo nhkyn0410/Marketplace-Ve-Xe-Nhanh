@@ -9,9 +9,10 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **String** |  | 
+**nameSource** | **String** |  | [optional] [default to 'MANUAL']
 **status** | **String** |  | 
 **note** | **String** |  | 
-**stops** | [**BuiltList&lt;RouteInputDtoStopsInner&gt;**](RouteInputDtoStopsInner.md) |  | 
+**stops** | [**BuiltList&lt;RouteNamePreviewInputDtoStopsInner&gt;**](RouteNamePreviewInputDtoStopsInner.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

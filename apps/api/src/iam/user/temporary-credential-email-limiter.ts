@@ -9,6 +9,8 @@ export const TEMP_EMAIL_GLOBAL_MAX = 30;
 export const TEMP_EMAIL_TENANT_MAX = 10;
 export const TEMP_EMAIL_ACTOR_MAX = 5;
 export const TEMP_EMAIL_EMPLOYEE_RESET_COOLDOWN_SECONDS = 60 * 60;
+/** Redis key of the system-wide budget (shared with the local-only E2E seed, which resets it). */
+export const TEMP_EMAIL_GLOBAL_KEY = "iam:temp-email:global";
 
 /**
  * Check every dimension before changing any key. Redis runs the whole script atomically, so
@@ -50,7 +52,7 @@ export class TemporaryCredentialEmailLimiter {
   /** Reserve before account/password mutation. A later delivery failure does not refund the budget. */
   async reserve(request: TemporaryCredentialEmailRequest): Promise<void> {
     const keys = [
-      "iam:temp-email:global",
+      TEMP_EMAIL_GLOBAL_KEY,
       `iam:temp-email:tenant:${request.operatorId}`,
       `iam:temp-email:actor:${request.actorType}:${request.actorId}`,
     ];

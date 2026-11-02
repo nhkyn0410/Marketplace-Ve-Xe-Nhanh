@@ -25,6 +25,11 @@ part 'trip_response_dto_output.g.dart';
 /// * [seatCount] 
 /// * [createdAt] 
 /// * [updatedAt] 
+/// * [onlineSaleCutoffMinutes] 
+/// * [subRouteIds] 
+/// * [statusReason] 
+/// * [departedAt] 
+/// * [completedAt] 
 /// * [note] 
 /// * [stops] 
 /// * [seats] 
@@ -63,6 +68,21 @@ abstract class TripResponseDtoOutput implements Built<TripResponseDtoOutput, Tri
 
   @BuiltValueField(wireName: r'updatedAt')
   DateTime get updatedAt;
+
+  @BuiltValueField(wireName: r'onlineSaleCutoffMinutes')
+  int get onlineSaleCutoffMinutes;
+
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String> get subRouteIds;
+
+  @BuiltValueField(wireName: r'statusReason')
+  String? get statusReason;
+
+  @BuiltValueField(wireName: r'departedAt')
+  DateTime? get departedAt;
+
+  @BuiltValueField(wireName: r'completedAt')
+  DateTime? get completedAt;
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -150,6 +170,31 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
     yield serializers.serialize(
       object.updatedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'onlineSaleCutoffMinutes';
+    yield serializers.serialize(
+      object.onlineSaleCutoffMinutes,
+      specifiedType: const FullType(int),
+    );
+    yield r'subRouteIds';
+    yield serializers.serialize(
+      object.subRouteIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
+    yield r'statusReason';
+    yield object.statusReason == null ? null : serializers.serialize(
+      object.statusReason,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'departedAt';
+    yield object.departedAt == null ? null : serializers.serialize(
+      object.departedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'completedAt';
+    yield object.completedAt == null ? null : serializers.serialize(
+      object.completedAt,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'note';
     yield object.note == null ? null : serializers.serialize(
@@ -267,6 +312,44 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.updatedAt = valueDes;
+          break;
+        case r'onlineSaleCutoffMinutes':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.onlineSaleCutoffMinutes = valueDes;
+          break;
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.subRouteIds.replace(valueDes);
+          break;
+        case r'statusReason':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.statusReason = valueDes;
+          break;
+        case r'departedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.departedAt = valueDes;
+          break;
+        case r'completedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.completedAt = valueDes;
           break;
         case r'note':
           final valueDes = serializers.deserialize(

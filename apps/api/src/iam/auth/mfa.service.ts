@@ -6,6 +6,7 @@ import { type DbTransaction, PrismaService } from "../../database/prisma.service
 import { SubjectType } from "../../database/prisma.types";
 import { REDIS_CLIENT } from "../../redis/redis.config";
 import { SessionService } from "../session/session.service";
+import { userRefOf } from "../session/subject-type";
 import { DEV_BETTER_AUTH_SECRET } from "./auth.config";
 import { invalidCredentials, serviceUnavailable } from "./auth.errors";
 import type { RequestContext } from "./auth.service";
@@ -139,6 +140,34 @@ export class MfaService {
     private readonly loginHistory: LoginHistoryService,
   ) {
     this.encryptionKey = resolveEncryptionKey(config);
+  }
+
+  /** Chủ thể nào trong danh sách đã bật xác thực hai lớp (màn Người dùng của Admin — ADM-03c). */
+  async enabledSubjects(subjectType: SubjectType, subjectIds: readonly string[]): Promise<Set<string>> {
+    if (subjectIds.length === 0) {
+      return new Set();
+    }
+    const rows = await this.system((tx) =>
+      tx.mfaCredential.findMany({
+        where: { subjectType, subjectId: { in: [...subjectIds] } },
+        select: { subjectId: true },
+      }),
+    );
+    return new Set(rows.map((row) => row.subjectId));
+  }
+
+  /**
+   * Xóa TOTP + mã dự phòng của một chủ thể: lần đăng nhập sau phải thiết lập lại. Chỉ gọi khi mật khẩu cũng vừa bị
+   * thay bằng mật khẩu tạm gửi tới email của chính tài khoản — nếu không, ai biết mật khẩu cũ sẽ tự đăng ký TOTP
+   * mới và vượt MFA (ghi chú RLS của `mfa_credentials`). Trả số credential đã xóa.
+   */
+  async resetForSubject(subjectType: SubjectType, subjectId: string): Promise<number> {
+    const removed = await this.system(async (tx) => {
+      await tx.mfaBackupCode.deleteMany({ where: { credential: { subjectType, subjectId } } });
+      return tx.mfaCredential.deleteMany({ where: { subjectType, subjectId } });
+    });
+    await this.limiter.clearMfaFailures(userRefOf(subjectType, subjectId));
+    return removed.count;
   }
 
   /** Password đã đúng: tạo pre-auth challenge, CHƯA có session hay token nào. */

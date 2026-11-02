@@ -31,7 +31,7 @@ abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, M
   // enum tokenTypeEnum {  Bearer,  };
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'scope')
   MfaVerifyTokenResponseScopeEnum get scope;
@@ -44,7 +44,7 @@ abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, M
   String get refreshToken;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   @BuiltValueField(wireName: r'mfaRequired')
   MfaVerifyTokenResponseMfaRequiredEnum get mfaRequired;
@@ -87,9 +87,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
       specifiedType: const FullType(MfaVerifyTokenResponseTokenTypeEnum),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
+    yield object.expiresIn == null ? null : serializers.serialize(
       object.expiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     yield r'scope';
     yield serializers.serialize(
@@ -107,9 +107,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
       specifiedType: const FullType(String),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
+    yield object.refreshExpiresIn == null ? null : serializers.serialize(
       object.refreshExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     yield r'mfaRequired';
     yield serializers.serialize(
@@ -163,8 +163,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'scope':
@@ -191,8 +192,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         case r'mfaRequired':

@@ -25,7 +25,7 @@ abstract class PasswordChangeChallengeResponse implements Built<PasswordChangeCh
   String get passwordChangeToken;
 
   @BuiltValueField(wireName: r'passwordChangeExpiresIn')
-  int get passwordChangeExpiresIn;
+  int? get passwordChangeExpiresIn;
 
   PasswordChangeChallengeResponse._();
 
@@ -61,9 +61,9 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
       specifiedType: const FullType(String),
     );
     yield r'passwordChangeExpiresIn';
-    yield serializers.serialize(
+    yield object.passwordChangeExpiresIn == null ? null : serializers.serialize(
       object.passwordChangeExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
   }
 
@@ -105,8 +105,9 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
         case r'passwordChangeExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.passwordChangeExpiresIn = valueDes;
           break;
         default:

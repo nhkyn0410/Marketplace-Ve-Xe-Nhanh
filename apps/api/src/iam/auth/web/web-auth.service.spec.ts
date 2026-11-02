@@ -20,8 +20,14 @@ describe("WebAuthService cookie attributes", () => {
       RESEND_API_KEY: "test-resend-key",
       GOONG_API_KEY: "k",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.vexenhanh.vn",
       ADMIN_WEB_ORIGINS: "https://admin.vexenhanh.vn",
+      R2_ACCOUNT_ID: "account",
+      R2_ACCESS_KEY_ID: "key-id",
+      R2_SECRET_ACCESS_KEY: "secret",
+      R2_PUBLIC_BUCKET: "vexenhanh-public",
+      R2_PUBLIC_BASE_URL: "https://cdn.example.com",
     });
     const { res, cookie } = fakeResponse();
     new WebAuthService(config).writeSession(res, {

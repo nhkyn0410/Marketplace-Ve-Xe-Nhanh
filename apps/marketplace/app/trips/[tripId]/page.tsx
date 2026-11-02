@@ -1,0 +1,143 @@
+import { Metadata } from "next";
+import { getPreview, SearchParamsInput } from "../../../lib/preview";
+import { tripDetailFixture } from "../../../lib/preview/fixtures/trips";
+import { getTripDetails } from "../../../lib/data/trips";
+import { readTripLeg } from "../../../lib/data/trip-mappers";
+import { FeatureUnavailable } from "../../../components/states/feature-unavailable";
+import { PassengerTopBar } from "../../../components/passenger-topbar";
+import { TripDetailHeader } from "../../../components/trips/detail/trip-detail-header";
+import { TripVehicleInfo } from "../../../components/trips/detail/trip-vehicle-info";
+import { TripItinerary } from "../../../components/trips/detail/trip-itinerary";
+import { TripRouteMap } from "../../../components/trips/detail/trip-route-map";
+import { TripSeatPreview } from "../../../components/trips/detail/trip-seat-preview";
+import { TripPricingPolicy } from "../../../components/trips/detail/trip-pricing-policy";
+import { TripReviews } from "../../../components/trips/detail/trip-reviews";
+import { TripBookingSidebar } from "../../../components/trips/detail/trip-booking-sidebar";
+
+export const metadata: Metadata = {
+  title: "Chi tiết chuyến xe",
+  description: "Xem chi tiết chuyến xe, lịch trình, giá vé và tiện ích trên Vé Xe Nhanh."
+};
+
+interface PageProps {
+  readonly params: Promise<{ readonly tripId: string }>;
+  readonly searchParams: Promise<SearchParamsInput>;
+}
+
+/**
+ * Trang chi tiết chuyến xe SCR-PSG-16 (`/trips/[tripId]`).
+ */
+export default async function TripDetailPage(props: PageProps) {
+  const [params, searchParams] = await Promise.all([
+    props.params,
+    props.searchParams
+  ]);
+
+  const preview = getPreview(searchParams);
+
+  // Topbar điều hướng theo chuẩn Figma 1443:11643
+  const topBarHeader = (
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Mua vé", href: "/trips/explore" },
+        ...(preview === "ideal"
+          ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
+          : []),
+        { label: "Chi tiết chuyến" }
+      ]}
+    />
+  );
+
+  // Nhánh Preview phục vụ kiểm thử giao diện theo Figma
+  if (preview === "ideal") {
+    const trip = tripDetailFixture;
+    return (
+      <div className="min-h-viewport bg-[#f9f9ff]">
+        {topBarHeader}
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
+          {/* Lưới 2 cột: Cột nội dung chi tiết (8) & Cột tóm tắt đặt vé (4) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Cột trái */}
+            <div className="lg:col-span-8 space-y-6">
+              <TripDetailHeader trip={trip} />
+              <TripVehicleInfo trip={trip} />
+              <TripItinerary timeline={trip.timeline} />
+              <TripRouteMap timeline={trip.timeline} />
+              <TripSeatPreview
+                seatMap={trip.seatMap}
+                totalSeats={trip.totalSeats}
+                availableSeats={trip.availableSeats}
+              />
+              <TripPricingPolicy
+                priceSingleVnd={trip.priceSingleVnd}
+                priceDoubleVnd={trip.priceDoubleVnd}
+                stopSalesTimeText={trip.stopSalesTimeText}
+                cancellationPolicies={trip.cancellationPolicies}
+                cancellationNote={trip.cancellationNote}
+              />
+              <TripReviews trip={trip} />
+            </div>
+
+            {/* Cột phải */}
+            <div className="lg:col-span-4">
+              <TripBookingSidebar trip={trip} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Nhánh dữ liệu thật (Gọi API qua lib/data/trips.ts)
+  const result = await getTripDetails(params.tripId, readTripLeg(searchParams));
+
+  if (result.status !== "ok") {
+    return (
+      <div className="min-h-viewport bg-[#f9f9ff]">
+        {topBarHeader}
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
+          <FeatureUnavailable
+            title="Chi tiết chuyến xe"
+            endpoint={result.endpoint}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Dự phòng khi có dữ liệu thật trong tương lai
+  const trip = result.data;
+
+  return (
+    <div className="min-h-viewport bg-[#f9f9ff]">
+      {topBarHeader}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-8 space-y-6">
+            <TripDetailHeader trip={trip} />
+            <TripVehicleInfo trip={trip} />
+            <TripItinerary timeline={trip.timeline} />
+            <TripRouteMap timeline={trip.timeline} />
+            <TripSeatPreview
+              seatMap={trip.seatMap}
+              totalSeats={trip.totalSeats}
+              availableSeats={trip.availableSeats}
+            />
+            <TripPricingPolicy
+              priceSingleVnd={trip.priceSingleVnd}
+              priceDoubleVnd={trip.priceDoubleVnd}
+              stopSalesTimeText={trip.stopSalesTimeText}
+              cancellationPolicies={trip.cancellationPolicies}
+              cancellationNote={trip.cancellationNote}
+            />
+            <TripReviews trip={trip} />
+          </div>
+          <div className="lg:col-span-4">
+            <TripBookingSidebar trip={trip} leg={readTripLeg(searchParams)} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

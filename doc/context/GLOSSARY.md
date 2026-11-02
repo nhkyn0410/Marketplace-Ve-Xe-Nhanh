@@ -15,7 +15,9 @@ Rules:
 | User     | Người dùng        | Passenger who has an account on the platform; can buy, manage and review tickets.                                                 |
 | Guest    | Khách vãng lai    | Passenger who has not logged in or has no account; uses guest session for browsing, holding seats, booking, paying and lookup.    |
 | Operator | Nhà xe            | Transport business onboarded onto the platform; owns and runs vehicles, routes, trips, fares and employees within its own tenant. |
-| Employee | Nhân viên nhà xe  | Operator-internal staff with role `TICKET_STAFF`, `DRIVER` or `SUPPORT_STAFF`; logs in via operator-issued credentials `{operatorSlug}/nv.{…}` only through the Employee app (`/auth/employee/login`, Bearer); never enters Operator OS (ADR-017 amend 28/09/2026). |
+| Employee | Nhân viên nhà xe  | Operator-internal staff with credentials `{operatorSlug}/nv.{…}`. `DRIVER`, `TICKET_STAFF` (soát vé), `SUPPORT_STAFF` use the employee app; `SALES_STAFF` (bán vé) uses the dedicated counter web portal `/auth/counter/login`. Sales staff do not enter the Operator OS administration area. COUNTER-SALES amendment 27/10/2026. |
+| Sales staff | Nhân viên bán vé | Employee role `SALES_STAFF`, provisioned and managed by the operator; sells and records receipts within assigned active sales offices. Operator owners may also sell through the same counter portal. |
+| Operator manager | Quản lý nhà xe | (Chờ duyệt — `TASK-IAM-007`) Operator-side account with role `OPERATOR_MANAGER`, issued by the Owner, logs in to Operator OS as `{operatorSlug}/{username}` with mandatory TOTP; can only use the permissions the Owner ticked (never KYC / payout bank account / manager accounts). |
 | Admin    | Admin toàn hệ thống | Platform administrator running the marketplace; final arbiter for disputes; manages KYC, policy, commission, payout.            |
 | Platform | Nền tảng          | The marketplace operator itself; not a transport company; provides Marketplace / Operator OS / Platform admin layers.             |
 
@@ -51,8 +53,8 @@ Rules:
 | Sale lock              | Khóa / tạm dừng bán        | Trip status `LOCKED`: hidden from search, no new hold / booking; the Operator can reopen it (FR-OPS-10). Pausing and locking are the same state in v1. |
 | Fare / FareRule        | Giá vé / quy tắc giá vé    | A route's price table (one per route in v1); each FareRule prices a vehicle type × seat type × optional departure-time window (BR-41). A Trip's seat price follows its route and assigned vehicle's type. |
 | Booking                | Đơn đặt vé                 | A purchase order placed by User or Guest; may contain one or more Tickets and a policy snapshot.      |
-| PassengerInfo          | Thông tin hành khách       | Per-passenger information captured in a Booking.                                                      |
-| Ticket                 | Vé điện tử                 | An electronic ticket representing one passenger on one seat of one Trip; carries a QR token.          |
+| PassengerInfo          | Thông tin hành khách       | Per-passenger information captured in a Booking. On a double slot (BED_DOUBLE / CABIN_DOUBLE) it may also carry an optional `companionName` — the second traveller sharing the same ticket (BR-78, pending approval 28/10/2026). |
+| Ticket                 | Vé điện tử                 | An electronic ticket representing one passenger on one seat of one Trip; carries a QR token. A double slot is still one ticket / one QR even when it carries a companion. |
 | SeatHold               | Bản giữ ghế                | A time-bound, atomic hold on one or more seats during checkout; backed by TTL.                        |
 | Payment                | Giao dịch thanh toán       | A payment intent / record for a Booking; passes through Initiated → Processing → Success / Failed.    |
 | Refund                 | Giao dịch hoàn tiền        | A refund record linked to a Booking / Ticket / Payment; passes through Requested → Approved → ...    |
@@ -72,6 +74,8 @@ Rules:
 | DisputeCase            | Hồ sơ tranh chấp           | A formal dispute with its own state machine; Platform admin is final arbiter (MQ-03).                 |
 | Notification           | Thông báo                  | An outbound message via email, SMS, push or in-app channels.                                          |
 | NotificationPreference | Cấu hình nhận thông báo    | Per-actor preference for non-mandatory notifications; mandatory ones cannot be fully disabled.        |
+| NotificationCampaign   | Chiến dịch thông báo       | A message an Admin sends to many passengers (types `SERVICE`, `PROMOTION`, `NEWS`) through inbox and push only, never bulk email. States: `DRAFT`, `SCHEDULED`, `SENDING`, `COMPLETED`, `CANCELLED`. Pending approval. |
+| NotificationInboxMessage | Tin trong hộp thư        | One in-app message of one passenger, from a campaign or a transactional notification; carries read state and an optional link. Pending approval. |
 | AuditLog               | Nhật ký kiểm toán          | Append-only log of sensitive actions: actor, time, action, target, before / after, reason.            |
 | KycDocument            | Hồ sơ KYC                  | Legal document submitted by an Operator during onboarding; verified by Admin.                         |
 | OperatorApplication    | Hồ sơ đăng ký nhà xe       | Registration submitted by an operator representative **before any account exists**; accessed only through an expiring secure link sent to the contact email; on Admin approval the system creates the Operator and its first Owner account. |
@@ -109,6 +113,23 @@ Rules:
 | ADR     | Bản ghi quyết định kiến trúc | Architecture Decision Record.                                       |
 
 ## 6. Auth error codes
+
+### COUNTER-SALES: entities and financial states (27/10/2026)
+
+| Identifier | Thuật ngữ | Definition |
+| --- | --- | --- |
+| `SalesOffice` | Văn phòng bán vé | Operator-owned sales location; distinct from transport `StopPoint.OFFICE`; deactivated rather than deleted. |
+| `SalesOfficeAssignment` | Phân công văn phòng | Same-tenant link from sales office to `EmployeeAccount` with role `SALES_STAFF`; checked on the server. |
+| `SalesChannel` | Kênh bán | `ONLINE` or `COUNTER`, assigned by the server; independent of cash/bank transfer. |
+| `CounterReceipt` | Khoản thu tại quầy | Money received by the operator; `COMPLETED` issues tickets, `EXCEPTION` preserves money received without issuing tickets. Never an escrow capture. |
+| `CounterCommissionReceivable` | Hoa hồng quầy phải thu | Immutable commission snapshot, using explicit counter rule or default0%; operator owes Platform this amount. |
+| `CounterCommissionSettlement` | Khoản hoa hồng đã thu | Platform-admin manual confirmation of money received from operator, with unique reference and idempotency key. |
+
+### Authentication errors
+
+`COUNTER_PAYMENT_MANUAL_REQUIRED` (409) chặn đơn quầy đi qua gateway online. `COUNTER_RECEIPT_UNAVAILABLE` (503) yêu cầu giữ nguyên khóa thao tác và đối chiếu lại; lỗi dựng QR/response sau commit không rollback khoản thu đã lưu.
+
+Các mã nghiệp vụ quầy dùng RFC7807: `COUNTER_TRIP_CLOSED` (409), `COUNTER_BOOKING_NOT_FOUND` (404), `COUNTER_IDEMPOTENCY_CONFLICT`, `COUNTER_TRANSFER_DUPLICATE`, `COUNTER_RECEIPT_CONFLICT`, `COUNTER_BOOKING_KEY_REUSED` và `COUNTER_SETTLEMENT_KEY_REUSED` / `COUNTER_SETTLEMENT_EXCEEDS_BALANCE` / `COUNTER_SETTLEMENT_REFERENCE_USED` (409). `COUNTER_COMMISSION_NOT_LOWER` (422) báo cấu hình phí không hợp lệ. `COUNTER_REFUND_MANUAL_REQUIRED` (409) chặn vé quầy đi qua luồng hoàn online. Lý do receipt ngoại lệ như `AMOUNT_MISMATCH`, `TRIP_CLOSED`, `BOOKING_EXPIRED`, `ISSUANCE_FAILED`, `UNRESOLVED_RECEIPT` là dữ liệu của receipt, không phải trạng thái “chưa nhận tiền”.
 
 | Code | Nghĩa | HTTP |
 | ---- | ----- | ---- |

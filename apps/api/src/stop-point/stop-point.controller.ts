@@ -28,7 +28,7 @@ export class StopPointController {
 
   /** Trả một trang điểm riêng của nhà xe. */
   @Get()
-  @Authorize("route:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "status", required: false, enum: Object.values(StopPointStatus) })
   @ApiQuery({ name: "type", required: false, enum: Object.values(StopPointType) })
   @ApiQuery({ name: "provinceId", required: false, type: String, format: "uuid" })
@@ -49,7 +49,7 @@ export class StopPointController {
 
   /** Trả chi tiết một điểm riêng. */
   @Get(":stopPointId")
-  @Authorize("route:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "stopPointId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết điểm riêng.", type: OperatorStopPointResponseDto })
   @ApiResponse({ status: 404, description: "`STOP_POINT_NOT_FOUND` (kể cả khác tenant).", content: problemContent })

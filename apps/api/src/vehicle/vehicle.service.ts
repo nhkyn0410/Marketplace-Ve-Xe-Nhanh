@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import { CatalogStatus, type VehicleStatus } from "../database/prisma.types";
+import { PUBLIC_STORAGE, type StorageProvider } from "../external/storage/storage-provider";
 import type { Authorization } from "../iam/role/authorization";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import type { VehicleInput, VehicleListResponse, VehicleResponse } from "./dto/vehicle.dto";
@@ -8,6 +9,7 @@ import { catalogItemUnavailable } from "../catalog/catalog.errors";
 import { requireTenant } from "../iam/role/require-tenant";
 import { unfinishedTripWhere } from "../trip/trip-usage";
 import { seatMapSummarySelect, type SeatMapSummaryRow, toSeatMapSummary } from "./seat-map.service";
+import { toVehicleImages, VEHICLE_IMAGE_SELECT, type VehicleImageRow } from "./vehicle-image.service";
 import { seatMapInUse, seatMapNotFound, vehicleNotFound, vehiclePlateConflict } from "./vehicle.errors";
 
 /** `now` là mốc xét "chuyến chưa kết thúc" của cờ `seatMapLocked` và `seatMap.inUse` (UC-12 A3, TRN-011). */
@@ -24,6 +26,7 @@ function vehicleSelect(now: Date) {
     createdAt: true,
     updatedAt: true,
     amenities: { select: { amenityId: true }, orderBy: { amenityId: "asc" } },
+    images: { select: VEHICLE_IMAGE_SELECT, orderBy: { position: "asc" } },
     // Chuyến chưa kết thúc của xe — đúng điều kiện của 409 `SEAT_MAP_IN_USE` khi đổi `seatMapId`.
     _count: { select: { trips: { where: unfinishedTripWhere(now) } } },
   } as const;
@@ -40,6 +43,7 @@ type VehicleRow = {
   createdAt: Date;
   updatedAt: Date;
   amenities: { amenityId: string }[];
+  images: VehicleImageRow[];
   _count: { trips: number };
 };
 
@@ -50,7 +54,11 @@ type VehicleRow = {
  */
 @Injectable()
 export class VehicleService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    // Chỉ cần đổi khóa object thành địa chỉ công khai; tải lên / gắn ảnh nằm ở `VehicleImageService`.
+    @Inject(PUBLIC_STORAGE) private readonly storage: Pick<StorageProvider, "publicUrl">,
+  ) {}
 
   /** Liệt kê xe của nhà xe, lọc trạng thái, phân trang theo `id`. */
   async list(
@@ -72,7 +80,7 @@ export class VehicleService {
     );
     const page = rows.slice(0, query.limit);
     return {
-      items: page.map(toResponse),
+      items: page.map((row) => toResponse(row, this.storage)),
       nextCursor: rows.length > query.limit ? page[page.length - 1]!.id : null,
     };
   }
@@ -86,7 +94,7 @@ export class VehicleService {
     if (!row) {
       throw vehicleNotFound();
     }
-    return toResponse(row);
+    return toResponse(row, this.storage);
   }
 
   /** Tạo xe; kiểm catalog và SeatMap cùng tenant trong cùng transaction với lệnh ghi. */
@@ -109,7 +117,7 @@ export class VehicleService {
         });
       }),
     );
-    return toResponse(row);
+    return toResponse(row, this.storage);
   }
 
   /** Thay toàn bộ thông tin xe (kể cả danh sách tiện ích) trong một transaction. */
@@ -163,7 +171,7 @@ export class VehicleService {
         });
       }),
     );
-    return toResponse(row);
+    return toResponse(row, this.storage);
   }
 
   private async withPlateConflict<T>(work: () => Promise<T>): Promise<T> {
@@ -213,13 +221,14 @@ async function assertReferences(
   }
 }
 
-function toResponse(row: VehicleRow): VehicleResponse {
-  const { amenities, seatMap, _count, ...vehicle } = row;
+function toResponse(row: VehicleRow, storage: Pick<StorageProvider, "publicUrl">): VehicleResponse {
+  const { amenities, images, seatMap, _count, ...vehicle } = row;
   return {
     ...vehicle,
     seatMap: seatMap && toSeatMapSummary(seatMap),
     seatMapLocked: _count.trips > 0,
     amenityIds: amenities.map((amenity) => amenity.amenityId),
+    images: toVehicleImages(images, storage),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

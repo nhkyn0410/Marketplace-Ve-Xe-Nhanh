@@ -30,6 +30,7 @@ import {
   VEHICLE_STATUS_ORDER,
   vehicleTypeLabel
 } from "../../lib/vehicle/vehicle-format";
+import { imageCountLine } from "../../lib/vehicle/vehicle-images";
 import { BUTTON, ListFooterNote, ListLoadMoreFooter, ListStatePanel } from "../list-parts";
 import { PageHeader } from "../page-header";
 
@@ -257,17 +258,17 @@ function VehicleTable({
             const names = amenityNames.filter(([id]) => vehicle.amenityIds.includes(id)).map(([, name]) => name);
             const amenity = amenitySummary(names);
             const state = VEHICLE_STATUS[vehicle.status];
+            const cover = vehicle.images[0];
             return (
               <tr key={vehicle.id} className="h-[84px] border-b">
                 <td className="pl-4">
                   <div className="flex items-center gap-3 pr-3">
-                    {/* Ảnh xe thuộc TASK-TRN-009: chưa có API nên mọi dòng hiện hình thay thế. */}
-                    <span className="flex h-12 w-[60px] shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <ImageOff className="size-5 text-vxn-fg-3" aria-hidden />
-                    </span>
+                    <VehicleCover url={cover?.url ?? null} />
                     <span className="flex min-w-0 flex-col gap-1">
                       <span className="truncate text-sm leading-5 font-semibold text-vxn-teal-700">{plate}</span>
-                      <span className="text-xs leading-[18px] text-muted-foreground">Chưa có ảnh</span>
+                      <span className="text-xs leading-[18px] text-muted-foreground">
+                        {imageCountLine(vehicle.images.length)}
+                      </span>
                     </span>
                   </div>
                 </td>
@@ -342,5 +343,27 @@ function LoadingRows() {
         </div>
       ))}
     </div>
+  );
+}
+
+/** Ảnh đại diện của xe (ảnh đầu của bộ ảnh); chưa có ảnh hoặc ảnh tải lỗi thì hiện hình thay thế (Figma 01). */
+function VehicleCover({ url }: { url: string | null }) {
+  const [broken, setBroken] = useState(false);
+  if (!url || broken) {
+    return (
+      <span className="flex h-12 w-[60px] shrink-0 items-center justify-center rounded-lg bg-muted">
+        <ImageOff className="size-5 text-vxn-fg-3" aria-hidden />
+      </span>
+    );
+  }
+  return (
+    // Ảnh ở kho công khai: <img> thường, tải lười vì danh sách có thể dài.
+    <img
+      src={url}
+      alt=""
+      loading="lazy"
+      onError={() => setBroken(true)}
+      className="h-12 w-[60px] shrink-0 rounded-lg bg-muted object-cover"
+    />
   );
 }

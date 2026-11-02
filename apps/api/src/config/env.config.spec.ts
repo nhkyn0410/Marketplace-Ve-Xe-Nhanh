@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parseAppConfig, webAllowedOrigins, webOriginScopes } from "./env.config";
 
+/** Cấu hình R2 đầy đủ — production bắt buộc (TASK-TRN-009). */
+const R2 = {
+  R2_ACCOUNT_ID: "account",
+  R2_ACCESS_KEY_ID: "key-id",
+  R2_SECRET_ACCESS_KEY: "secret",
+  R2_PUBLIC_BUCKET: "vexenhanh-public",
+  R2_PUBLIC_BASE_URL: "https://cdn.example.com",
+};
+
 describe("parseAppConfig", () => {
   it("applies defaults when env is empty", () => {
     const config = parseAppConfig({});
@@ -30,6 +39,18 @@ describe("parseAppConfig", () => {
 
   it("rejects an unknown NODE_ENV", () => {
     expect(() => parseAppConfig({ NODE_ENV: "staging" })).toThrow(/Invalid environment/);
+  });
+
+  it("payOS cần đủ ba khóa; DEMO và payOS thật không được bật chung", () => {
+    const keys = { PAYOS_CLIENT_ID: "client", PAYOS_API_KEY: "api", PAYOS_CHECKSUM_KEY: "checksum" };
+    expect(parseAppConfig({}).PAYMENT_DEMO_ENABLED).toBe(false);
+    expect(parseAppConfig({ PAYMENT_DEMO_ENABLED: "true" }).PAYMENT_DEMO_ENABLED).toBe(true);
+    expect(parseAppConfig({ PAYMENT_DEMO_ENABLED: "false" }).PAYMENT_DEMO_ENABLED).toBe(false);
+    expect(parseAppConfig(keys).PAYOS_CLIENT_ID).toBe("client");
+    expect(() => parseAppConfig({ PAYOS_CLIENT_ID: "client" })).toThrow(/PAYOS_API_KEY/);
+    expect(() => parseAppConfig({ ...keys, PAYMENT_DEMO_ENABLED: "true" })).toThrow(/PAYMENT_DEMO_ENABLED/);
+    expect(() => parseAppConfig({ ...keys, NODE_ENV: "production" })).toThrow(/OQ-22/);
+    expect(() => parseAppConfig({ PAYMENT_DEMO_ENABLED: "yes" })).toThrow(/PAYMENT_DEMO_ENABLED/);
   });
 
   it("rejects an invalid LOG_LEVEL", () => {
@@ -88,8 +109,10 @@ describe("parseAppConfig", () => {
       MFA_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
       RESEND_API_KEY: "test-resend-key",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.example.com",
       ADMIN_WEB_ORIGINS: "https://admin.example.com",
+      ...R2,
     };
     expect(() => parseAppConfig(production)).toThrow(/GOONG_API_KEY/);
     expect(parseAppConfig({ ...production, GOONG_API_KEY: "k" }).GOONG_API_KEY).toBe("k");
@@ -106,9 +129,31 @@ describe("parseAppConfig", () => {
       RESEND_API_KEY: "test-resend-key",
       GOONG_API_KEY: "k",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.vexenhanh.vn",
       ADMIN_WEB_ORIGINS: "https://admin.vexenhanh.vn, https://admin2.vexenhanh.vn",
+      ...R2,
     };
+
+    it("hồ sơ đăng ký nhà xe (TASK-OPR-001): link mặc định 72 giờ, tối đa 30 ngày; bucket private tùy chọn", () => {
+      expect(parseAppConfig({}).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(72);
+      expect(parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "24" }).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(24);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "721" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "0" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      // Production không bắt buộc bucket private: chưa chốt nơi lưu KYC (OQ-21) thì API giấy tờ trả 503.
+      expect(parseAppConfig(production).R2_PRIVATE_BUCKET).toBeUndefined();
+      expect(parseAppConfig({ ...production, R2_PRIVATE_BUCKET: "vexenhanh-private" }).R2_PRIVATE_BUCKET).toBe("vexenhanh-private");
+    });
+
+    it("kho object (TASK-TRN-009): production bắt buộc R2; dev bỏ trống thì dùng ổ đĩa; khai dở bị từ chối", () => {
+      const withoutR2 = Object.fromEntries(Object.entries(production).filter(([key]) => !key.startsWith("R2_")));
+      expect(() => parseAppConfig(withoutR2)).toThrow(/R2_ACCOUNT_ID/);
+      expect(parseAppConfig(production).R2_PUBLIC_BUCKET).toBe("vexenhanh-public");
+      expect(parseAppConfig({}).R2_ACCOUNT_ID).toBeUndefined();
+      // Chỉ khai một phần ở dev: không được lặng lẽ rơi về ổ đĩa local.
+      expect(() => parseAppConfig({ R2_ACCOUNT_ID: "account" })).toThrow(/R2_PUBLIC_BUCKET/);
+      expect(() => parseAppConfig({ ...R2, R2_PUBLIC_BASE_URL: "khong-phai-url" })).toThrow(/Invalid environment/);
+    });
 
     it("ràng từng origin với scope của app (M1): operator ↔ Operator OS, platform ↔ Admin", () => {
       expect([...webOriginScopes(parseAppConfig(production))]).toEqual([
@@ -116,6 +161,15 @@ describe("parseAppConfig", () => {
         ["https://admin.vexenhanh.vn", "platform"],
         ["https://admin2.vexenhanh.vn", "platform"],
       ]);
+    });
+
+    it("cổng thanh toán (TASK-BTP-003): mặc định sandbox, production không bắt buộc khóa (OQ-22), khai dở khóa bị từ chối", () => {
+      expect(parseAppConfig({}).VNPAY_PAYMENT_URL).toBe("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+      expect(parseAppConfig({}).MOMO_ENDPOINT).toBe("https://test-payment.momo.vn");
+      expect(parseAppConfig(production).VNPAY_TMN_CODE).toBeUndefined();
+      expect(() => parseAppConfig({ VNPAY_TMN_CODE: "TMN" })).toThrow(/VNPAY_HASH_SECRET/);
+      expect(() => parseAppConfig({ MOMO_PARTNER_CODE: "P", MOMO_ACCESS_KEY: "A" })).toThrow(/MOMO_SECRET_KEY/);
+      expect(parseAppConfig({ VNPAY_TMN_CODE: "TMN", VNPAY_HASH_SECRET: "s" }).VNPAY_TMN_CODE).toBe("TMN");
     });
 
     it("defaults to local Operator/Admin origins outside production", () => {
@@ -132,6 +186,7 @@ describe("parseAppConfig", () => {
       ["OPERATOR_WEB_ORIGINS", { OPERATOR_WEB_ORIGINS: "http://operator.vexenhanh.vn" }],
       ["ADMIN_WEB_ORIGINS", { ADMIN_WEB_ORIGINS: "https://localhost:3003" }],
       ["WEB_CSRF_SECRET", { WEB_CSRF_SECRET: Buffer.alloc(32, 1).toString("base64") }],
+      ["TICKET_QR_SECRET", { TICKET_QR_SECRET: undefined }],
     ])("production fails fast on %s %o", (key, override) => {
       expect(() => parseAppConfig({ ...production, ...override })).toThrow(new RegExp(key));
     });

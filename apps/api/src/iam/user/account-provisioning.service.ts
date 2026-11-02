@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
 import { z } from "zod";
 import { AuditService, type AuditEventInput } from "../../audit/audit.service";
-import { PrismaService } from "../../database/prisma.service";
+import { type DbTransaction, PrismaService } from "../../database/prisma.service";
 import { EMAIL_NOTIFIER, type EmailNotifier, maskEmail } from "../../external/notification/email-notifier";
 import { CredentialService } from "../auth/credential.service";
 import { reauthRequired } from "../auth/auth.errors";
@@ -55,12 +55,15 @@ export class AccountProvisioningService {
   /**
    * Primitive cho OPR-001: tạo tenant + Owner đầu tiên, không mở endpoint/KYC giả.
    * Chỉ PlatformAdmin có recent re-auth mới gọi được kể cả khi bypass controller.
+   * `inTransaction` chạy trong CÙNG transaction, sau khi tạo tenant + Owner (vd duyệt hồ sơ đăng ký đổi trạng thái
+   * hồ sơ — LLD §6.11 bước 4); ném lỗi thì không tạo gì.
    */
   async provisionOperatorOwner(
     actor: AccountActor,
     authz: Authorization,
     input: ProvisionOperatorOwnerInput,
     context: AccountRequestContext = {},
+    options: { inTransaction?: (tx: DbTransaction, created: ProvisionedOperatorOwner) => Promise<void> } = {},
   ): Promise<ProvisionedOperatorOwner> {
     if (
       actor.scope !== "platform" ||
@@ -120,7 +123,7 @@ export class AccountProvisioningService {
             status: "ACTIVE",
           },
         });
-        return tx.operatorAccount.create({
+        const owner = await tx.operatorAccount.create({
           data: {
             id: ownerAccountId,
             operatorId,
@@ -136,6 +139,8 @@ export class AccountProvisioningService {
           },
           select: { version: true },
         });
+        await options.inTransaction?.(tx, { operatorId, ownerAccountId });
+        return owner;
       });
       ownerVersion = created.version;
     } catch (error) {

@@ -30,7 +30,7 @@ import {
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { VerifiedAccessToken } from "../auth/token.service";
 import { WebAuthService } from "../auth/web/web-auth.service";
-import { isOperatorOwnerRole } from "../role/role";
+import { isOperatorAccountRole } from "../role/role";
 import { SubjectType } from "../../database/prisma.types";
 import {
   type SessionListResponse,
@@ -143,7 +143,7 @@ function subjectTypeFor(user: VerifiedAccessToken): SubjectType {
   if (user.scope === "platform") {
     return SubjectType.PLATFORM;
   }
-  return isOperatorOwnerRole(user.role)
+  return isOperatorAccountRole(user.role)
     ? SubjectType.OPERATOR
     : SubjectType.EMPLOYEE;
 }

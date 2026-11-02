@@ -8,7 +8,8 @@ import { SiteShell } from "../components/site-shell";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  // 800 = ExtraBold của tiêu đề Figma; thiếu thì trình duyệt tự làm đậm giả, nét chữ có dấu bị nhòe.
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-be-vietnam-pro",
   display: "swap"
 });
@@ -18,11 +19,15 @@ export const metadata: Metadata = {
   description: "Tìm chuyến, so sánh nhà xe, chọn ghế và nhận vé điện tử QR."
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/** `modal`: slot `app/@modal` — modal xác thực phủ lên trang đang xem khi mở từ trong web. */
+export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
-    <html lang="vi" className={beVietnamPro.variable}>
+    <html lang="vi" className={`${beVietnamPro.variable} vxn-scale`}>
       <body>
-        <SiteShell>{children}</SiteShell>
+        <SiteShell>
+          {children}
+          {modal}
+        </SiteShell>
       </body>
     </html>
   );

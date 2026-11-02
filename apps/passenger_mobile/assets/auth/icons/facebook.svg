@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="2021_Facebook_icon 1" clip-path="url(#clip0_0_91)">
+<path id="Vector" d="M8.35 19.9C3.6 19.05 0 14.95 0 10C0 4.5 4.5 0 10 0C15.5 0 20 4.5 20 10C20 14.95 16.4 19.05 11.65 19.9L11.1 19.45H8.9L8.35 19.9Z" fill="url(#paint0_linear_0_91)"/>
+<path id="Vector_2" d="M13.9 12.8L14.35 10H11.7V8.05C11.7 7.25 12 6.65 13.2 6.65H14.5V4.1C13.8 4 13 3.9 12.3 3.9C10 3.9 8.4 5.3 8.4 7.8V10H5.9V12.8H8.4V19.85C8.95 19.95 9.5 20 10.05 20C10.6 20 11.15 19.95 11.7 19.85V12.8H13.9Z" fill="white"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_91" x1="10.0005" y1="19.3045" x2="10.0005" y2="-0.00368389" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0062E0"/>
+<stop offset="1" stop-color="#19AFFF"/>
+</linearGradient>
+<clipPath id="clip0_0_91">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

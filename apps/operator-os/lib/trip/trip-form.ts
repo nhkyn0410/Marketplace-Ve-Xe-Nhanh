@@ -13,48 +13,38 @@ export const NO_VEHICLE = "NONE";
 const MINUTE_MS = 60_000;
 const DAY_MS = 24 * 3_600_000;
 const VN_OFFSET_MS = 7 * 3_600_000;
-/** Một chuyến dài tối đa 7 ngày (giống máy chủ). */
-const MAX_TRIP_DURATION_MS = 7 * DAY_MS;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+/** Ngừng bán online sớm nhất một ngày trước giờ khởi hành (giống máy chủ — AS-20). */
+export const MAX_ONLINE_SALE_CUTOFF_MINUTES = 1440;
+/** Số phút ngừng bán online gợi ý cho chuyến mới. */
+export const DEFAULT_ONLINE_SALE_CUTOFF_MINUTES = 60;
 
 export type TripFormValues = {
   routeId: string;
   departureDate: string;
   departureTime: string;
-  arrivalDate: string;
-  arrivalTime: string;
   vehicleId: string;
+  /** Số phút ngừng bán online trước giờ khởi hành, đang gõ dạng chữ. */
+  onlineSaleCutoffMinutes: string;
   note: string;
+  /** Chặng mở bán (3.3): tuyến con đang bật của tuyến đã chọn, chuyến bán thêm theo giá riêng. */
+  subRouteIds: string[];
 };
 
 type TimeIssue = { path: keyof TripFormValues; message: string };
 
 /**
- * Quy tắc về giờ của chuyến (giống máy chủ): khởi hành ở tương lai, đến sau khởi hành, dài không quá 7 ngày.
- * Bỏ qua khi ngày / giờ còn thiếu — lỗi thiếu đã được báo ở từng ô.
+ * Quy tắc về giờ của chuyến (giống máy chủ): khởi hành ở tương lai. Giờ đến không nhập — máy chủ tính theo thời gian chạy
+ * của tuyến (chờ duyệt 27/10/2026). Bỏ qua khi ngày / giờ còn thiếu — lỗi thiếu đã được báo ở từng ô.
  */
 export function tripTimeIssues(values: TripFormValues, nowMs: number): TimeIssue[] {
-  if (
-    !DATE.test(values.departureDate) ||
-    !TIME.test(values.departureTime) ||
-    !DATE.test(values.arrivalDate) ||
-    !TIME.test(values.arrivalTime)
-  ) {
+  if (!hasCompleteTimes(values)) {
     return [];
   }
-  const issues: TimeIssue[] = [];
-  const departure = new Date(departureIso(values)).getTime();
-  const arrival = new Date(arrivalIso(values)).getTime();
-  if (departure <= nowMs) {
-    issues.push({ path: "departureDate", message: "Giờ khởi hành phải ở tương lai." });
-  }
-  if (arrival <= departure) {
-    issues.push({ path: "arrivalTime", message: "Giờ đến phải sau giờ khởi hành." });
-  } else if (arrival - departure > MAX_TRIP_DURATION_MS) {
-    issues.push({ path: "arrivalDate", message: "Chuyến dài không quá 7 ngày." });
-  }
-  return issues;
+  return new Date(departureIso(values)).getTime() <= nowMs
+    ? [{ path: "departureDate", message: "Giờ khởi hành phải ở tương lai." }]
+    : [];
 }
 
 export const tripInfoSchema = z
@@ -62,10 +52,12 @@ export const tripInfoSchema = z
     routeId: z.string().min(1, "Chọn tuyến của chuyến."),
     departureDate: z.string().regex(DATE, "Chọn ngày khởi hành."),
     departureTime: z.string().regex(TIME, "Nhập giờ khởi hành."),
-    arrivalDate: z.string().regex(DATE, "Chọn ngày đến."),
-    arrivalTime: z.string().regex(TIME, "Nhập giờ đến."),
     vehicleId: z.string(),
-    note: z.string().max(TRIP_NOTE_MAX_LENGTH, `Ghi chú tối đa ${TRIP_NOTE_MAX_LENGTH} ký tự.`)
+    onlineSaleCutoffMinutes: z
+      .string()
+      .refine((value) => parseCutoffMinutes(value) !== null, `Nhập số phút nguyên từ 0 đến ${MAX_ONLINE_SALE_CUTOFF_MINUTES}.`),
+    note: z.string().max(TRIP_NOTE_MAX_LENGTH, `Ghi chú tối đa ${TRIP_NOTE_MAX_LENGTH} ký tự.`),
+    subRouteIds: z.array(z.string())
   })
   .superRefine((values, ctx) => {
     for (const issue of tripTimeIssues(values, Date.now())) {
@@ -78,77 +70,113 @@ export const EMPTY_TRIP_VALUES: TripFormValues = {
   routeId: "",
   departureDate: "",
   departureTime: "",
-  arrivalDate: "",
-  arrivalTime: "",
   vehicleId: NO_VEHICLE,
-  note: ""
+  onlineSaleCutoffMinutes: String(DEFAULT_ONLINE_SALE_CUTOFF_MINUTES),
+  note: "",
+  subRouteIds: []
 };
+
+/** Số phút ngừng bán online đang gõ → số nguyên 0–1440; chữ, số lẻ, số âm hay vượt khoảng → `null`. */
+export function parseCutoffMinutes(value: string): number | null {
+  const text = value.trim();
+  if (!/^\d{1,4}$/.test(text)) {
+    return null;
+  }
+  const minutes = Number(text);
+  return minutes <= MAX_ONLINE_SALE_CUTOFF_MINUTES ? minutes : null;
+}
 
 /** Giá trị form của một chuyến đã lưu. */
 export function toTripFormValues(trip: Trip): TripFormValues {
   const departure = toLocalParts(trip.departureAt);
-  const arrival = toLocalParts(trip.arrivalAt);
   return {
     routeId: trip.routeId,
     departureDate: departure.date,
     departureTime: departure.time,
-    arrivalDate: arrival.date,
-    arrivalTime: arrival.time,
     vehicleId: trip.vehicleId ?? NO_VEHICLE,
-    note: trip.note ?? ""
+    onlineSaleCutoffMinutes: String(trip.onlineSaleCutoffMinutes),
+    note: trip.note ?? "",
+    subRouteIds: trip.subRouteIds
   };
 }
 
-/** Giờ khởi hành đang nhập, dạng ISO có múi giờ. */
-export function departureIso(values: Pick<TripFormValues, "departureDate" | "departureTime">): string {
-  return fromLocalParts(values.departureDate, values.departureTime);
-}
+/** Giờ của chuyến theo bước 5 phút — cùng quy tắc máy chủ (3.1, chờ duyệt). */
+export const TIME_STEP_MINUTES = 5;
+const STEP_MS = TIME_STEP_MINUTES * MINUTE_MS;
 
-/** Giờ đến đang nhập, dạng ISO có múi giờ. */
-export function arrivalIso(values: Pick<TripFormValues, "arrivalDate" | "arrivalTime">): string {
-  return fromLocalParts(values.arrivalDate, values.arrivalTime);
-}
-
-/** Đã nhập đủ ngày giờ đi và đến đúng định dạng chưa — đủ thì mới tính được giờ từng điểm. */
-export function hasCompleteTimes(values: TripFormValues): boolean {
-  return (
-    DATE.test(values.departureDate) &&
-    TIME.test(values.departureTime) &&
-    DATE.test(values.arrivalDate) &&
-    TIME.test(values.arrivalTime)
-  );
-}
-
-/** Giờ đến gợi ý = giờ khởi hành + thời gian chạy của tuyến (làm tròn phút); `null` khi chưa nhập đủ giờ đi. */
-export function suggestArrival(
-  departureDate: string,
-  departureTime: string,
-  routeDurationSeconds: number
-): { date: string; time: string } | null {
-  if (!DATE.test(departureDate) || !TIME.test(departureTime)) {
-    return null;
+/**
+ * Giờ `HH:mm` làm tròn về mốc 5 phút gần nhất ("06:32" → "06:30", "06:33" → "06:35"); không sang ngày hôm sau ("23:58" →
+ * "23:55"). Chuỗi chưa đúng định dạng giữ nguyên.
+ */
+export function roundClock(time: string): string {
+  if (!TIME.test(time)) {
+    return time;
   }
-  const departure = new Date(fromLocalParts(departureDate, departureTime)).getTime();
-  const minutes = Math.max(1, Math.round(routeDurationSeconds / 60));
-  return toLocalParts(new Date(departure + minutes * MINUTE_MS).toISOString());
+  const [hours, minutes] = time.split(":").map(Number) as [number, number];
+  const total = Math.min(Math.round((hours * 60 + minutes) / TIME_STEP_MINUTES) * TIME_STEP_MINUTES, 24 * 60 - TIME_STEP_MINUTES);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/** Giờ khởi hành đang nhập (đã làm tròn 5 phút như máy chủ), dạng ISO có múi giờ. */
+export function departureIso(values: Pick<TripFormValues, "departureDate" | "departureTime">): string {
+  return fromLocalParts(values.departureDate, roundClock(values.departureTime));
+}
+
+/** Đã nhập đủ ngày giờ khởi hành đúng định dạng chưa — đủ thì mới tính được giờ đến và giờ từng điểm. */
+export function hasCompleteTimes(values: Pick<TripFormValues, "departureDate" | "departureTime">): boolean {
+  return DATE.test(values.departureDate) && TIME.test(values.departureTime);
 }
 
 /**
- * Giờ dự kiến tại từng điểm khi "Tự chia": chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chạy từng chặng
- * của tuyến, làm tròn xuống theo phút tính từ giờ đi — đúng công thức của máy chủ, để giờ xem trước trùng giờ
- * được lưu. `legSeconds[i]` = thời gian chặng tới điểm `i` (điểm đầu là `null`).
+ * Giờ đến theo tuyến = giờ khởi hành + thời gian chạy của tuyến, ít nhất 1 phút, làm tròn LÊN mốc 5 phút — đúng công thức
+ * máy chủ (`routeArrival`), để giờ xem trước trùng giờ được lưu. `rounding = false`: cách cũ cho chuyến lẻ phút không dời giờ.
  */
-export function autoSplitTimes(departureMs: number, arrivalMs: number, legSeconds: (number | null)[]): number[] {
+export function routeArrivalMs(departureMs: number, routeDurationSeconds: number, rounding = true): number {
+  const arrival = departureMs + Math.max(1, Math.round(routeDurationSeconds / 60)) * MINUTE_MS;
+  return rounding ? Math.ceil(arrival / STEP_MS) * STEP_MS : arrival;
+}
+
+/**
+ * Chuyến tạo trước bước 5 phút (giờ lẻ phút) mà không dời giờ đi: máy chủ giữ cách tính cũ khi đổi lịch (`keepsLegacyTimes`),
+ * ở đây làm theo để giờ xem trước khớp.
+ */
+export function keepsLegacyTimes(current: { departureAt: string; arrivalAt: string }, departureMs: number): boolean {
+  const departure = Date.parse(current.departureAt);
+  const offGrid = departure % STEP_MS !== 0 || Date.parse(current.arrivalAt) % STEP_MS !== 0;
+  return offGrid && departure === departureMs;
+}
+
+/**
+ * Giờ dự kiến tại từng điểm khi "Tự chia": chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chạy từng chặng của tuyến
+ * rồi làm tròn mốc 5 phút — điểm cho đón làm tròn xuống, điểm chỉ trả làm tròn lên, không giảm dần, không vượt giờ đến —
+ * đúng công thức của máy chủ để giờ xem trước trùng giờ được lưu. `legSeconds[i]` = thời gian chặng tới điểm `i` (điểm đầu
+ * là `null`); `allowPickup[i]` = điểm `i` cho đón (thiếu = có).
+ */
+export function autoSplitTimes(
+  departureMs: number,
+  arrivalMs: number,
+  legSeconds: (number | null)[],
+  allowPickup: readonly boolean[] = [],
+  rounding = true
+): number[] {
   const span = arrivalMs - departureMs;
   let elapsed = 0;
   const cumulative = legSeconds.map((seconds) => (elapsed += seconds ?? 0));
   const total = cumulative[cumulative.length - 1] ?? 0;
   const last = legSeconds.length - 1;
-  return cumulative.map((seconds, index) =>
-    index === last
-      ? arrivalMs
-      : departureMs + (total === 0 ? 0 : Math.floor(((seconds / total) * span) / MINUTE_MS) * MINUTE_MS)
-  );
+  let previous = departureMs;
+  return cumulative.map((seconds, index) => {
+    if (index === 0 || index === last) {
+      return index === 0 ? departureMs : arrivalMs;
+    }
+    const raw = departureMs + (total === 0 ? 0 : (seconds / total) * span);
+    if (!rounding) {
+      return departureMs + Math.floor((raw - departureMs) / MINUTE_MS) * MINUTE_MS;
+    }
+    const rounded = allowPickup[index] === false ? Math.ceil(raw / STEP_MS) * STEP_MS : Math.floor(raw / STEP_MS) * STEP_MS;
+    previous = Math.min(Math.max(rounded, previous), arrivalMs);
+    return previous;
+  });
 }
 
 /**
@@ -204,9 +232,11 @@ export function toTripInput(values: TripFormValues, stopTimesMs: number[] | null
     routeId: values.routeId,
     vehicleId: values.vehicleId === NO_VEHICLE ? null : values.vehicleId,
     departureAt: departureIso(values),
-    arrivalAt: arrivalIso(values),
     stopTimes: stopTimesMs && stopTimesMs.map((ms) => new Date(ms).toISOString()),
-    note: values.note.trim() || null
+    // Form đã kiểm trước khi gọi; giá trị sai lọt tới đây thì gửi mức gợi ý thay vì NaN.
+    onlineSaleCutoffMinutes: parseCutoffMinutes(values.onlineSaleCutoffMinutes) ?? DEFAULT_ONLINE_SALE_CUTOFF_MINUTES,
+    note: values.note.trim() || null,
+    subRouteIds: values.subRouteIds
   };
 }
 
@@ -228,8 +258,13 @@ export function describeTripSaveError(error: unknown): { field: TripSaveErrorFie
       case "TRIP_STOP_TIMES_INVALID":
         return {
           field: "stops",
-          message: "Tuyến vừa thay đổi số điểm dừng. Tải lại trang rồi nhập lại giờ tại từng điểm."
+          message: "Tuyến vừa thay đổi điểm dừng hoặc thời gian chạy. Tải lại trang rồi nhập lại giờ tại từng điểm."
         };
+      case "TRIP_BLOCKED_SEATS_MISSING":
+        // Câu của máy chủ nêu đúng mã các chỗ đang khóa mà xe mới không có (BR-42).
+        return { field: "vehicleId", message: error.message };
+      case "TRIP_SEAT_NOT_AVAILABLE":
+        return { field: "vehicleId", message: "Chuyến có chỗ đang được giữ hoặc đã bán nên không đổi xe được." };
       case "TRIP_NOT_EDITABLE":
         return { field: null, message: "Chuyến không còn ở trạng thái Nháp nên không sửa được." };
       case "TRIP_NOT_FOUND":
@@ -240,4 +275,22 @@ export function describeTripSaveError(error: unknown): { field: TripSaveErrorFie
     }
   }
   return { field: null, message: "Chưa lưu được chuyến. Vui lòng kiểm tra kết nối và thử lại." };
+}
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Giá trị đầu của form tạo chuyến khi mở từ Lịch xe (`?vehicleId=…&date=2026-10-10&time=20:00` — TASK-TRN-015); tham số
+ * sai dạng thì bỏ qua.
+ */
+export function prefillTripValues(params: { get(name: string): string | null }): TripFormValues {
+  const vehicleId = params.get("vehicleId");
+  const date = params.get("date");
+  const time = params.get("time");
+  return {
+    ...EMPTY_TRIP_VALUES,
+    ...(vehicleId && UUID_PATTERN.test(vehicleId) ? { vehicleId } : {}),
+    ...(date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { departureDate: date } : {}),
+    ...(time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? { departureTime: time } : {})
+  };
 }

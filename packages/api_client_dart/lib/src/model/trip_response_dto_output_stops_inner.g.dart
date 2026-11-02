@@ -172,6 +172,10 @@ class _$TripResponseDtoOutputStopsInner
   @override
   final DateTime plannedAt;
   @override
+  final DateTime? pickupWindowStart;
+  @override
+  final DateTime? pickupWindowEnd;
+  @override
   final bool allowPickup;
   @override
   final bool allowDropoff;
@@ -191,6 +195,8 @@ class _$TripResponseDtoOutputStopsInner
       required this.address,
       required this.type,
       required this.plannedAt,
+      this.pickupWindowStart,
+      this.pickupWindowEnd,
       required this.allowPickup,
       required this.allowDropoff,
       this.note})
@@ -216,6 +222,8 @@ class _$TripResponseDtoOutputStopsInner
         address == other.address &&
         type == other.type &&
         plannedAt == other.plannedAt &&
+        pickupWindowStart == other.pickupWindowStart &&
+        pickupWindowEnd == other.pickupWindowEnd &&
         allowPickup == other.allowPickup &&
         allowDropoff == other.allowDropoff &&
         note == other.note;
@@ -232,6 +240,8 @@ class _$TripResponseDtoOutputStopsInner
     _$hash = $jc(_$hash, address.hashCode);
     _$hash = $jc(_$hash, type.hashCode);
     _$hash = $jc(_$hash, plannedAt.hashCode);
+    _$hash = $jc(_$hash, pickupWindowStart.hashCode);
+    _$hash = $jc(_$hash, pickupWindowEnd.hashCode);
     _$hash = $jc(_$hash, allowPickup.hashCode);
     _$hash = $jc(_$hash, allowDropoff.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
@@ -250,6 +260,8 @@ class _$TripResponseDtoOutputStopsInner
           ..add('address', address)
           ..add('type', type)
           ..add('plannedAt', plannedAt)
+          ..add('pickupWindowStart', pickupWindowStart)
+          ..add('pickupWindowEnd', pickupWindowEnd)
           ..add('allowPickup', allowPickup)
           ..add('allowDropoff', allowDropoff)
           ..add('note', note))
@@ -298,6 +310,16 @@ class TripResponseDtoOutputStopsInnerBuilder
   DateTime? get plannedAt => _$this._plannedAt;
   set plannedAt(DateTime? plannedAt) => _$this._plannedAt = plannedAt;
 
+  DateTime? _pickupWindowStart;
+  DateTime? get pickupWindowStart => _$this._pickupWindowStart;
+  set pickupWindowStart(DateTime? pickupWindowStart) =>
+      _$this._pickupWindowStart = pickupWindowStart;
+
+  DateTime? _pickupWindowEnd;
+  DateTime? get pickupWindowEnd => _$this._pickupWindowEnd;
+  set pickupWindowEnd(DateTime? pickupWindowEnd) =>
+      _$this._pickupWindowEnd = pickupWindowEnd;
+
   bool? _allowPickup;
   bool? get allowPickup => _$this._allowPickup;
   set allowPickup(bool? allowPickup) => _$this._allowPickup = allowPickup;
@@ -325,6 +347,8 @@ class TripResponseDtoOutputStopsInnerBuilder
       _address = $v.address;
       _type = $v.type;
       _plannedAt = $v.plannedAt;
+      _pickupWindowStart = $v.pickupWindowStart;
+      _pickupWindowEnd = $v.pickupWindowEnd;
       _allowPickup = $v.allowPickup;
       _allowDropoff = $v.allowDropoff;
       _note = $v.note;
@@ -363,6 +387,8 @@ class TripResponseDtoOutputStopsInnerBuilder
               type, r'TripResponseDtoOutputStopsInner', 'type'),
           plannedAt: BuiltValueNullFieldError.checkNotNull(
               plannedAt, r'TripResponseDtoOutputStopsInner', 'plannedAt'),
+          pickupWindowStart: pickupWindowStart,
+          pickupWindowEnd: pickupWindowEnd,
           allowPickup: BuiltValueNullFieldError.checkNotNull(
               allowPickup, r'TripResponseDtoOutputStopsInner', 'allowPickup'),
           allowDropoff: BuiltValueNullFieldError.checkNotNull(

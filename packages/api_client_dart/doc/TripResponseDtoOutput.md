@@ -19,6 +19,11 @@ Name | Type | Description | Notes
 **seatCount** | **int** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
+**onlineSaleCutoffMinutes** | **int** |  | 
+**subRouteIds** | **BuiltList&lt;String&gt;** |  | 
+**statusReason** | **String** |  | 
+**departedAt** | [**DateTime**](DateTime.md) |  | 
+**completedAt** | [**DateTime**](DateTime.md) |  | 
 **note** | **String** |  | 
 **stops** | [**BuiltList&lt;TripResponseDtoOutputStopsInner&gt;**](TripResponseDtoOutputStopsInner.md) |  | 
 **seats** | [**BuiltList&lt;TripResponseDtoOutputSeatsInner&gt;**](TripResponseDtoOutputSeatsInner.md) |  | 

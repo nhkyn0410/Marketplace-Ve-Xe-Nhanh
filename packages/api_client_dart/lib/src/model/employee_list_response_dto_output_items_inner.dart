@@ -18,6 +18,8 @@ part 'employee_list_response_dto_output_items_inner.g.dart';
 /// * [role] 
 /// * [status] 
 /// * [credentialDeliveryPending] 
+/// * [passwordChangeRequired] 
+/// * [temporaryPasswordExpiresAt] 
 /// * [createdAt] 
 /// * [updatedAt] 
 @BuiltValue()
@@ -33,7 +35,7 @@ abstract class EmployeeListResponseDtoOutputItemsInner implements Built<Employee
 
   @BuiltValueField(wireName: r'role')
   EmployeeListResponseDtoOutputItemsInnerRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'status')
   EmployeeListResponseDtoOutputItemsInnerStatusEnum get status;
@@ -41,6 +43,12 @@ abstract class EmployeeListResponseDtoOutputItemsInner implements Built<Employee
 
   @BuiltValueField(wireName: r'credentialDeliveryPending')
   bool get credentialDeliveryPending;
+
+  @BuiltValueField(wireName: r'passwordChangeRequired')
+  bool get passwordChangeRequired;
+
+  @BuiltValueField(wireName: r'temporaryPasswordExpiresAt')
+  DateTime? get temporaryPasswordExpiresAt;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -100,6 +108,16 @@ class _$EmployeeListResponseDtoOutputItemsInnerSerializer implements PrimitiveSe
     yield serializers.serialize(
       object.credentialDeliveryPending,
       specifiedType: const FullType(bool),
+    );
+    yield r'passwordChangeRequired';
+    yield serializers.serialize(
+      object.passwordChangeRequired,
+      specifiedType: const FullType(bool),
+    );
+    yield r'temporaryPasswordExpiresAt';
+    yield object.temporaryPasswordExpiresAt == null ? null : serializers.serialize(
+      object.temporaryPasswordExpiresAt,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'createdAt';
     yield serializers.serialize(
@@ -177,6 +195,21 @@ class _$EmployeeListResponseDtoOutputItemsInnerSerializer implements PrimitiveSe
           ) as bool;
           result.credentialDeliveryPending = valueDes;
           break;
+        case r'passwordChangeRequired':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.passwordChangeRequired = valueDes;
+          break;
+        case r'temporaryPasswordExpiresAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.temporaryPasswordExpiresAt = valueDes;
+          break;
         case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
@@ -229,6 +262,8 @@ class EmployeeListResponseDtoOutputItemsInnerRoleEnum extends EnumClass {
   static const EmployeeListResponseDtoOutputItemsInnerRoleEnum TICKET_STAFF = _$employeeListResponseDtoOutputItemsInnerRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const EmployeeListResponseDtoOutputItemsInnerRoleEnum SUPPORT_STAFF = _$employeeListResponseDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const EmployeeListResponseDtoOutputItemsInnerRoleEnum SALES_STAFF = _$employeeListResponseDtoOutputItemsInnerRoleEnum_SALES_STAFF;
 
   static Serializer<EmployeeListResponseDtoOutputItemsInnerRoleEnum> get serializer => _$employeeListResponseDtoOutputItemsInnerRoleEnumSerializer;
 

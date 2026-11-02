@@ -1,13 +1,15 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Input } from "@vexenhanh/ui/components/input";
+import { Tabs, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { CalendarClock, ChevronRight, CircleAlert, FileX2, Plus, RefreshCw } from "lucide-react";
+import { CalendarClock, CalendarSync, ChevronRight, CircleAlert, FileX2, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { listAllRoutes } from "../../lib/route/route-api";
@@ -28,9 +30,11 @@ import { listAllVehicles } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber } from "../../lib/vehicle/vehicle-format";
 import { BUTTON, ListFooterNote, ListLoadMoreFooter, ListStatePanel } from "../list-parts";
 import { PageHeader } from "../page-header";
+import { VehicleSchedule } from "./vehicle-schedule";
 import {
   ALL,
   FilterSelect,
+  TAB_TRIGGER,
   TABLE,
   TABLE_CELL,
   TABLE_HEAD_CELL,
@@ -39,10 +43,62 @@ import {
 } from "../stop-point/list-controls";
 
 /**
- * Màn danh sách chuyến của nhà xe (Figma "01 · Chuyến xe / Danh sách"; FR-OPS-06, UC-14). Sắp theo giờ khởi
- * hành; mặc định hiện chuyến từ hôm nay trở đi.
+ * Màn Chuyến xe (Figma "01 · Chuyến xe / Danh sách", "07 · Lịch xe"; FR-OPS-06, UC-14, TASK-TRN-015): công tắc
+ * "Danh sách | Lịch xe" (`?view=schedule`) ở đầu trang.
  */
 export function TripList() {
+  const canManage = useCan()("trip:manage");
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const schedule = params.get("view") === "schedule";
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Chuyến xe"
+        description={
+          schedule
+            ? "Xem từng xe chạy chuyến nào trong ngày, đến lúc mấy giờ và rảnh từ khi nào."
+            : "Tạo chuyến từ tuyến, gắn xe và theo dõi trạng thái bán của từng chuyến."
+        }
+        actions={
+          <>
+            <Tabs
+              value={schedule ? "schedule" : "list"}
+              onValueChange={(next) => router.replace(next === "schedule" ? `${pathname}?view=schedule` : pathname, { scroll: false })}
+            >
+              <TabsList className="h-10" aria-label="Cách xem">
+                <TabsTrigger value="list" className={TAB_TRIGGER}>
+                  Danh sách
+                </TabsTrigger>
+                <TabsTrigger value="schedule" className={TAB_TRIGGER}>
+                  Lịch xe
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {canManage && <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+              <Link href="/trips/schedules">
+                <CalendarSync className="size-[18px]" />
+                Lịch chạy lặp lại
+              </Link>
+            </Button>}
+            {canManage && <Button asChild className={`${BUTTON} w-40`}>
+              <Link href="/trips/new">
+                <Plus className="size-[18px]" />
+                Tạo chuyến
+              </Link>
+            </Button>}
+          </>
+        }
+      />
+      {schedule ? <VehicleSchedule /> : <TripListView />}
+    </div>
+  );
+}
+
+/** Danh sách chuyến (Figma 01): sắp theo giờ khởi hành; mặc định hiện chuyến từ hôm nay trở đi. */
+function TripListView() {
+  const canManage = useCan()("trip:manage");
   const today = useMemo(() => todayLocalDate(), []);
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState("");
@@ -54,13 +110,17 @@ export function TripList() {
   const routes = useQuery({ queryKey: ["routes", "all"], queryFn: () => listAllRoutes() });
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
 
+  // Gõ năm bằng bàn phím, ô ngày phát ra giá trị dở dang (`0002-…`, `0202-…`); API chỉ nhận năm từ 1970 nên
+  // mốc như vậy coi như chưa nhập xong, không gửi đi.
+  const sentFrom = from >= MIN_FILTER_DATE ? from : "";
+  const sentTo = to >= MIN_FILTER_DATE ? to : "";
   const trips = useInfiniteQuery({
-    queryKey: ["trips", { from, to, routeId, vehicleId, status }],
+    queryKey: ["trips", { from: sentFrom, to: sentTo, routeId, vehicleId, status }],
     queryFn: ({ pageParam }) =>
       listTrips({
-        departureFrom: from ? fromLocalParts(from, "00:00") : undefined,
+        departureFrom: sentFrom ? fromLocalParts(sentFrom, "00:00") : undefined,
         // API lấy chuyến khởi hành TRƯỚC mốc này, nên "đến ngày" tính hết ngày đó.
-        departureTo: to ? fromLocalParts(nextLocalDate(to), "00:00") : undefined,
+        departureTo: sentTo ? fromLocalParts(nextLocalDate(sentTo), "00:00") : undefined,
         routeId: routeId === ALL ? undefined : routeId,
         vehicleId: vehicleId === ALL ? undefined : vehicleId,
         status: status === ALL ? undefined : (status as TripStatus),
@@ -117,14 +177,14 @@ export function TripList() {
         icon={<FileX2 className="size-6 text-vxn-fg-3" />}
         title="Chưa có chuyến từ hôm nay"
         description="Tạo chuyến từ một tuyến đang hoạt động. Muốn xem chuyến đã qua thì lùi ngày ở ô “Khởi hành từ ngày”."
-        action={
+        action={canManage ? (
           <Button asChild className={`${BUTTON} w-[180px]`}>
             <Link href="/trips/new">
               <Plus className="size-[18px]" />
               Tạo chuyến
             </Link>
           </Button>
-        }
+        ) : undefined}
       />
     );
   } else {
@@ -143,20 +203,7 @@ export function TripList() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Chuyến xe"
-        description="Tạo chuyến từ tuyến, gắn xe và theo dõi trạng thái bán của từng chuyến."
-        actions={
-          <Button asChild className={`${BUTTON} w-40`}>
-            <Link href="/trips/new">
-              <Plus className="size-[18px]" />
-              Tạo chuyến
-            </Link>
-          </Button>
-        }
-      />
-
+    <>
       <section aria-label="Danh sách chuyến" className="flex flex-col rounded-xl border bg-card p-6">
         <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-5">
           <DateFilter label="Khởi hành từ ngày" value={from} onChange={setFrom} />
@@ -199,9 +246,12 @@ export function TripList() {
           Chuyến mới tạo ở trạng thái Nháp và chưa hiện với khách. Gắn xe cho chuyến trước khi mở bán.
         </p>
       </div>
-    </div>
+    </>
   );
 }
+
+/** Ngày sớm nhất gửi được cho API ở ô lọc (đổi sang UTC vẫn còn trong năm 1970). */
+const MIN_FILTER_DATE = "1970-01-02";
 
 // Năm ô lọc chia đều một hàng (Figma "Toolbar"); màn hẹp thì xuống dòng.
 const FILTER = "w-auto min-w-[170px] flex-1";

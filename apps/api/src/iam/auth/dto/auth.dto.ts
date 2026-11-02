@@ -30,6 +30,14 @@ export class OAuthInitDto extends createZodDto(
 ) {}
 
 /**
+ * Google ID token do SDK native trên Mobile cấp. Backend luôn tự xác minh chữ ký,
+ * issuer, audience và hạn dùng qua Better Auth; client không được gửi Google access token.
+ */
+export class OAuthIdTokenDto extends createZodDto(
+  z.object({ idToken: z.string().min(1).max(10_000) })
+) {}
+
+/**
  * Refresh token opaque (43 ký tự base64url); trần 200 chỉ để chặn payload rác. Bearer mode (Mobile)
  * bắt buộc gửi; cookie mode (web) KHÔNG gửi — server đọc cookie `vxn_refresh` (TASK-IAM-006).
  */
@@ -175,6 +183,8 @@ export const AuthMeResponseSchema = z.object({
   sessionId: z.uuid(),
   accessExpiresAt: z.iso.datetime(),
   mfaVerified: z.boolean(),
+  /** Quyền hiệu lực (`resource:action`, TASK-IAM-007) — web ẩn menu / nút theo đó; server vẫn kiểm từng request. */
+  permissions: z.array(z.string()),
   operatorId: z.string().optional(),
   operatorSlug: z.string().optional()
 });

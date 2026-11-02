@@ -1,63 +1,86 @@
 "use client";
 
+import { useAuth } from "@vexenhanh/ui/components/auth/auth-context";
 import { DashboardShell } from "@vexenhanh/ui/components/dashboard-shell";
-import type { NavGroup } from "@vexenhanh/ui/lib/nav";
-import {
-  Banknote,
-  Building2,
-  ChartColumn,
-  CreditCard,
-  FolderTree,
-  History,
-  LayoutDashboard,
-  Plug,
-  Scale,
-  ScrollText,
-  TicketPercent,
-  Users
-} from "lucide-react";
+import { ListStatePanel } from "@vexenhanh/ui/components/list-parts";
+import { LogoMark } from "@vexenhanh/ui/components/logo";
+import { isNavPathAllowed, visibleNavGroups } from "@vexenhanh/ui/lib/nav";
+import { LogOut, ShieldOff } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-// Theo 06 UI/UX §5 (Information architecture — Admin); path bám resource của 05 API §7.5.
-const NAV_GROUPS: NavGroup[] = [
-  { items: [{ href: "/", label: "Tổng quan", icon: LayoutDashboard }] },
-  {
-    label: "Đối tác & người dùng",
-    items: [
-      { href: "/operators", label: "Nhà xe & KYC", icon: Building2 },
-      { href: "/passengers", label: "Hành khách", icon: Users }
-    ]
-  },
-  {
-    label: "Cấu hình",
-    items: [
-      { href: "/catalog", label: "Danh mục", icon: FolderTree },
-      { href: "/policies", label: "Chính sách", icon: ScrollText },
-      { href: "/promotions", label: "Khuyến mãi", icon: TicketPercent }
-    ]
-  },
-  {
-    label: "Tài chính",
-    items: [
-      { href: "/payments", label: "Thanh toán & hoàn tiền", icon: CreditCard },
-      { href: "/payouts", label: "Chi trả nhà xe", icon: Banknote }
-    ]
-  },
-  {
-    label: "Giám sát",
-    items: [
-      { href: "/disputes", label: "Tranh chấp", icon: Scale },
-      { href: "/reports", label: "Báo cáo", icon: ChartColumn },
-      { href: "/audit-logs", label: "Nhật ký kiểm toán", icon: History },
-      { href: "/integrations", label: "Tích hợp", icon: Plug }
-    ]
-  }
-];
+import { ROLE_LABELS } from "../lib/auth/portal";
+import { NAV_GROUPS } from "../lib/nav";
 
+/**
+ * Khung cổng Admin theo Figma "VXN / Admin sidebar" (1661:24142): thương hiệu, nhãn "Platform · Nội bộ", menu sáu
+ * nhóm, khối tài khoản + đăng xuất. Nền tối và bảng màu indigo (mode `Admin`) để không nhầm với cổng nhà xe.
+ */
 export function AppShell({ children }: { children: ReactNode }) {
+  const { state, logout } = useAuth();
+  // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
+  const me = state.status === "authenticated" ? state.me : null;
+  const username = me ? `platform/${me.username}` : "";
+  const pathname = usePathname();
+  // Phân quyền theo tài khoản (TASK-IAM-007): chỉ hiện mục được cấp; vào thẳng URL mục khác thì báo không có quyền.
+  const granted = me?.permissions ?? [];
+
   return (
-    <DashboardShell title="Admin" badge="Hệ thống" navGroups={NAV_GROUPS}>
-      {children}
+    <DashboardShell
+      title="Quản trị nền tảng"
+      tone="dark"
+      navGroups={visibleNavGroups(NAV_GROUPS, granted)}
+      brand={
+        <Link href="/" className="flex shrink-0 items-center gap-3 px-5 pt-5 pb-4">
+          <LogoMark className="size-9 shrink-0 text-white" />
+          <span className="flex flex-col">
+            <span className="text-sm leading-5 font-semibold text-white">Vé Xe Nhanh</span>
+            <span className="text-xs leading-[18px] text-[#9aa3c7]">Quản trị nền tảng</span>
+          </span>
+        </Link>
+      }
+      sidebarTop={
+        <div className="px-4 pb-1">
+          <p className="flex items-center gap-2 rounded-lg bg-[#2b3472] px-3 py-2 text-xs leading-[18px] font-medium text-[#e7e9f7]">
+            <span aria-hidden className="size-2 rounded-full bg-vxn-saffron-500" />
+            Platform · Nội bộ
+          </p>
+        </div>
+      }
+      sidebarBottom={
+        <div className="flex items-center gap-3 border-t border-[#2a3156] px-5 pt-4 pb-5">
+          <span
+            aria-hidden
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2b3472] text-xs font-medium text-white"
+          >
+            {(me?.username ?? "").slice(0, 2).toUpperCase()}
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-sm leading-5 font-semibold text-white">{username}</span>
+            <span className="truncate text-xs leading-[18px] text-[#9aa3c7]">{ROLE_LABELS[me?.role ?? ""] ?? ""}</span>
+          </span>
+          <button
+            type="button"
+            aria-label="Đăng xuất"
+            title="Đăng xuất"
+            onClick={() => void logout()}
+            className="rounded p-1 text-[#9aa3c7] outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <LogOut className="size-[18px]" />
+          </button>
+        </div>
+      }
+    >
+      {isNavPathAllowed(NAV_GROUPS, pathname, granted) ? (
+        children
+      ) : (
+        <ListStatePanel
+          icon={<ShieldOff className="size-6 text-vxn-fg-3" />}
+          title="Bạn chưa được cấp quyền dùng trang này"
+          description="Liên hệ quản trị viên có quyền phân quyền nếu công việc của bạn cần trang này."
+        />
+      )}
     </DashboardShell>
   );
 }

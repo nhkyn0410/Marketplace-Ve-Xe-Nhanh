@@ -2,9 +2,12 @@ import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query } from
 import { ApiBody, ApiParam, ApiQuery, ApiResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 import { TripStatus } from "../database/prisma.types";
+import { CurrentUser } from "../iam/auth/current-user.decorator";
+import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { Authorize, Authz } from "../iam/role/authorize.decorator";
 import type { Authorization } from "../iam/role/authorization";
 import { ProblemDetailsDto } from "../openapi/openapi.dto";
+import { TripChangeInputDto, TripSalesDto, type TripSales } from "./dto/trip-change.dto";
 import {
   TripInputDto,
   TripListQueryDto,
@@ -12,7 +15,10 @@ import {
   type TripListResponse,
   TripResponseDto,
   type TripResponse,
+  TripSeatStatusInputDto,
+  TripStatusInputDto,
 } from "./dto/trip.dto";
+import { TripChangeService } from "./trip-change.service";
 import { TripService } from "./trip.service";
 
 const problemContent = {
@@ -22,13 +28,16 @@ const problemContent = {
 // API §7.3 — chỉ Owner (`trip:manage`, Q5); tenant lấy từ JWT, không từ body/path.
 @ApiTags("operator-trips")
 @Controller("operator/trips")
-/** API quản lý chuyến của nhà xe (chuyến nháp — TASK-TRN-003). */
+/** API quản lý chuyến của nhà xe (chuyến nháp — TASK-TRN-003; trạng thái bán + khóa ghế — TASK-TRN-006). */
 export class TripController {
-  constructor(@Inject(TripService) private readonly trips: TripService) {}
+  constructor(
+    @Inject(TripService) private readonly trips: TripService,
+    @Inject(TripChangeService) private readonly tripChanges: TripChangeService,
+  ) {}
 
   /** Trả một trang chuyến của nhà xe, sắp theo giờ đi. */
   @Get()
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "routeId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "vehicleId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "status", required: false, enum: Object.values(TripStatus) })
@@ -44,7 +53,7 @@ export class TripController {
 
   /** Trả chi tiết chuyến kèm điểm dừng và ghế. */
   @Get(":tripId")
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "tripId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết chuyến kèm điểm dừng và ghế.", type: TripResponseDto })
   @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
@@ -79,7 +88,8 @@ export class TripController {
   @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
   @ApiResponse({
     status: 409,
-    description: "`TRIP_NOT_EDITABLE` (không còn nháp) / `VEHICLE_SCHEDULE_CONFLICT`.",
+    description:
+      "`TRIP_NOT_EDITABLE` (không còn nháp) / `VEHICLE_SCHEDULE_CONFLICT` / `TRIP_BLOCKED_SEATS_MISSING` (xe mới thiếu ghế đang khóa).",
     content: problemContent,
   })
   @ApiResponse({
@@ -93,5 +103,96 @@ export class TripController {
     @Body() input: TripInputDto,
   ): Promise<TripResponse> {
     return this.trips.update(authz, tripId, input);
+  }
+
+  /** Tình hình bán (chỗ đã bán / đang giữ, đơn bị ảnh hưởng, số hoàn nếu hủy) + lịch sử đổi / hủy chuyến (TRN-008). */
+  @Get(":tripId/sales")
+  @Authorize("trip:manage")
+  @ApiParam({ name: "tripId", type: String, format: "uuid" })
+  @ZodResponse({ status: 200, description: "Tình hình bán + lịch sử đổi / hủy chuyến.", type: TripSalesDto })
+  @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
+  sales(@Authz() authz: Authorization, @Param("tripId") tripId: string): Promise<TripSales> {
+    return this.tripChanges.sales(authz, tripId);
+  }
+
+  /** Đổi giờ / xe / điểm đón trả của chuyến đang bán — bắt buộc lý do, báo mọi đơn bị ảnh hưởng (TRN-008, BR-10 / BR-20). */
+  @Post(":tripId/changes")
+  @HttpCode(200)
+  @Authorize("trip:manage")
+  @ApiParam({ name: "tripId", type: String, format: "uuid" })
+  @ApiBody({ type: TripChangeInputDto })
+  @ZodResponse({ status: 200, description: "Chuyến sau khi đổi.", type: TripResponseDto })
+  @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
+  @ApiResponse({
+    status: 409,
+    description: "`TRIP_CHANGE_NOT_ALLOWED` (trạng thái / đang có khách thanh toán) / `TRIP_SEATS_UNMAPPABLE` (xe mới thiếu chỗ đã bán — `reasons`) / `VEHICLE_SCHEDULE_CONFLICT`.",
+    content: problemContent,
+  })
+  @ApiResponse({ status: 422, description: "`TRIP_CHANGE_EMPTY` / `TRIP_STOPS_INVALID` / `TRIP_STOP_TIMES_INVALID` / `VEHICLE_UNAVAILABLE`.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Chưa ghi được lịch sử — chuyến không đổi, thử lại.", content: problemContent })
+  change(
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Authz() authz: Authorization,
+    @Param("tripId") tripId: string,
+    @Body() input: TripChangeInputDto,
+  ): Promise<TripResponse> {
+    return this.tripChanges.change(actor, authz, tripId, input);
+  }
+
+  /**
+   * Đổi trạng thái bán: mở bán / khóa (tạm dừng) / mở lại / thu hồi về nháp (chuyến chưa có vé) / hủy. Hủy chuyến đã có vé
+   * (TRN-008, BR-12): hủy đơn chờ thanh toán, hủy vé + hoàn 100% giá vé, báo từng đơn.
+   */
+  @Put(":tripId/status")
+  @Authorize("trip:manage")
+  @ApiParam({ name: "tripId", type: String, format: "uuid" })
+  @ApiBody({ type: TripStatusInputDto })
+  @ZodResponse({ status: 200, description: "Chuyến sau khi đổi trạng thái.", type: TripResponseDto })
+  @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ (vd hủy thiếu lý do).", content: problemContent })
+  @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
+  @ApiResponse({
+    status: 409,
+    description: "`TRIP_STATUS_TRANSITION_INVALID` (chuyển sai bảng, hoặc thu hồi nháp khi đã có vé).",
+    content: problemContent,
+  })
+  @ApiResponse({
+    status: 422,
+    description: "`TRIP_NOT_READY_FOR_SALE` — `reasons` liệt kê mọi điều kiện mở bán chưa đạt (BR-39).",
+    content: problemContent,
+  })
+  @ApiResponse({ status: 503, description: "Chưa ghi được lịch sử — chuyến không đổi, thử lại.", content: problemContent })
+  changeStatus(
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Authz() authz: Authorization,
+    @Param("tripId") tripId: string,
+    @Body() input: TripStatusInputDto,
+  ): Promise<TripResponse> {
+    if (input.status === TripStatus.CANCELLED) {
+      return this.tripChanges.cancel(actor, authz, tripId, input.reason!);
+    }
+    return this.trips.changeStatus(actor, authz, tripId, input);
+  }
+
+  /** Khóa / mở ghế thủ công theo lô (bán ngoài Platform — BR-42). */
+  @Put(":tripId/seats/status")
+  @Authorize("trip:manage")
+  @ApiParam({ name: "tripId", type: String, format: "uuid" })
+  @ApiBody({ type: TripSeatStatusInputDto })
+  @ZodResponse({ status: 200, description: "Chuyến sau khi khóa / mở ghế.", type: TripResponseDto })
+  @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ (vd trùng mã ghế).", content: problemContent })
+  @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
+  @ApiResponse({
+    status: 409,
+    description: "`TRIP_SEAT_NOT_AVAILABLE` (ghế đang giữ / đã bán) / `TRIP_NOT_EDITABLE` (chuyến đã hủy / khởi hành).",
+    content: problemContent,
+  })
+  @ApiResponse({ status: 422, description: "`TRIP_SEAT_UNKNOWN` (mã ghế không thuộc chuyến).", content: problemContent })
+  setSeatStatus(
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Authz() authz: Authorization,
+    @Param("tripId") tripId: string,
+    @Body() input: TripSeatStatusInputDto,
+  ): Promise<TripResponse> {
+    return this.trips.setSeatStatus(actor, authz, tripId, input);
   }
 }

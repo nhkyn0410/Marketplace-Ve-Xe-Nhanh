@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 07/10/2026                                   |
+| Ngày cập nhật | 28/10/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -539,6 +539,14 @@ Các quyết định công nghệ đã được hình thức hóa thành ADR (fi
 | HLD-DEC-12 | V1 chỉ VND (money BIGINT), chỉ tiếng Việt; số điện thoại mask `0*** *** 789`.                                                                                | OQ-11, OQ-12; ADR-009                       |
 
 ---
+
+### COUNTER-SALES — Kiến trúc bán tại văn phòng (27/10/2026)
+
+Cổng quầy nằm trong `apps/operator-os` ở `/counter`, đăng nhập riêng `/auth/counter/login`; dùng cùng API modular monolith, namespace Operator và kho ghế với Marketplace. `SALES_STAFF` là tài khoản `EmployeeAccount` do nhà xe cấp, khác `TICKET_STAFF` soát vé. Chủ nhà xe cũng bán qua cổng này; server lưu người bán và văn phòng trên từng đơn.
+
+`operator/` quản lý văn phòng và phân công; `seat-hold/` và `booking/` giữ chung khóa ghế, tạo đơn/quản lý khoản thu quầy; `ticket/` phát vé QR; `trip/` và `check-in/` cùng xác nhận khởi hành thực tế. `commission/` cấu hình theo kênh và quản lý khoản phải thu/đã thu riêng. Không thêm app hay vendor ngân hàng.
+
+Tiền mặt/chuyển khoản vào nhà xe, xác nhận thủ công sau đối chiếu; chỉ thu đủ hợp lệ mới xuất vé. Khoản thu ngoại lệ được giữ dấu vết, không tự phát vé. Tiền này không vào escrow và không tạo payout. Quầy tiếp tục bán khi trễ giờ lịch cho đến mốc `departedAt`; khóa dòng chuyến xếp hàng giữa bán và khởi hành. Hoa hồng thiếu cấu hình riêng là0%, khác mặc định online. Chi tiết triển khai và phần vận hành còn mở ở [COUNTER-SALES](../task-propreties/COUNTER-SALES-todo.md).
 
 ## 17. Rủi ro kiến trúc
 

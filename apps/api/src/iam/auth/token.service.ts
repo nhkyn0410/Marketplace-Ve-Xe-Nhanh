@@ -2,6 +2,7 @@ import { createPublicKey } from "node:crypto";
 import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { z } from "zod";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
+import { ACCOUNT_PERMISSIONS } from "../role/permissions";
 import { isRole, requiresMfa, ROLE_SCOPE } from "../role/role";
 
 const ALG = "RS256";
@@ -28,6 +29,8 @@ export type AccessTokenClaims = {
   mfa?: true;
   operatorId?: string;
   operatorSlug?: string;
+  /** Quyền riêng của tài khoản (TASK-IAM-007) — chỉ khi tài khoản được phân quyền theo từng tài khoản. */
+  perms?: string[];
 };
 
 /**
@@ -43,6 +46,7 @@ const verifiedClaimsSchema = z
     mfa: z.literal(true).optional(),
     operatorId: z.string().min(1).optional(),
     operatorSlug: z.string().min(1).optional(),
+    perms: z.array(z.string().min(1).max(64)).max(64).optional(),
     // jose đã bắt buộc `exp` (requiredClaims) nên token thật luôn có; giữ lại để `/auth/me` trả
     // `accessExpiresAt` (TASK-IAM-006). Optional ở type để fixture test cũ không phải khai.
     exp: z.number().int().positive().optional(),
@@ -59,6 +63,11 @@ const verifiedClaimsSchema = z
     // Token cũ / code phát token nhầm không được bypass rollout MFA chỉ vì chữ ký vẫn hợp lệ.
     if (requiresMfa(claims.role) && claims.mfa !== true) {
       ctx.addIssue({ code: "custom", message: "role bắt buộc MFA nhưng token thiếu bằng chứng" });
+    }
+    // TASK-IAM-007: role phân quyền theo tài khoản bắt buộc mang danh sách; role khác không được mang.
+    const account = isRole(claims.role) ? ACCOUNT_PERMISSIONS[claims.role] : undefined;
+    if (claims.perms !== undefined ? !account : account?.required) {
+      ctx.addIssue({ code: "custom", message: "claim perms không khớp role" });
     }
   });
 
@@ -113,7 +122,7 @@ export class TokenService implements OnModuleInit {
 
   async mintAccessToken(claims: AccessTokenClaims): Promise<IssuedAccessToken> {
     const ttl = this.config.JWT_ACCESS_TTL_SECONDS;
-    const payload: Record<string, string | boolean> = {
+    const payload: Record<string, string | boolean | string[]> = {
       sid: claims.sid,
       scope: claims.scope,
       role: claims.role,
@@ -126,6 +135,9 @@ export class TokenService implements OnModuleInit {
     }
     if (claims.operatorSlug) {
       payload.operatorSlug = claims.operatorSlug;
+    }
+    if (claims.perms) {
+      payload.perms = claims.perms;
     }
 
     const accessToken = await new this.jose.SignJWT(payload)

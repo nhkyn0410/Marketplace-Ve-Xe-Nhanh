@@ -186,7 +186,7 @@ class _$CredentialTokenResponse extends CredentialTokenResponse {
   @override
   final CredentialTokenResponseTokenTypeEnum tokenType;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
   final CredentialTokenResponseScopeEnum scope;
   @override
@@ -194,7 +194,7 @@ class _$CredentialTokenResponse extends CredentialTokenResponse {
   @override
   final String refreshToken;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
   @override
   final CredentialTokenResponseMfaRequiredEnum mfaRequired;
 
@@ -205,11 +205,11 @@ class _$CredentialTokenResponse extends CredentialTokenResponse {
   _$CredentialTokenResponse._(
       {required this.accessToken,
       required this.tokenType,
-      required this.expiresIn,
+      this.expiresIn,
       required this.scope,
       required this.role,
       required this.refreshToken,
-      required this.refreshExpiresIn,
+      this.refreshExpiresIn,
       required this.mfaRequired})
       : super._();
   @override
@@ -346,16 +346,14 @@ class CredentialTokenResponseBuilder
               accessToken, r'CredentialTokenResponse', 'accessToken'),
           tokenType: BuiltValueNullFieldError.checkNotNull(
               tokenType, r'CredentialTokenResponse', 'tokenType'),
-          expiresIn: BuiltValueNullFieldError.checkNotNull(
-              expiresIn, r'CredentialTokenResponse', 'expiresIn'),
+          expiresIn: expiresIn,
           scope: BuiltValueNullFieldError.checkNotNull(
               scope, r'CredentialTokenResponse', 'scope'),
           role: BuiltValueNullFieldError.checkNotNull(
               role, r'CredentialTokenResponse', 'role'),
           refreshToken: BuiltValueNullFieldError.checkNotNull(
               refreshToken, r'CredentialTokenResponse', 'refreshToken'),
-          refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              refreshExpiresIn, r'CredentialTokenResponse', 'refreshExpiresIn'),
+          refreshExpiresIn: refreshExpiresIn,
           mfaRequired: BuiltValueNullFieldError.checkNotNull(
               mfaRequired, r'CredentialTokenResponse', 'mfaRequired'),
         );

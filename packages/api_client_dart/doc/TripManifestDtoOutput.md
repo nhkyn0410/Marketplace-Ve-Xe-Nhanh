@@ -1,0 +1,16 @@
+# api_client_dart.model.TripManifestDtoOutput
+
+## Load the model package
+```dart
+import 'package:api_client_dart/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**trip** | [**EmployeeAssignmentListDtoOutputItemsInner**](EmployeeAssignmentListDtoOutputItemsInner.md) |  | 
+**passengers** | [**BuiltList&lt;TripManifestDtoOutputPassengersInner&gt;**](TripManifestDtoOutputPassengersInner.md) |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

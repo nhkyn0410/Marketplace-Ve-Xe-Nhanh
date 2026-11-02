@@ -1,0 +1,629 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+const journeyAssetRoot = 'assets/journey/flow';
+const journeyPrimary = Color(0xFF087BFF);
+const journeyButton = Color(0xFF2B7EAD);
+const journeyInk = Color(0xFF08213B);
+const journeyBody = Color(0xFF61769D);
+const journeyPage = Color(0xFFE4F5FC);
+const journeyBorder = Color(0xFFD8E6F0);
+
+const journeyOverlayStyle = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.dark,
+  statusBarBrightness: Brightness.light,
+  systemNavigationBarColor: journeyPage,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
+
+/// Logo đặt cùng một chỗ trên Đăng nhập, Trang chủ, Hành trình và Tài khoản
+/// (khách) — theo `Brand / logo app` trong Figma (x 19, y 58, 126.4 × 35),
+/// tính từ đỉnh màn hình, kể cả thanh trạng thái.
+const brandLogoLeft = 19.0;
+const brandLogoSize = Size(126.4, 35);
+
+/// Mép trên của logo; máy có thanh trạng thái cao vẫn giữ logo cách nó 12dp.
+double brandLogoTop(double safeTop) => math.max(58, safeTop + 12);
+
+/// Trang khách (Hành trình, Tài khoản) không cuộn: phần dưới [header] nằm gọn
+/// giữa header và thanh tab nổi; máy thấp hoặc chữ lớn thì thu nhỏ thay vì cuộn.
+/// Người dùng không vuốt được; khi bàn phím mở, ô đang nhập vẫn tự dời lên.
+class JourneyFixedPage extends StatelessWidget {
+  const JourneyFixedPage({
+    required this.header,
+    required this.child,
+    this.scrollKey,
+    super.key,
+  });
+
+  final Widget header;
+
+  /// Nội dung dưới header; dùng `MainAxisSize.min` vì được đo theo chiều cao tự nhiên.
+  final Widget child;
+  final Key? scrollKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    // Theo chiều cao màn hình chứ không theo vùng còn lại khi bàn phím mở,
+    // để nội dung không co lại lúc gõ.
+    return SingleChildScrollView(
+      key: scrollKey,
+      physics: const NeverScrollableScrollPhysics(),
+      child: SizedBox(
+        height: media.size.height,
+        child: Column(
+          children: [
+            header,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  18,
+                  15,
+                  18,
+                  // Scaffold `extendBody` đã cộng chiều cao thanh tab nổi vào đây.
+                  media.padding.bottom,
+                ),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 376),
+                    child: _ShrinkToFit(child: child),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Thu nhỏ nội dung cho vừa chiều cao mà vẫn phủ hết chiều rộng: đo lại với
+/// chiều rộng = rộng / tỉ lệ rồi mới thu nhỏ (FittedBox thì thu cả bề ngang).
+class _ShrinkToFit extends SingleChildRenderObjectWidget {
+  const _ShrinkToFit({required Widget super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderShrinkToFit();
+}
+
+class _RenderShrinkToFit extends RenderProxyBox {
+  double _scale = 1;
+
+  Matrix4 get _transform => Matrix4.diagonal3Values(_scale, _scale, 1);
+
+  @override
+  void performLayout() {
+    final child = this.child!;
+    final width = constraints.maxWidth;
+    child.layout(BoxConstraints.tightFor(width: width), parentUsesSize: true);
+    _scale = 1;
+    if (child.size.height > constraints.maxHeight) {
+      _scale = constraints.maxHeight / child.size.height;
+      // Rộng hơn thì chữ ít xuống dòng hơn, chỉ thấp đi nên vẫn vừa.
+      child.layout(
+        BoxConstraints.tightFor(width: width / _scale),
+        parentUsesSize: true,
+      );
+    }
+    size = constraints.constrain(Size(width, child.size.height * _scale));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (_scale == 1) {
+      layer = null;
+      super.paint(context, offset);
+      return;
+    }
+    layer = context.pushTransform(
+      needsCompositing,
+      offset,
+      _transform,
+      super.paint,
+      oldLayer: layer is TransformLayer ? layer! as TransformLayer : null,
+    );
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    return result.addWithPaintTransform(
+      transform: _transform,
+      position: position,
+      hitTest: (result, position) =>
+          super.hitTestChildren(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.multiply(_transform);
+  }
+}
+
+class JourneyHeroHeader extends StatelessWidget {
+  const JourneyHeroHeader({required this.title, this.subtitle, super.key});
+
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final logoTop = brandLogoTop(MediaQuery.paddingOf(context).top);
+    return SizedBox(
+      height: 250,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            '$journeyAssetRoot/hero_250.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            filterQuality: FilterQuality.high,
+          ),
+          Positioned(
+            left: brandLogoLeft,
+            top: logoTop,
+            width: brandLogoSize.width,
+            height: brandLogoSize.height,
+            child: const JourneyBrandLogo(),
+          ),
+          // Cùng kiểu tiêu đề với header tab Hành trình (tra cứu vé).
+          Positioned(
+            left: 18,
+            right: 18,
+            top: logoTop + 40,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              softWrap: false,
+              style: const TextStyle(
+                color: Color(0xFF041725),
+                fontSize: 24,
+                height: 1.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (subtitle != null)
+            Positioned(
+              left: 18,
+              right: 18,
+              top: logoTop + 79,
+              child: Text(
+                subtitle!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: journeyBody,
+                  fontSize: 12,
+                  height: 17 / 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class JourneyDetailHeader extends StatelessWidget {
+  const JourneyDetailHeader({
+    required this.subtitle,
+    required this.onBack,
+    this.showLogo = false,
+    super.key,
+  });
+
+  final String subtitle;
+  final VoidCallback onBack;
+  final bool showLogo;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 150,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            '$journeyAssetRoot/hero_150.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            filterQuality: FilterQuality.high,
+          ),
+          Positioned(
+            left: 25,
+            top: 42,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              child: InkWell(
+                key: const Key('journey-detail-back'),
+                customBorder: const CircleBorder(),
+                onTap: onBack,
+                child: SizedBox.square(
+                  dimension: 30,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      '$journeyAssetRoot/back.svg',
+                      width: 19,
+                      height: 19,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (showLogo)
+            Positioned(
+              left: 67,
+              top: 36,
+              width: 126,
+              height: 35,
+              child: const JourneyBrandLogo(),
+            ),
+          const Positioned(
+            left: 26,
+            right: 20,
+            top: 81,
+            child: Text(
+              'Chi tiết vé',
+              style: TextStyle(
+                color: Color(0xFF080E32),
+                fontSize: 20,
+                height: 28 / 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 26,
+            right: 20,
+            top: 106,
+            child: Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: journeyBody,
+                fontSize: 11,
+                height: 15 / 11,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class JourneyBrandLogo extends StatelessWidget {
+  const JourneyBrandLogo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17.5),
+        border: Border.all(color: const Color(0xFFE0EFF8), width: .56),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x121F6EA6),
+            blurRadius: 5.1,
+            offset: Offset(0, 3.4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset('assets/home/hero/logo_mark.svg'),
+            SvgPicture.asset('assets/home/hero/logo_wordmark.svg'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class JourneySurface extends StatelessWidget {
+  const JourneySurface({
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+    this.radius = 14,
+    this.borderColor,
+    this.color = Colors.white,
+    super.key,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final Color? borderColor;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(radius),
+        border: borderColor == null
+            ? null
+            : Border.all(color: borderColor!, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0D1F6EA6),
+            blurRadius: 9,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class JourneyPrimaryButton extends StatelessWidget {
+  const JourneyPrimaryButton({
+    required this.label,
+    required this.onPressed,
+    this.iconAsset,
+    this.backgroundColor = journeyButton,
+    this.height = 44,
+    super.key,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final String? iconAsset;
+  final Color backgroundColor;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: backgroundColor,
+          disabledBackgroundColor: const Color(0xFF9FBBCB),
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  height: 19 / 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (iconAsset != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: SvgPicture.asset(iconAsset!, width: 16, height: 16),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class JourneyOutlineButton extends StatelessWidget {
+  const JourneyOutlineButton({
+    required this.label,
+    required this.onPressed,
+    this.color = journeyPrimary,
+    this.height = 40,
+    super.key,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Color color;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(color: color),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(11),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
+class JourneyOtpFields extends StatefulWidget {
+  const JourneyOtpFields({
+    required this.onChanged,
+    this.boxHeight = 54,
+    this.autofocus = true,
+    super.key,
+  });
+
+  final ValueChanged<String> onChanged;
+  final double boxHeight;
+  final bool autofocus;
+
+  @override
+  State<JourneyOtpFields> createState() => _JourneyOtpFieldsState();
+}
+
+class _JourneyOtpFieldsState extends State<JourneyOtpFields> {
+  late final List<TextEditingController> _controllers;
+  late final List<FocusNode> _focusNodes;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(6, (_) => TextEditingController());
+    _focusNodes = List.generate(6, (_) => FocusNode());
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  void _notify() {
+    widget.onChanged(_controllers.map((item) => item.text).join());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gap = constraints.maxWidth < 330 ? 5.0 : 8.0;
+        final width = ((constraints.maxWidth - gap * 5) / 6)
+            .clamp(38.0, 48.0)
+            .toDouble();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(6, (index) {
+            return SizedBox(
+              width: width,
+              height: widget.boxHeight,
+              child: TextField(
+                key: Key('journey-otp-$index'),
+                controller: _controllers[index],
+                focusNode: _focusNodes[index],
+                autofocus: widget.autofocus && index == 0,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                textInputAction: index == 5
+                    ? TextInputAction.done
+                    : TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(1),
+                ],
+                style: const TextStyle(
+                  color: journeyInk,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty && index < 5) {
+                    _focusNodes[index + 1].requestFocus();
+                  } else if (value.isEmpty && index > 0) {
+                    _focusNodes[index - 1].requestFocus();
+                  }
+                  _notify();
+                },
+                decoration: InputDecoration(
+                  counterText: '',
+                  contentPadding: EdgeInsets.zero,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: _border(const Color(0xFFD2DFEB)),
+                  enabledBorder: _border(const Color(0xFFD2DFEB)),
+                  focusedBorder: _border(journeyPrimary, width: 1.5),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  OutlineInputBorder _border(Color color, {double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(9),
+      borderSide: BorderSide(color: color, width: width),
+    );
+  }
+}
+
+class JourneySheetHandle extends StatelessWidget {
+  const JourneySheetHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 44,
+        height: 4,
+        decoration: BoxDecoration(
+          color: const Color(0xFFC7CED7),
+          borderRadius: BorderRadius.circular(99),
+        ),
+      ),
+    );
+  }
+}
+
+class JourneyIconButton extends StatelessWidget {
+  const JourneyIconButton({
+    required this.asset,
+    required this.onTap,
+    this.size = 36,
+    super.key,
+  });
+
+  final String asset;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: size,
+          child: Center(child: SvgPicture.asset(asset, width: 20, height: 20)),
+        ),
+      ),
+    );
+  }
+}
