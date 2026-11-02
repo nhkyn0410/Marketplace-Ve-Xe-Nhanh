@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 02/11/2026                  |
+| Ngày cập nhật | 03/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+**v0.64 — 03/11/2026, AI Agent:** ghi nhận bổ sung demo thông báo hành trình ngoài app Passenger Android theo yêu cầu Khanh; có tỉnh hiện tại, FCM data-only và native progress. Giữ trạng thái tài liệu, không tự tạo task nghiệp vụ GPS mới.
 
 31/10/2026 — TASK-BTP-003 / app hành khách có hiện thực payOS + DEMO theo yêu cầu Khanh; ADR-029 Proposed / chờ duyệt, không tự promote tài liệu. Giữ VNPay/MoMo tương thích dữ liệu; đã có migration / gateway / webhook / đối soát / QR và poll, kiểm thử backend trên DB tạm. Client TS/Dart đã sinh, lint/typecheck/test/build monorepo pass. App hành khách Flutter analyze không có issue, 249 tests pass; package Dart sinh tự động còn cảnh báo analyze, không có lỗi. Chưa thử điện thoại hoặc tiền thật, chưa code/security review, chưa commit/push/deploy. Những dòng tiến độ cũ ghi thanh toán chưa làm được thay bằng trạng thái tại [PAYOS-plan §5](../task-propreties/PAYOS-plan.md#5-thứ-tự-làm-và-tiêu-chí-xong).
 
@@ -312,6 +314,8 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 Phụ thuộc IAM/Operator/Trip/Seat-hold/Booking/Ticket/Commission hiện có; triển khai trên `feat/selling_tickets`, không tạo module/app mới. Các lát được theo dõi ở [COUNTER-SALES todo](../task-propreties/COUNTER-SALES-todo.md): văn phòng + nhân viên bán vé/cổng riêng; giữ ghế + đơn quầy + thu/phát vé; hoa hồng theo kênh + phải thu/thu thủ công; xác nhận khởi hành và kiểm thử cạnh tranh/tenant/money/idempotency; đồng bộ OpenAPI/UI/docs.
 
 Tiêu chí hoàn thành áp dụng Definition of Done bên dưới và acceptance COUNTER-SALES trong Test Plan. Không coi quỹ đầu ca/bàn giao, hoàn/đổi quầy hay ưu đãi là đã làm; các quy tắc này chưa được Khanh chốt. Không tự promote tài liệu hoặc ghi đã review độc lập.
+
+**Bổ sung cho NSR-001/002 — 03/11/2026 (chờ duyệt):** demo thông báo hành trình ngoài app Passenger, chỉ Android, theo [kế hoạch](../task-propreties/PSG-journey-notification-demo-plan.md). Payload FCM dữ liệu, session Redis/BullMQ, native ProgressStyle/fallback, tỉnh hiện tại mô phỏng; không thay nghiệp vụ chuyến/vé. Integration Postgres/Redis thật 4/4 pass, app 351 tests pass + test bổ sung, APK debug build thành công; chưa nghiệm thu thiết bị thật, không tự đánh dấu Done.
 
 ## 8. Definition of Done
 

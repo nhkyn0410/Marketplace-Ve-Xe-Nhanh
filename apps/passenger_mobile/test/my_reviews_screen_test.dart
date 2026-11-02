@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
@@ -27,6 +29,19 @@ Future<void> _pumpReviews(
 }
 
 void main() {
+  test('ảnh hàng sao tô đúng số sao theo tên file', () {
+    for (final rating in [3, 4, 5]) {
+      final svg = File(
+        'assets/account/reviews/rating_$rating.svg',
+      ).readAsStringSync();
+      expect(
+        RegExp('fill="#FFB62E"').allMatches(svg).length,
+        rating,
+        reason: 'rating_$rating.svg',
+      );
+    }
+  });
+
   testWidgets('hiển thị fixture Figma với 3 chuyến chờ và 5 đánh giá', (
     tester,
   ) async {

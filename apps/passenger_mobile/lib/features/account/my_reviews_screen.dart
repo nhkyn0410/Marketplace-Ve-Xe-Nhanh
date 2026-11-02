@@ -192,17 +192,12 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
   }
 
   Future<void> _writeReview(ReviewTripItem trip) async {
-    final submitted = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: false,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ReviewFormSheet(
-        trip: trip,
-        errorMessage: widget.errorMessage,
-        onInputChanged: widget.onInputChanged,
-        onSubmit: (input) => widget.submitReview(trip.bookingId, input),
-      ),
+    final submitted = await showReviewFormSheet(
+      context,
+      trip: trip,
+      errorMessage: widget.errorMessage,
+      onInputChanged: widget.onInputChanged,
+      onSubmit: (input) => widget.submitReview(trip.bookingId, input),
     );
     if (submitted != true || !mounted) return;
     setState(() {
@@ -812,6 +807,28 @@ class _TripImage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Mở form đánh giá chuyến; trả `true` khi đã gửi thành công.
+Future<bool?> showReviewFormSheet(
+  BuildContext context, {
+  required ReviewTripItem trip,
+  required Future<bool> Function(ReviewSubmission input) onSubmit,
+  String? errorMessage,
+  VoidCallback? onInputChanged,
+}) {
+  return showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: false,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _ReviewFormSheet(
+      trip: trip,
+      errorMessage: errorMessage,
+      onInputChanged: onInputChanged,
+      onSubmit: onSubmit,
+    ),
+  );
 }
 
 class _ReviewFormSheet extends StatefulWidget {

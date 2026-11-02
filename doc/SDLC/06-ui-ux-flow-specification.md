@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 02/11/2026                  |
+| Ngày cập nhật | 03/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+**v0.47 — 03/11/2026, AI Agent:** thêm demo thông báo hành trình ngoài app hành khách Android có logo, tiến độ và tỉnh hiện tại; chờ duyệt, giữ trạng thái Review. Bản Figma tham chiếu node `2638:2185` trong file UI-UX `6c81q3DdHVS0anfDw2sVVj`.
 
 31/10/2026 — ghi nhận hiện thực SCR-PSG-19/20 **chờ duyệt** theo ADR-029 Proposed: User chọn voucher AVAILABLE từ ví hoặc nhập mã (tối đa một, quote server, reserve khi tạo booking); Guest chỉ nhập mã. Ví API rỗng giữ rỗng ở tab Tài khoản và bước đặt vé, không thay bằng dữ liệu preview. Màn chọn phương thức có bốn thẻ logo payOS / MoMo / VNPay / DEMO, tách khỏi màn thanh toán QR / hosted. Màn thanh toán poll foreground mỗi 4 giây / resume, không kéo dài hạn giữ ghế; chỉ booking CONFIRMED + payment SUCCESS + vé thật mới mở hoàn tất, RECONCILING không gợi ý trả thêm. Không thêm plugin lưu QR / App Links. Đã kiểm lại Flutter analyze không có issue và 265 tests pass; chưa thử giao dịch / thiết bị thật. Các dòng trước ghi “chờ ADR thay ADR-019” nay tham chiếu ADR-029 Proposed, trạng thái tài liệu không đổi. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
@@ -68,6 +70,7 @@
 | v0.44     | 28/10/2026 | AI Agent | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt, BR-78):** SCR-PSG-19 (web + app) và bán vé tại quầy có ô người đi cùng cho chỗ đôi; vé hiện "A và B"; danh sách khách chuyến (Operator OS, Admin) hiện "Đi cùng: …". |
 | v0.45     | 01/11/2026 | AI Agent | **App hành khách: Trang nhà xe + VXN Plus (Khanh 01/11/2026, tự thiết kế — chờ duyệt, Figma Mobile chưa có khung):** `apps/passenger_mobile` thêm SCR-PSG-17 (mở từ "Nhà xe nổi bật" ở Trang chủ, thẻ nhà xe ở tab Mua vé, "Xem nhà xe" ở chi tiết chuyến; "Xem chuyến của nhà xe" → chuyến sắp chạy 14 ngày của nhà xe) và SCR-PSG-33 / 35 (màn VXN Plus, đổi điểm là bottom sheet; mở từ thẻ VXN Plus và mục "Điểm thưởng VXN Plus" ở Tài khoản, nút "Đổi điểm" ở Lịch sử điểm — thẻ VXN Plus không còn mở Lịch sử điểm như v0.42). Nút Back của Android ở màn con Tài khoản về màn trước, không thoát app. **SCR-PSG-19 trên app (Khanh 01/11/2026, chờ duyệt):** tài khoản có hành khách đã lưu thấy thêm thẻ ghế đầu, kể cả khi đặt 1 vé, để chọn người đi khác người liên hệ; để trống thì người liên hệ đi chỗ đó. Khách vãng lai và tài khoản chưa lưu ai giữ form cũ. |
 | v0.46     | 02/11/2026 | AI Agent | **Chiến dịch thông báo + hộp thư + sửa phiên đăng nhập (`TASK-NSR-003`, Khanh 02/11/2026; tự thiết kế — chờ duyệt, Figma chưa có khung):** §6.1 thêm SCR-PSG-38 Hộp thư; SCR-PSG-12, SCR-PSG-13 trên app đã nối API thật; §6.2 thêm luồng Thông báo; §6.3 thêm trạng thái SCR-PSG-38; §9 thêm màn Thông báo của Admin. App: chuông Trang chủ chỉ có chấm đỏ khi có tin chưa đọc; thanh báo push tự tắt sau 6 giây; Back Android theo màn con; vé đã đi ghi "Đã đi" và không còn nút Hủy; Ví voucher có bảng Điều kiện; Lịch sử điểm lọc theo loại. |
+| v0.47     | 03/11/2026 | AI Agent | **Đánh giá chuyến từ chi tiết vé (Khanh 03/11/2026; tự thiết kế — chờ duyệt, Figma chưa có khung):** SCR-PSG-25 trên app thêm khối đánh giá ngay dưới thẻ vé, chỉ với tài khoản hành khách. Máy chủ trả `canReview` (`GET /bookings/{id}/review`) thì có nút "Đánh giá chuyến đi" mở form SCR-PSG-14; đã gửi thì hiện lại số sao, nhận xét, ghi chú chờ duyệt / bị ẩn; còn lại không hiện gì. Khách vãng lai không có khối này. Màn "Đánh giá của tôi" trên app vẫn là dữ liệu mẫu vì API chưa có danh sách theo tài khoản. |
 
 ---
 
@@ -348,7 +351,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                    | Thiết kế |
 | -------------- | ---------------------------------------------------------------------------------- | -------- |
-| Ideal          | Danh sách đánh giá đã viết + chuyến chờ đánh giá; form đánh giá (sao + nội dung)    | Draft    |
+| Ideal          | Danh sách đánh giá đã viết + chuyến chờ đánh giá; form đánh giá (sao + nội dung), mở từ đây hoặc từ SCR-PSG-25 (chờ duyệt) | Draft    |
 | Empty          | Chưa có đánh giá → CTA về vé đã đi                                                  | Draft    |
 | Loading        | Skeleton; đang gửi                                                                  | Draft    |
 | Partial / Edge | Nội dung dài; đánh giá bị ẩn do kiểm duyệt; chuyến chưa `COMPLETED` → chưa cho đánh giá | Draft    |
@@ -461,7 +464,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Ideal          | Vé `VALID` ("Đã xác nhận") + QR; hành trình; hành khách & thanh toán; quy định lên xe; liên hệ nhà xe; bản đồ điểm đón; in / chia sẻ / hủy. Thiếu chính sách hủy snapshot (FR-BTP-12) | Review ⚠ (#2, #4) + Draft |
 | Empty          | —                                                                                                                                                                | —                     |
 | Loading        | Skeleton vé                                                                                                                                                      | Draft                 |
-| Partial / Edge | Vé `CHECKED_IN` / `USED` / `NO_SHOW` / `CANCELLED` / `REFUNDED` (ẩn/khóa QR khi hết hiệu lực); refund `REQUESTED` → `PROCESSING` → `SUCCESS` / `FAILED` / `REJECTED` + lý do; chuyến bị nhà xe hủy/đổi; hết hạn hủy → nút Hủy vô hiệu; booking nhiều vé | Draft                 |
+| Partial / Edge | Vé `CHECKED_IN` / `USED` / `NO_SHOW` / `CANCELLED` / `REFUNDED` (ẩn/khóa QR khi hết hiệu lực); refund `REQUESTED` → `PROCESSING` → `SUCCESS` / `FAILED` / `REJECTED` + lý do; chuyến bị nhà xe hủy/đổi; hết hạn hủy → nút Hủy vô hiệu; booking nhiều vé; tài khoản hành khách sau chuyến `COMPLETED` và vé `USED` / `CHECKED_IN` → khối đánh giá dưới thẻ vé, đã gửi thì hiện lại (chờ duyệt) | Draft                 |
 | Error          | Vé không tồn tại hoặc không thuộc người xem → 404, không lộ dữ liệu; lỗi tải                                                                                      | Draft                 |
 
 #### SCR-PSG-26 — Hủy vé (`385:14793`)
@@ -602,6 +605,12 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | 10  | 15                  | Bộ lọc "Loại xe" là một nhóm duy nhất, limousine đứng ngang hàng với các dạng xe khác | SRS v1.33 `BR-77` | Tách hai nhóm lọc: dạng chỗ (ghế ngồi / giường nằm / cabin) và hạng xe (limousine) |
 
 ---
+
+### 6.5. Demo thông báo hành trình ngoài app — Android
+
+Bản build Android bật `JOURNEY_DEMO_ENABLED=true`: chi tiết vé của tài khoản có khối **Mô phỏng hành trình**, nút **Chạy thử hành trình / Dừng mô phỏng**. Guest và build không bật cờ không có khối này. Dữ liệu demo tách khỏi nghiệp vụ chuyến/vé.
+
+Thông báo hệ thống giữ nhận diện logo, thời gian còn lại, tuyến, thanh tiến độ và **Đang qua {provinceName}**. Android 16 dùng ProgressStyle; bản cũ dùng tiến độ chuẩn, không RemoteViews. Hình thức logo/vị trí chữ tuân theo template Android, không cam kết khớp từng pixel Figma. Chạm thông báo mở đúng booking sau xác thực; thiếu quyền/mất mạng không chặn xem vé. Tỉnh hiện tại là dữ liệu mô phỏng của tuyến đã chọn, không xin quyền GPS hành khách. Dừng/đăng xuất/vuốt bỏ phải chặn update cũ hồi sinh thông báo.
 
 ## 7. Flow Operator
 

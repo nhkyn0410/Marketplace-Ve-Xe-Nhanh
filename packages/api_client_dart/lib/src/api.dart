@@ -46,6 +46,7 @@ import 'package:api_client_dart/src/api/disputes_api.dart';
 import 'package:api_client_dart/src/api/employee_operations_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
 import 'package:api_client_dart/src/api/incidents_api.dart';
+import 'package:api_client_dart/src/api/journey_demo_api.dart';
 import 'package:api_client_dart/src/api/journey_logs_api.dart';
 import 'package:api_client_dart/src/api/notification_api.dart';
 import 'package:api_client_dart/src/api/operator_applications_api.dart';
@@ -394,6 +395,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   IncidentsApi getIncidentsApi() {
     return IncidentsApi(dio, serializers);
+  }
+
+  /// Get JourneyDemoApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  JourneyDemoApi getJourneyDemoApi() {
+    return JourneyDemoApi(dio, serializers);
   }
 
   /// Get JourneyLogsApi instance, base route and serializer can be overridden by a given but be careful,

@@ -301,7 +301,7 @@ void main() {
             'refreshToken': 'rotated-refresh',
             'tokenType': 'Bearer',
             'scope': 'operator',
-            'role': 'EMPLOYEE',
+            'role': 'DRIVER',
             'expiresIn': 900,
             'refreshExpiresIn': 2592000,
           });
@@ -337,26 +337,37 @@ void main() {
     expect(trip.boardedCount, 0);
   });
 
-  test('Login uses employee endpoint and stores server session', () async {
+  Map<String, Object> loginPayload(String role) => {
+    'accessToken': 'new-access',
+    'tokenType': 'Bearer',
+    'expiresIn': 900,
+    'scope': 'operator',
+    'role': role,
+    'refreshToken': 'new-refresh',
+    'refreshExpiresIn': 2592000,
+    'mfaRequired': false,
+  };
+
+  for (final role in ['DRIVER', 'TICKET_STAFF', 'SUPPORT_STAFF']) {
+    test('Login as $role uses employee endpoint and stores server session', () async {
+      final tokens = _Tokens();
+      final (api, adapter) = _api((_) => _json(loginPayload(role)), tokens: tokens);
+      await api.login('nhaxe/taixe', 'password');
+      expect(adapter.requests.single.path, '/v1/auth/employee/login');
+      expect(adapter.requests.single.headers['X-Auth-Transport'], 'bearer');
+      expect(tokens.access, 'new-access');
+      expect(tokens.refresh, 'new-refresh');
+    });
+  }
+
+  test('Login rejects a role outside the employee login list', () async {
     final tokens = _Tokens();
-    final (api, adapter) = _api(
-      (_) => _json({
-        'accessToken': 'new-access',
-        'tokenType': 'Bearer',
-        'expiresIn': 900,
-        'scope': 'operator',
-        'role': 'EMPLOYEE',
-        'refreshToken': 'new-refresh',
-        'refreshExpiresIn': 2592000,
-        'mfaRequired': false,
-      }),
-      tokens: tokens,
+    final (api, _) = _api((_) => _json(loginPayload('OPERATOR_OWNER')), tokens: tokens);
+    await expectLater(
+      api.login('nhaxe/taixe', 'password'),
+      throwsA(isA<EmployeeApiException>()),
     );
-    await api.login('nhaxe/taixe', 'password');
-    expect(adapter.requests.single.path, '/v1/auth/employee/login');
-    expect(adapter.requests.single.headers['X-Auth-Transport'], 'bearer');
-    expect(tokens.access, 'new-access');
-    expect(tokens.refresh, 'new-refresh');
+    expect(tokens.access, isNull);
   });
 
   test(

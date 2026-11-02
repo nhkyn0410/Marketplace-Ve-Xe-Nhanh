@@ -7,12 +7,14 @@ import 'package:passenger_mobile/features/journey/journey_models.dart';
 
 JourneyBooking _booking({
   bool cancelled = false,
+  String bookingId = 'b-1',
+  String bookingCode = 'VXN-TEST01',
   String routeName = 'TP. Hồ Chí Minh → Đà Lạt',
   String pickupName = 'Bến xe Miền Đông mới',
   String pickupAddress = '501 Hoàng Hữu Nam',
 }) => JourneyBooking(
-  bookingId: 'b-1',
-  bookingCode: 'VXN-TEST01',
+  bookingId: bookingId,
+  bookingCode: bookingCode,
   status: cancelled ? 'CANCELLED' : 'CONFIRMED',
   routeName: routeName,
   operatorName: 'Nhà xe Sao Mai',
@@ -78,6 +80,29 @@ final _summary = JourneyBookingSummary(
 class _FakeJourneyApi implements JourneyApi {
   final calls = <String>[];
   bool cancelled = false;
+  JourneyReviewStatus reviewStatus = const JourneyReviewStatus(
+    canReview: false,
+  );
+  ApiFailure? reviewLoadFailure;
+  ApiFailure? reviewSubmitFailure;
+
+  @override
+  Future<JourneyReviewStatus> loadReview(String bookingId) async {
+    calls.add('review-load:$bookingId');
+    if (reviewLoadFailure case final failure?) throw failure;
+    return reviewStatus;
+  }
+
+  @override
+  Future<JourneyReview> submitReview(
+    String bookingId, {
+    required int rating,
+    String? comment,
+  }) async {
+    calls.add('review:$bookingId:$rating:$comment');
+    if (reviewSubmitFailure case final failure?) throw failure;
+    return JourneyReview(rating: rating, status: 'VISIBLE', comment: comment);
+  }
 
   @override
   Future<JourneyLookupOtp> requestLookupOtp(String email) async {
@@ -163,6 +188,12 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _openDetail(WidgetTester tester, JourneyApi api) async {
+  await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
+  await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _enterOtp(WidgetTester tester, String otp) async {
   final fields = find.byType(EditableText);
   for (var index = 0; index < otp.length; index++) {
@@ -217,6 +248,9 @@ void main() {
     expect(find.text('VXN-TEST01-01'), findsOneWidget);
     expect(find.byKey(const Key('journey-ticket-qr')), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'detail');
+    // API đánh giá chỉ nhận tài khoản: khách vãng lai không gọi và không có khối này.
+    expect(api.calls.where((call) => call.startsWith('review')), isEmpty);
+    expect(find.byKey(const Key('trip-review-panel')), findsNothing);
 
     final cancel = find.byKey(const Key('guest-ticket-cancel-button'));
     await tester.scrollUntilVisible(
@@ -328,6 +362,141 @@ void main() {
     expect(find.text('Vé này không còn hủy được.'), findsOneWidget);
     expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
     expect(find.text('Liên hệ hỗ trợ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('vé đã đi: gửi đánh giá từ chi tiết vé, gửi xong hiện lại', (
+    tester,
+  ) async {
+    final api = _UsedTicketApi()
+      ..reviewStatus = const JourneyReviewStatus(canReview: true);
+    await _openDetail(tester, api);
+
+    expect(api.calls, contains('review-load:b-1'));
+    await tester.tap(find.byKey(const Key('trip-review-open')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('review-form-sheet')), findsOneWidget);
+    expect(find.text('Nhà xe Sao Mai'), findsWidgets);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('submit-review')))
+          .onPressed,
+      isNull,
+      reason: 'chưa chọn sao thì chưa gửi được',
+    );
+
+    await tester.tap(find.byKey(const Key('review-rating-4')));
+    await tester.enterText(
+      find.byKey(const Key('review-comment-input')),
+      '  Xe đúng giờ  ',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('submit-review')));
+    await tester.pumpAndSettle();
+
+    expect(api.calls, contains('review:b-1:4:Xe đúng giờ'));
+    expect(find.byKey(const Key('review-form-sheet')), findsNothing);
+    expect(find.byKey(const Key('trip-review-open')), findsNothing);
+    expect(find.text('Đánh giá của bạn'), findsOneWidget);
+    expect(find.text('Xe đúng giờ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('đã đánh giá: chỉ hiện lại, đang chờ duyệt thì ghi rõ', (
+    tester,
+  ) async {
+    final api = _UsedTicketApi()
+      ..reviewStatus = const JourneyReviewStatus(
+        canReview: false,
+        review: JourneyReview(rating: 3, status: 'HELD', comment: 'Tạm ổn'),
+      );
+    await _openDetail(tester, api);
+
+    expect(find.text('Đánh giá của bạn'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('trip-review-panel'))).width,
+      378,
+      reason: 'nhận xét ngắn vẫn rộng bằng các thẻ khác',
+    );
+    expect(find.text('Tạm ổn'), findsOneWidget);
+    expect(find.text('Đánh giá đang chờ duyệt'), findsOneWidget);
+    expect(find.byKey(const Key('trip-review-open')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chưa đủ điều kiện hoặc tải lỗi: không có khối đánh giá', (
+    tester,
+  ) async {
+    await _openDetail(tester, _UsedTicketApi());
+    expect(find.byKey(const Key('trip-review-panel')), findsNothing);
+
+    final failing = _UsedTicketApi()
+      ..reviewLoadFailure = const ApiFailure(
+        status: 500,
+        code: 'INTERNAL',
+        detail: 'Lỗi',
+      );
+    await tester.pumpWidget(const SizedBox());
+    await _openDetail(tester, failing);
+    expect(failing.calls, contains('review-load:b-1'));
+    expect(find.byKey(const Key('trip-review-panel')), findsNothing);
+    expect(find.text('Đã sử dụng'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('gửi lỗi: giữ form để gửi lại; đơn đã có thì đóng form', (
+    tester,
+  ) async {
+    final api = _UsedTicketApi()
+      ..reviewStatus = const JourneyReviewStatus(canReview: true)
+      ..reviewSubmitFailure = const ApiFailure(
+        status: 409,
+        code: 'REVIEW_NOT_ALLOWED',
+        detail: 'Đơn này đã được đánh giá.',
+      );
+    await _openDetail(tester, api);
+    await tester.tap(find.byKey(const Key('trip-review-open')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('review-rating-5')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('submit-review')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('review-form-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('review-submit-error')), findsOneWidget);
+
+    api.reviewStatus = const JourneyReviewStatus(
+      canReview: false,
+      review: JourneyReview(rating: 5, status: 'VISIBLE'),
+    );
+    await tester.tap(find.byKey(const Key('submit-review')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('review-form-sheet')), findsNothing);
+    expect(find.text('Đánh giá của bạn'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('đang xem vé, mở đơn khác: vé và đánh giá theo đơn mới', (
+    tester,
+  ) async {
+    final key = GlobalKey();
+    final api = _TwoBookingsApi();
+    await _pump(
+      tester,
+      MyJourneyFlow(key: key, api: api, onTabSelected: (_) {}),
+    );
+    final opener = key.currentState! as JourneyBookingOpener;
+
+    await opener.openBooking('b-1');
+    await tester.pumpAndSettle();
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+    expect(find.byKey(const Key('trip-review-open')), findsNothing);
+
+    await opener.openBooking('b-2');
+    await tester.pumpAndSettle();
+    expect(find.text('Đơn VXN-TEST02 · 1 vé'), findsOneWidget);
+    expect(api.calls, contains('review-load:b-2'));
+    expect(find.byKey(const Key('trip-review-open')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -556,6 +725,26 @@ class _UsedTicketApi extends _FakeJourneyApi {
     String bookingId, {
     String? accessToken,
   }) async => _withTicketStatus(_booking(), 'USED');
+}
+
+/// Hai đơn: b-1 chưa đánh giá được, b-2 đã đi và đánh giá được.
+class _TwoBookingsApi extends _FakeJourneyApi {
+  @override
+  Future<JourneyBooking> loadBooking(
+    String bookingId, {
+    String? accessToken,
+  }) async => bookingId == 'b-2'
+      ? _withTicketStatus(
+          _booking(bookingId: 'b-2', bookingCode: 'VXN-TEST02'),
+          'USED',
+        )
+      : _booking();
+
+  @override
+  Future<JourneyReviewStatus> loadReview(String bookingId) async {
+    calls.add('review-load:$bookingId');
+    return JourneyReviewStatus(canReview: bookingId == 'b-2');
+  }
 }
 
 class _LongNamesApi extends _FakeJourneyApi {

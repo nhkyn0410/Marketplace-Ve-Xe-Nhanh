@@ -35,6 +35,8 @@ dependencies:
     path: ../../packages/mobile_shared
   api_client_dart:
     path: ../../packages/api_client_dart
+  journey_notification:
+    path: plugins/journey_notification
   dio: ^5.7.0
   flutter_svg: ^2.3.0
   url_launcher: ^6.3.2

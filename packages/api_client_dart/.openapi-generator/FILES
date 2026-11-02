@@ -351,6 +351,10 @@ doc/IncidentPageDtoOutput.md
 doc/IncidentPageDtoOutputItemsInner.md
 doc/IncidentResolutionDto.md
 doc/IncidentsApi.md
+doc/JourneyDemoApi.md
+doc/JourneyDemoCurrentDtoOutput.md
+doc/JourneyDemoSnapshotDtoOutput.md
+doc/JourneyDemoStartDto.md
 doc/JourneyLogDtoOutput.md
 doc/JourneyLogInputDto.md
 doc/JourneyLogPageDtoOutput.md
@@ -743,6 +747,7 @@ lib/src/api/disputes_api.dart
 lib/src/api/employee_operations_api.dart
 lib/src/api/health_api.dart
 lib/src/api/incidents_api.dart
+lib/src/api/journey_demo_api.dart
 lib/src/api/journey_logs_api.dart
 lib/src/api/notification_api.dart
 lib/src/api/operator_applications_api.dart
@@ -1097,6 +1102,9 @@ lib/src/model/incident_input_dto_evidence_inner.dart
 lib/src/model/incident_page_dto_output.dart
 lib/src/model/incident_page_dto_output_items_inner.dart
 lib/src/model/incident_resolution_dto.dart
+lib/src/model/journey_demo_current_dto_output.dart
+lib/src/model/journey_demo_snapshot_dto_output.dart
+lib/src/model/journey_demo_start_dto.dart
 lib/src/model/journey_log_dto_output.dart
 lib/src/model/journey_log_input_dto.dart
 lib/src/model/journey_log_page_dto_output.dart

@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 02/11/2026                  |
+| Ngày cập nhật | 03/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+**v0.50 — 03/11/2026, AI Agent:** bổ sung API demo thông báo hành trình Android theo yêu cầu Khanh, có tỉnh hiện tại; chỉ sandbox, giữ trạng thái Review. Xem §7.2.1 và `PSG-journey-notification-demo-plan.md`.
 
 31/10/2026 — bổ sung contract payOS **chờ duyệt** (ADR-029): `POST /v1/bookings/{id}/payments` thêm `PAYOS` / `DEMO`, response thêm `transfer? {qrCode, bin, accountNumber, accountName, amount:string, description, paymentLinkId}`; trường amount cấp ngoài giữ số nguyên JSON hiện có. Khôi phục link sau timeout có thể không có transfer. `POST /v1/webhooks/payment/payos` và `/demo`: kiểm chữ ký trước DB / queue, payload không có đơn nhưng đã ký ACK 200 không tạo payment/vé, sai chữ ký 400, lỗi DB/queue không ACK thành công. Poll `GET /v1/bookings/{id}` với Bearer hoặc `X-Booking-Token`. Zod nguồn chung ở `packages/types/src/payment.ts`; OpenAPI + TS/Dart client phải sinh lại theo [RB-04](../runbook/RB-04-api-client.md). Provider cũ giữ tương thích; không tự đổi trạng thái tài liệu.
 
@@ -285,6 +287,12 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 `POST /bookings` nhận thêm **tối đa một** trong hai field tùy chọn: `userVoucherId` (User đăng nhập, voucher của chính mình) hoặc `promotionCode`; gửi cả hai → `422 VOUCHER_ONE_PER_BOOKING`. Response booking tách dòng giảm giá kèm `fundedBy` (CO-12, BR-72/73).
 
 Tìm chuyến theo vị trí (TASK-TRN-004, BR-80): điểm đi và điểm đến mỗi phía gửi **một** trong hai — tỉnh / thành (`fromProvinceId`, `toProvinceId`) hoặc địa danh là điểm dừng dùng chung (`fromStopPointId`, `toStopPointId`); thiếu hoặc gửi cả hai ở một phía → 400. Theo tỉnh: khớp điểm dừng của chuyến thuộc tỉnh đó. Theo địa danh: khớp điểm dừng của chuyến, dùng chung hay riêng, trong bán kính cấu hình quanh địa danh (mặc định 5 km). Chỉ xét điểm cho đón ở phía đi và cho trả ở phía đến, điểm đón đứng trước điểm trả; trạm dừng nghỉ không tham gia. Mỗi chuyến trong kết quả kèm điểm đón / trả khớp gần nhất. `GET /trips/{tripId}` trả từng điểm dừng kèm `type`, `allowPickup`, `allowDropoff`; điểm loại `OFFICE` là điểm trung chuyển miễn phí. `POST /bookings`: điểm đón phải `allowPickup`, điểm trả phải `allowDropoff`, đón trước trả — sai → 422 (BR-23).
+
+### 7.2.1. Demo thông báo hành trình Android (chờ duyệt)
+
+`POST /v1/me/journey-demo` nhận `{bookingId, deviceId}` (UUID), trả 201 snapshot. `GET /v1/me/journey-demo?deviceId=...` trả 200 snapshot hoặc null. `DELETE /v1/me/journey-demo/{sessionId}` trả 204 và dừng cập nhật. Bearer Passenger + quyền `notification:manage`; kiểm sở hữu booking và thiết bị FCM đang active. Cờ `JOURNEY_DEMO_ENABLED=true` chỉ có hiệu lực ngoài production; cờ tắt/production trả 404. Không nhận Guest booking token.
+
+Snapshot Zod: `{type:'journey_demo',schemaVersion:1,sessionId,bookingId,revision,stage,routeLabel,provinceName,etaAt,progress,updatedAt,expiresAt,ended}`. `progress` 0–1000; `stage` chỉ phục vụ demo (`approaching/travelling/arrived/stopped`), `ended=true` khi stopped. FCM data-only `{type:'journey_demo',snapshot:JSON.stringify(snapshot)}`; không thêm NotificationKind giao dịch. Session Redis TTL, lịch BullMQ; không ghi trạng thái booking/trip/ticket. Province lấy từ các điểm dừng trong chặng đã đặt và được mô phỏng theo tiến độ, không phải GPS.
 
 ### 7.3. Operator OS
 

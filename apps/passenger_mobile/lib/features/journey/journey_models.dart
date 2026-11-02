@@ -126,6 +126,29 @@ class JourneyRefund {
   final String status;
 }
 
+/// Đánh giá hành khách đã gửi cho đơn.
+class JourneyReview {
+  const JourneyReview({
+    required this.rating,
+    required this.status,
+    this.comment,
+  });
+
+  final int rating;
+
+  /// `VISIBLE`, `HELD` hoặc `HIDDEN`.
+  final String status;
+  final String? comment;
+}
+
+/// Trạng thái đánh giá của đơn (`GET /bookings/{id}/review`).
+class JourneyReviewStatus {
+  const JourneyReviewStatus({required this.canReview, this.review});
+
+  final bool canReview;
+  final JourneyReview? review;
+}
+
 /// Chi tiết một đơn (`GET /bookings/{id}`).
 class JourneyBooking {
   const JourneyBooking({
