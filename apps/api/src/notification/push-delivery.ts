@@ -28,7 +28,7 @@ export async function deliverPushNotification(prisma: Pick<PrismaService, "withS
     try {
       const rendered = renderNotification(loaded.content);
       const kind = loaded.delivery.notification.kind;
-      const result = await notifier.send({ provider: device.provider, token: device.token, title: rendered.title, body: pushCarriesMessage(kind) ? rendered.lines.join(" ") : "Bạn có cập nhật mới trên Vé Xe Nhanh. Mở ứng dụng để xem chi tiết.", notificationId: loaded.delivery.notificationId, kind });
+      const result = await notifier.send({ provider: device.provider, token: device.token, title: rendered.title, body: pushCarriesMessage(kind) ? rendered.lines.join(" ") : "Bạn có cập nhật mới trên Vé Xe Nhanh.\nMở ứng dụng để xem chi tiết.", notificationId: loaded.delivery.notificationId, kind });
       await withNotificationSubject(prisma, async (tx) => {
         await tx.notificationPushReceipt.update({ where: { id: receipt.id }, data: { status: result === "SENT" ? "SENT" : "SKIPPED" } });
         if (result === "UNREGISTERED") await tx.pushDevice.updateMany({ where: { id: device.id, subjectType: device.subjectType, subjectId: device.subjectId }, data: { active: false } });

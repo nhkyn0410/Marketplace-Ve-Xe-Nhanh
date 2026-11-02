@@ -14,6 +14,7 @@ Ngày thực hiện: **01–02/11/2026**. Các ảnh ghi "Chụp lại" hoặc "
 - Lịch sử điểm dùng API thật; mã nguồn hiện không còn đưa dữ liệu mẫu vào màn này. Danh sách Đánh giá của tôi vẫn là dữ liệu mẫu ở bản debug, vì API chưa có danh sách cho hành khách.
 - Thanh toán và hoàn tiền chỉ qua cổng DEMO: không có giao dịch tiền thật; ảnh hoàn tiền "Đang xử lý" không chứng minh tiền đã về tài khoản.
 - Push dùng FCM thật, chỉ tới máy ảo; email bị chặn ở API thử. Chưa thử iOS/APNs, điện thoại thật, force stop.
+- Biểu tượng thông báo là logo một màu (đổi tối 02/11/2026): Android chỉ dùng độ trong suốt của biểu tượng này nên không hiện màu logo. `U42`, `U43a`, `U43b`, `U43c`, `U44`, `U47`, `U48` được chụp lại sau thay đổi.
 - Không chụp luồng đăng nhập / OTP: Khanh tự thực hiện phần này.
 - Bảy ảnh cũ đã gỡ vì không còn đúng hoặc không hữu ích (`U23c`, `U34b` cuộn dưới, `U42b`, `U43`, `U43b` trong luồng đặt vé, `U43d` mở đăng nhập, `U43e`); vẫn xem được trong lịch sử git.
 
@@ -129,12 +130,12 @@ Ngày thực hiện: **01–02/11/2026**. Các ảnh ghi "Chụp lại" hoặc "
 | `U41-trang-chu-tram-ho-tro.png` | Trang chủ (trạm hỗ trợ) | Khối hỗ trợ, trung tâm trợ giúp, gọi tổng đài. | API thật (DB bản sao) |  |
 | `U41b-trung-tam-tro-giup-faq.png` | Trung tâm trợ giúp | Danh sách câu hỏi thường gặp. | API thật (DB bản sao) |  |
 | `U41c-faq-mo-mot-cau-hoi.png` | Trung tâm trợ giúp | Một câu trả lời đang mở. | API thật (DB bản sao) | Nội dung còn dấu `**` và nêu 15 phút giữ chỗ (đã báo); không trích làm quy định. |
-| `U42-thong-bao-he-dieu-hanh-khi-app-o-nen.png` | Khay thông báo Android | Tin Đã hủy vé, Hoàn tiền thành công khi app ở nền; biểu tượng và kênh riêng. Tin giao dịch giữ câu chung (BR-53). | FCM thật + DB bản sao | Chụp lại 02/11/2026; Android tự gộp nhóm. |
+| `U42-thong-bao-he-dieu-hanh-khi-app-o-nen.png` | Khay thông báo Android | Tin Đã hủy vé, Hoàn tiền thành công khi app ở nền; biểu tượng logo và kênh riêng. Tin giao dịch giữ câu chung (BR-53). | FCM thật + DB bản sao | Chụp lại 02/11/2026; Android tự gộp nhóm. Mở rộng từng tin mới thấy câu chung xuống dòng. |
 | `U43a-thanh-thong-bao-khi-dang-doc-bai-viet.png` | Thanh báo trong app | Tin đến khi đang đọc bài viết, có nút Xem. | FCM thật + DB bản sao | Mới 02/11/2026. |
 | `U43b-bam-xem-tu-man-con-ve-hanh-trinh.png` | Tab Hành trình | Sau khi bấm Xem từ màn con: đóng màn con, mở Hành trình. | FCM thật + DB bản sao | Thay ảnh cũ (trước đây chỉ mở Vé của bạn). |
 | `U43c-cham-thong-bao-chuyen-sang-hanh-trinh.png` | Tab Hành trình | Sau khi chạm một thông báo trong khay. | FCM thật + DB bản sao | Chạm dòng tóm tắt của nhóm thu gọn thì Android chỉ mở app. |
 | `U43d-cham-thong-bao-khi-app-da-tat-mo-hanh-trinh.png` | Tab Hành trình | App đã tắt tiến trình (`am kill`): chạm thông báo, app tự khôi phục phiên rồi mở Hành trình, không đăng nhập lại. | FCM thật + DB bản sao | Trang chủ hiện trước khoảng 15 giây ở bản debug. Chưa thử force stop. |
-| `U44-thanh-thong-bao-khi-app-dang-mo.png` | Thanh báo trong app | Tin Đặt vé thành công khi app đang mở, có nút Xem. | FCM thật + DB bản sao | Chụp 02/11/2026 trước khi đổi chuông; thanh báo nay tự tắt sau 6 giây. |
+| `U44-thanh-thong-bao-khi-app-dang-mo.png` | Thanh báo trong app | Tin Đặt vé thành công khi app đang mở, có nút Xem. | FCM thật + DB bản sao | Chụp lại 02/11/2026; thanh báo tự tắt sau 6 giây. |
 | `U44b-bam-xem-chuyen-sang-hanh-trinh.png` | Tab Hành trình | Sau khi bấm Xem. | FCM thật + DB bản sao |  |
 
 ### F. Hộp thư, chiến dịch thông báo, phiên đăng nhập (bổ sung 02/11/2026, chờ duyệt)
@@ -145,7 +146,7 @@ Ngày thực hiện: **01–02/11/2026**. Các ảnh ghi "Chụp lại" hoặc "
 | `U45b-chuong-da-doc-het.png` | Trang chủ | Hết chấm đỏ sau khi đọc hết tin. | API thật (DB bản sao) |  |
 | `U46-hop-thu-thong-bao.png` | Hộp thư | Tin giao dịch và chiến dịch, số tin chưa đọc, Đọc tất cả, biểu tượng theo loại. | API thật (DB bản sao) | Figma chưa có khung. |
 | `U46b-doc-toan-van-tin-giao-dich.png` | Bảng đọc tin | Toàn văn tin Đã hủy vé, nút Xem hành trình. | API thật (DB bản sao) |  |
-| `U47-push-gui-thu-khi-app-o-nen.png` | Khay thông báo Android | Tin gửi thử từ Admin, mang nhãn [Thử] và nguyên nội dung. | FCM thật + DB bản sao |  |
+| `U47-push-gui-thu-khi-app-o-nen.png` | Khay thông báo Android | Tin gửi thử từ Admin, mang nhãn [Thử] và nguyên nội dung. | FCM thật + DB bản sao | Chụp lại 02/11/2026, đã mở rộng tin. |
 | `U47b-cham-push-mo-hop-thu.png` | Hộp thư | Chạm push loại không gắn đơn vé thì mở Hộp thư. | FCM thật + DB bản sao |  |
 | `U47c-thanh-bao-chien-dich-khi-app-dang-mo.png` | Thanh báo trong app | Chiến dịch dịch vụ đến khi app đang mở; chuông cập nhật ngay. | FCM thật + DB bản sao | Cổng Admin gửi thật. |
 | `U48-push-tin-tuc.png` | Khay thông báo Android | Tin tức gửi tới đúng khách đã bật nhận. | FCM thật + DB bản sao | Estimate trước khi bật: 0 người nhận. |
