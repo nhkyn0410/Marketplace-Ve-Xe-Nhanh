@@ -623,398 +623,505 @@ class _SmallIconButton extends StatelessWidget {
   }
 }
 
+/// Bề rộng phần cuống vé chứa mã QR.
+const _ticketStubWidth = 106.0;
+
+/// Thẻ vé: thông tin bên trái, cuống mã QR bên phải. Chạm mã QR của vé còn hiệu lực để phóng to.
 class _BoardingPass extends StatelessWidget {
-  const _BoardingPass({required this.view});
+  const _BoardingPass({required this.view, this.enlarged = false, super.key});
 
   final _TicketView view;
+
+  /// Thẻ đang nằm trong màn phóng to thì chạm mã QR không mở tiếp.
+  final bool enlarged;
+
+  Future<void> _enlarge(BuildContext context) {
+    final box = context.findRenderObject()! as RenderBox;
+    final origin = box.localToGlobal(Offset.zero) & box.size;
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Đóng vé phóng to',
+      barrierColor: const Color(0xF208172B),
+      transitionDuration: const Duration(milliseconds: 420),
+      // Thẻ tự bay từ vị trí cũ; không để route làm mờ dần.
+      transitionBuilder: (_, _, _, child) => child,
+      pageBuilder: (_, animation, _) => _EnlargedBoardingPass(
+        view: view,
+        origin: origin,
+        animation: animation,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ticket = view.ticket;
+    final cancelled = ticket.isCancelled;
+    final palette = cancelled ? _TicketPalette.cancelled : _TicketPalette.gold;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(9),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: palette.gradient,
+            stops: const [0, .55, 1],
+          ),
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: palette.border, width: .7),
+        ),
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _BoardingDetails(view: view, palette: palette),
+                ),
+                SizedBox(
+                  width: _ticketStubWidth,
+                  child: _BoardingStub(
+                    ticket: ticket,
+                    palette: palette,
+                    onEnlarge: !enlarged && ticket.isCancellable
+                        ? () => _enlarge(context)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              right: _ticketStubWidth,
+              top: 0,
+              bottom: 0,
+              width: 1,
+              child: RotatedBox(
+                quarterTurns: 1,
+                child: SvgPicture.asset(
+                  '$journeyAssetRoot/perforation.svg',
+                  fit: BoxFit.fill,
+                ),
+              ),
+            ),
+            Positioned(
+              right: _ticketStubWidth - 5,
+              top: -5.7,
+              child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
+            ),
+            Positioned(
+              right: _ticketStubWidth - 5,
+              bottom: -5.7,
+              child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Màu của thẻ vé theo trạng thái.
+class _TicketPalette {
+  const _TicketPalette({
+    required this.gradient,
+    required this.border,
+    required this.muted,
+    required this.accent,
+    required this.statusFill,
+  });
+
+  /// Chữ phụ và điểm nhấn đậm hơn màu chung của app để đủ tương phản trên nền vàng.
+  static const gold = _TicketPalette(
+    gradient: [Color(0xFFFFF2BF), Color(0xFFFFDA6B), Color(0xFFFFC233)],
+    border: Color(0xFFEFAA1F),
+    muted: Color(0xFF6A5310),
+    accent: Color(0xFF8A4B00),
+    statusFill: Color(0xFF009669),
+  );
+
+  static const cancelled = _TicketPalette(
+    gradient: [Color(0xFFFFF7F6), Color(0xFFFFE8E5), Color(0xFFFFE8E5)],
+    border: Color(0xFFF97066),
+    muted: journeyBody,
+    accent: Color(0xFFE97800),
+    statusFill: Color(0xFFD92D20),
+  );
+
+  final List<Color> gradient;
+  final Color border;
+  final Color muted;
+  final Color accent;
+  final Color statusFill;
+}
+
+/// Phần thông tin của thẻ vé: nhà xe, tuyến, ngày, giờ đón / trả, hành khách.
+class _BoardingDetails extends StatelessWidget {
+  const _BoardingDetails({required this.view, required this.palette});
+
+  final _TicketView view;
+  final _TicketPalette palette;
 
   @override
   Widget build(BuildContext context) {
     final ticket = view.ticket;
     final booking = view.booking;
-    final cancelled = ticket.isCancelled;
     final (origin, destination) = view.places;
     final companion = ticket.companionName;
-    final displayPassenger = companion == null
-        ? ticket.passengerName
-        : '${ticket.passengerName} + $companion';
     final days = _dayOffset(
       booking.pickup.plannedAt,
       booking.dropoff.plannedAt,
     );
-    return _ScaledDesignBox(
-      height: 186,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(9),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: cancelled
-                  ? const [
-                      Color(0xFFFFF7F6),
-                      Color(0xFFFFE8E5),
-                      Color(0xFFFFE8E5),
-                    ]
-                  : const [
-                      Color(0xFFFFFAED),
-                      Color(0xFFFFF4D9),
-                      Color(0xFFFFF9EF),
-                    ],
-              stops: const [0, .65, 1],
+    final arrow = SvgPicture.asset(
+      '$journeyAssetRoot/direction_orange.svg',
+      colorFilter: ColorFilter.mode(palette.accent, BlendMode.srcIn),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 9, 11, 11),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: SvgPicture.asset('$journeyAssetRoot/ticket_blue.svg'),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'VÉ XE NHANH',
+                      style: TextStyle(
+                        color: palette.accent,
+                        fontSize: 10.5,
+                        height: 14 / 10.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'Vé chuyến - ${booking.operatorName}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: palette.muted,
+                        fontSize: 10,
+                        height: 13 / 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: origin),
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: arrow,
+                  ),
+                ),
+                TextSpan(text: destination),
+              ],
             ),
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(
-              color: cancelled
-                  ? const Color(0xFFF97066)
-                  : const Color(0xFFFFC458),
-              width: .7,
+            style: const TextStyle(
+              color: journeyInk,
+              fontSize: 15,
+              height: 20 / 15,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
+          const SizedBox(height: 2),
+          Text(
+            journeyLongDate(booking.pickup.plannedAt),
+            style: const TextStyle(
+              color: journeyInk,
+              fontSize: 11.5,
+              height: 16 / 11.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Row(
             children: [
-              Positioned(
-                left: 7.3,
-                top: 7.3,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: SizedBox.square(
-                      dimension: 20,
-                      child: Center(
-                        child: SvgPicture.asset(
-                          '$journeyAssetRoot/ticket_blue.svg',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                left: 46.3,
-                top: 9.3,
-                width: 140,
-                child: Text(
-                  'VÉ XE NHANH',
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: Color(0xFFE97800),
-                    fontSize: 10,
-                    height: 14 / 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 46.3,
-                top: 23.3,
-                width: 195,
-                child: Text(
-                  'Vé chuyến - ${booking.operatorName}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyBody,
-                    fontSize: 9,
-                    height: 13 / 9,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 212.3,
-                top: 12.3,
-                width: 47,
-                height: 20,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: cancelled
-                        ? const Color(0xFFD92D20)
-                        : const Color(0xFF009669),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _ticketStatusLabel(ticket.status),
-                    maxLines: 1,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9.5,
-                      height: 13 / 9.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 13.3,
-                top: 47.3,
-                width: 146,
-                child: Text(
-                  origin,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 16,
-                    height: 22 / 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 145.3,
-                top: 52.3,
-                child: SizedBox.square(
-                  dimension: 19,
-                  child: Center(
-                    child: SvgPicture.asset(
-                      '$journeyAssetRoot/direction_orange.svg',
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 170.3,
-                top: 47.3,
-                width: 98,
-                child: Text(
-                  destination,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 16,
-                    height: 22 / 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 13.3,
-                top: 70.3,
-                width: 245,
-                child: Text(
-                  journeyLongDate(booking.pickup.plannedAt),
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 11,
-                    height: 15 / 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 13.3,
-                top: 91.3,
-                child: _BoardingStation(
-                  width: 113,
+              Expanded(
+                child: _BoardingTime(
                   time: journeyTime(booking.pickup.plannedAt),
-                  station: booking.pickup.name,
                 ),
               ),
-              Positioned(
-                left: 133.3,
-                top: 103.3,
-                child: SizedBox.square(
-                  dimension: 19,
-                  child: Center(
-                    child: SvgPicture.asset(
-                      '$journeyAssetRoot/direction_orange.svg',
-                    ),
-                  ),
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: arrow,
               ),
-              Positioned(
-                left: 156.3,
-                top: 91.3,
-                child: _BoardingStation(
-                  width: 109,
+              Expanded(
+                child: _BoardingTime(
                   time: journeyTime(booking.dropoff.plannedAt),
                   note: days > 0 ? '+$days ngày' : null,
-                  station: booking.dropoff.name,
                 ),
               ),
-              const Positioned(
-                left: 13.3,
-                top: 142.3,
-                width: 110,
-                child: Text(
-                  'Hành khách',
-                  style: TextStyle(
-                    color: journeyBody,
-                    fontSize: 9,
-                    height: 13 / 9,
-                  ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: _BoardingValue(
+                  label: 'Hành khách',
+                  value: companion == null
+                      ? ticket.passengerName
+                      : '${ticket.passengerName} + $companion',
+                  color: palette.muted,
                 ),
               ),
-              Positioned(
-                left: 13.3,
-                top: 159.3,
-                width: 110,
-                child: Text(
-                  displayPassenger,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 9,
-                    height: 13 / 9,
-                    fontWeight: FontWeight.w600,
-                  ),
+              const SizedBox(width: 6),
+              Expanded(
+                flex: 2,
+                child: _BoardingValue(
+                  label: 'Chỗ',
+                  value: ticket.seatCode,
+                  color: palette.muted,
                 ),
               ),
-              const Positioned(
-                left: 125.3,
-                top: 142.3,
-                width: 29,
-                child: Text(
-                  'Chỗ',
-                  style: TextStyle(
-                    color: journeyBody,
-                    fontSize: 9,
-                    height: 13 / 9,
-                  ),
+              const SizedBox(width: 6),
+              Expanded(
+                flex: 4,
+                child: _BoardingValue(
+                  label: 'Loại chỗ',
+                  value: journeySeatTypeLabel(ticket.seatType),
+                  color: palette.muted,
                 ),
               ),
-              Positioned(
-                left: 125.3,
-                top: 159.3,
-                width: 29,
-                child: Text(
-                  ticket.seatCode,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 9,
-                    height: 13 / 9,
-                    fontWeight: FontWeight.w600,
-                  ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cuống vé: mã QR, trạng thái ngay dưới mã, mã vé và lời nhắc.
+class _BoardingStub extends StatelessWidget {
+  const _BoardingStub({
+    required this.ticket,
+    required this.palette,
+    this.onEnlarge,
+  });
+
+  final JourneyTicket ticket;
+  final _TicketPalette palette;
+
+  /// `null` = không phóng to được (vé hết hiệu lực hoặc đang ở màn phóng to).
+  final VoidCallback? onEnlarge;
+
+  @override
+  Widget build(BuildContext context) {
+    final cancelled = ticket.isCancelled;
+    final status = _ticketStatusLabel(ticket.status);
+    final caption = _qrCaption(ticket);
+    final qr = Container(
+      width: 91,
+      height: 91,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Opacity(
+            opacity: ticket.isCancellable ? 1 : .34,
+            child: QrImageView(
+              key: const Key('journey-ticket-qr'),
+              data: ticket.qrToken,
+              size: 84,
+              padding: EdgeInsets.zero,
+              semanticsLabel: 'Mã QR vé ${ticket.ticketCode}',
+            ),
+          ),
+          if (cancelled)
+            Transform.rotate(
+              angle: -math.pi / 4,
+              child: Container(
+                width: 82,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD92D20),
+                  borderRadius: BorderRadius.circular(99),
                 ),
               ),
-              const Positioned(
-                left: 161.3,
-                top: 142.3,
-                width: 107,
-                child: Text(
-                  'Loại chỗ',
-                  style: TextStyle(
-                    color: journeyBody,
-                    fontSize: 9,
-                    height: 13 / 9,
-                  ),
-                ),
+            ),
+        ],
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 11, 4, 11),
+      child: Column(
+        children: [
+          if (onEnlarge case final enlarge?)
+            Semantics(
+              button: true,
+              label: 'Phóng to vé',
+              child: GestureDetector(
+                key: const Key('journey-ticket-qr-zoom'),
+                onTap: enlarge,
+                child: qr,
               ),
-              Positioned(
-                left: 161.3,
-                top: 159.3,
-                width: 107,
-                child: Text(
-                  journeySeatTypeLabel(ticket.seatType),
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 9,
-                    height: 13 / 9,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+            )
+          else
+            qr,
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 2.5),
+            decoration: BoxDecoration(
+              color: palette.statusFill,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              status,
+              maxLines: 1,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10.5,
+                height: 15 / 10.5,
+                fontWeight: FontWeight.w600,
               ),
-              Positioned(
-                left: 272.3,
-                top: 0,
-                child: RotatedBox(
-                  quarterTurns: 1,
-                  child: SvgPicture.asset('$journeyAssetRoot/perforation.svg'),
-                ),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            ticket.ticketCode,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: journeyInk,
+              fontSize: 10,
+              height: 14 / 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (caption != status) ...[
+            const SizedBox(height: 2),
+            Text(
+              caption,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: cancelled ? const Color(0xFFD92D20) : palette.accent,
+                fontSize: 9.5,
+                height: 13 / 9.5,
               ),
-              Positioned(
-                left: 266.8,
-                top: -5.7,
-                child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
-              ),
-              Positioned(
-                left: 266.8,
-                top: 180.3,
-                child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
-              ),
-              Positioned(
-                left: 279.3,
-                top: 22.3,
-                width: 91,
-                height: 91,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Opacity(
-                        opacity: ticket.isCancellable ? 1 : .34,
-                        child: QrImageView(
-                          key: const Key('journey-ticket-qr'),
-                          data: ticket.qrToken,
-                          size: 84,
-                          padding: EdgeInsets.zero,
-                          semanticsLabel: 'Mã QR vé ${ticket.ticketCode}',
-                        ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Màn nổi: thẻ vé bay từ vị trí cũ ra giữa màn hình, phóng to và xoay ngang để dễ quét mã.
+class _EnlargedBoardingPass extends StatelessWidget {
+  const _EnlargedBoardingPass({
+    required this.view,
+    required this.origin,
+    required this.animation,
+  });
+
+  final _TicketView view;
+
+  /// Vị trí thẻ trên màn chi tiết, cũng là kích thước dựng thẻ phóng to.
+  final Rect origin;
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final close = Navigator.of(context).maybePop;
+    final area = Rect.fromLTRB(
+      media.padding.left + 6,
+      media.padding.top + 6,
+      media.size.width - media.padding.right - 6,
+      media.size.height - media.padding.bottom - 60,
+    );
+    // Máy đang dọc thì xoay thẻ, cạnh dài nằm theo chiều cao màn hình; khách xoay máy ngang thì thẻ đã đúng chiều.
+    final portrait = media.size.height >= media.size.width;
+    final scale = portrait
+        ? math.min(area.height / origin.width, area.width / origin.height)
+        : math.min(area.width / origin.width, area.height / origin.height);
+    final turn = portrait ? math.pi / 2 : 0.0;
+    final progress = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeInOutCubic,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Material(
+        type: MaterialType.transparency,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: close,
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: progress,
+                builder: (context, child) {
+                  final center = Offset.lerp(
+                    origin.center,
+                    area.center,
+                    progress.value,
+                  )!;
+                  return Positioned(
+                    left: center.dx - origin.width / 2,
+                    top: center.dy - origin.height / 2,
+                    width: origin.width,
+                    height: origin.height,
+                    child: Transform.rotate(
+                      angle: turn * progress.value,
+                      child: Transform.scale(
+                        scale: 1 + (scale - 1) * progress.value,
+                        child: child,
                       ),
-                      if (cancelled)
-                        Transform.rotate(
-                          angle: -math.pi / 4,
-                          child: Container(
-                            width: 82,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD92D20),
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  );
+                },
+                child: _BoardingPass(
+                  key: const Key('journey-ticket-enlarged'),
+                  view: view,
+                  enlarged: true,
                 ),
               ),
               Positioned(
-                left: 278,
-                top: 119.3,
-                width: 98,
-                child: Text(
-                  ticket.ticketCode,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 9.5,
-                    height: 13 / 9.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 278,
-                top: 137.3,
-                width: 98,
-                child: Text(
-                  _qrCaption(ticket),
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: cancelled
-                        ? const Color(0xFFD92D20)
-                        : ticket.isCancellable
-                        ? const Color(0xFFC67000)
-                        : journeyBody,
-                    fontSize: 9,
-                    height: 13 / 9,
+                left: 0,
+                right: 0,
+                bottom: media.padding.bottom + 8,
+                child: FadeTransition(
+                  opacity: progress,
+                  child: Center(
+                    child: IconButton(
+                      key: const Key('journey-ticket-enlarged-close'),
+                      tooltip: 'Đóng',
+                      onPressed: close,
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0x33FFFFFF),
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.close),
+                    ),
                   ),
                 ),
               ),
@@ -1026,73 +1133,87 @@ class _BoardingPass extends StatelessWidget {
   }
 }
 
-class _BoardingStation extends StatelessWidget {
-  const _BoardingStation({
-    required this.width,
-    required this.time,
-    required this.station,
-    this.note,
-  });
+/// Ô giờ đón / trả trên thẻ vé.
+class _BoardingTime extends StatelessWidget {
+  const _BoardingTime({required this.time, this.note});
 
-  final double width;
   final String time;
-  final String station;
   final String? note;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
-      height: 43,
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 8,
-            top: 3,
-            child: Text(
-              time,
-              style: const TextStyle(
-                color: journeyInk,
-                fontSize: 16,
-                height: 22 / 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          if (note != null)
-            Positioned(
-              left: 72,
-              top: 11,
-              child: Text(
-                note!,
-                style: const TextStyle(
-                  color: Color(0xFFF18800),
-                  fontSize: 7.5,
-                  height: 11 / 7.5,
+      alignment: Alignment.centerLeft,
+      // Máy hẹp thì thu nhỏ để vẫn đọc được "+1 ngày".
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text.rich(
+          TextSpan(
+            text: time,
+            children: [
+              if (note case final note?)
+                TextSpan(
+                  text: ' $note',
+                  style: const TextStyle(
+                    color: Color(0xFFC26A00),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ),
-          Positioned(
-            left: 8,
-            top: 26,
-            width: width - 13,
-            child: Text(
-              station,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: journeyBody,
-                fontSize: 8.5,
-                height: 12 / 8.5,
-              ),
-            ),
+            ],
           ),
-        ],
+          maxLines: 1,
+          style: const TextStyle(
+            color: journeyInk,
+            fontSize: 16,
+            height: 22 / 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
+    );
+  }
+}
+
+/// Một cột nhãn + giá trị ở chân thẻ vé.
+class _BoardingValue extends StatelessWidget {
+  const _BoardingValue({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          style: TextStyle(color: color, fontSize: 10, height: 14 / 10),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          style: const TextStyle(
+            color: journeyInk,
+            fontSize: 11,
+            height: 15 / 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1188,149 +1309,178 @@ class _JourneyInformationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ScaledDesignBox(
-      height: 113,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: const Color(0xFFDFF3FC)),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 11,
-              top: 8,
-              child: SizedBox.square(
+    final days = _dayOffset(
+      booking.pickup.plannedAt,
+      booking.dropoff.plannedAt,
+    );
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(11, 10, 12, 13),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: const Color(0xFFDFF3FC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox.square(
                 dimension: 19,
                 child: Center(
                   child: SvgPicture.asset('$journeyAssetRoot/bus_blue.svg'),
                 ),
               ),
-            ),
-            const Positioned(
-              left: 40,
-              top: 8,
-              width: 280,
-              child: Text(
+              const SizedBox(width: 10),
+              const Text(
                 'Hành trình',
                 style: TextStyle(
                   color: journeyInk,
-                  fontSize: 13,
-                  height: 18 / 13,
+                  fontSize: 14,
+                  height: 20 / 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
-            Positioned(
-              left: 7,
-              top: 31,
-              child: _JourneyStopPanel(
-                title: 'ĐIỂM ĐÓN · ${journeyTime(booking.pickup.plannedAt)}',
-                station: booking.pickup.name,
-                address: booking.pickup.address,
-              ),
-            ),
-            Positioned(
-              left: 204,
-              top: 31,
-              child: _JourneyStopPanel(
-                title: [
-                  'ĐIỂM TRẢ · ${journeyTime(booking.dropoff.plannedAt)}',
-                  if (_dayOffset(
-                        booking.pickup.plannedAt,
-                        booking.dropoff.plannedAt,
-                      )
-                      case final days when days > 0)
-                    '(+$days NGÀY)',
-                ].join(' '),
-                station: booking.dropoff.name,
-                address: booking.dropoff.address,
-              ),
-            ),
-            Positioned(
-              left: 180,
-              top: 59,
-              child: SizedBox.square(
-                dimension: 20,
-                child: Center(
-                  child: SvgPicture.asset(
-                    '$journeyAssetRoot/direction_orange.svg',
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 11),
+          _JourneyStopPanel(
+            label: 'ĐIỂM ĐÓN',
+            stop: booking.pickup,
+            color: const Color(0xFFF18800),
+            connected: true,
+          ),
+          _JourneyStopPanel(
+            label: 'ĐIỂM TRẢ',
+            stop: booking.dropoff,
+            color: journeyButton,
+            note: days > 0 ? '+$days ngày' : null,
+          ),
+        ],
       ),
     );
   }
 }
 
+/// Một điểm trên đường hành trình: giờ, tên điểm và địa chỉ hiện đầy đủ, không cắt chữ.
 class _JourneyStopPanel extends StatelessWidget {
   const _JourneyStopPanel({
-    required this.title,
-    required this.station,
-    required this.address,
+    required this.label,
+    required this.stop,
+    required this.color,
+    this.note,
+    this.connected = false,
   });
 
-  final String title;
-  final String station;
-  final String address;
+  final String label;
+  final JourneyStop stop;
+  final Color color;
+
+  /// Ghi chú cạnh giờ, vd "+1 ngày" khi trả khách sang ngày sau.
+  final String? note;
+
+  /// Còn điểm tiếp theo thì vẽ đường nối xuống dưới.
+  final bool connected;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 165,
-      height: 73,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FE),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Stack(
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Positioned(
-            left: 10,
-            top: 8,
-            width: 151,
-            child: Text(
-              title,
-              maxLines: 1,
-              style: const TextStyle(
-                color: journeyBody,
-                fontSize: 8.8,
-                height: 12 / 8.8,
-              ),
+          SizedBox(
+            width: 19,
+            child: Column(
+              children: [
+                const SizedBox(height: 3),
+                Container(
+                  width: 13,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: 3.5),
+                  ),
+                ),
+                if (connected)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 3),
+                      color: journeyBorder,
+                    ),
+                  ),
+              ],
             ),
           ),
-          Positioned(
-            left: 10,
-            top: 24,
-            width: 151,
-            child: Text(
-              station,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: journeyInk,
-                fontSize: 10,
-                height: 14 / 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 10,
-            top: 42,
-            width: 151,
-            child: Text(
-              address,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: journeyBody,
-                fontSize: 9,
-                height: 13 / 9,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: connected ? 15 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: journeyBody,
+                            fontSize: 11,
+                            height: 18 / 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: .3,
+                          ),
+                        ),
+                      ),
+                      if (note case final note?) ...[
+                        Text(
+                          note,
+                          style: const TextStyle(
+                            color: Color(0xFFC26A00),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        journeyTime(stop.plannedAt),
+                        style: const TextStyle(
+                          color: journeyInk,
+                          fontSize: 15,
+                          height: 18 / 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    stop.name,
+                    style: const TextStyle(
+                      color: journeyInk,
+                      fontSize: 13.5,
+                      height: 19 / 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (stop.address.trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      stop.address,
+                      style: const TextStyle(
+                        color: journeyBody,
+                        fontSize: 12,
+                        height: 17 / 12,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

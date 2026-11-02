@@ -5,17 +5,22 @@ import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/journey/journey_models.dart';
 
-JourneyBooking _booking({bool cancelled = false}) => JourneyBooking(
+JourneyBooking _booking({
+  bool cancelled = false,
+  String routeName = 'TP. Hồ Chí Minh → Đà Lạt',
+  String pickupName = 'Bến xe Miền Đông mới',
+  String pickupAddress = '501 Hoàng Hữu Nam',
+}) => JourneyBooking(
   bookingId: 'b-1',
   bookingCode: 'VXN-TEST01',
   status: cancelled ? 'CANCELLED' : 'CONFIRMED',
-  routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+  routeName: routeName,
   operatorName: 'Nhà xe Sao Mai',
   vehicleTypeName: 'Giường nằm 34 chỗ',
   departureAt: DateTime.now().add(const Duration(days: 3)),
   pickup: JourneyStop(
-    name: 'Bến xe Miền Đông mới',
-    address: '501 Hoàng Hữu Nam',
+    name: pickupName,
+    address: pickupAddress,
     plannedAt: DateTime.now().add(const Duration(days: 3)),
   ),
   dropoff: JourneyStop(
@@ -219,6 +224,9 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // Cuộn thêm để nút không nằm dưới thanh tab nổi.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
     await tester.tap(cancel);
     await tester.pumpAndSettle();
     expect(find.text('270.000đ'), findsWidgets);
@@ -316,9 +324,139 @@ void main() {
 
     expect(find.text('Đã sử dụng'), findsOneWidget);
     expect(find.text('Lên xe quét mã'), findsNothing);
+    expect(find.byKey(const Key('journey-ticket-qr-zoom')), findsNothing);
     expect(find.text('Vé này không còn hủy được.'), findsOneWidget);
     expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
     expect(find.text('Liên hệ hỗ trợ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('thẻ vé: bỏ tên điểm dưới giờ, trạng thái nằm dưới mã QR', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
+    );
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    // Tên điểm chỉ còn ở phần Hành trình.
+    expect(find.text('Bến xe Miền Đông mới'), findsOneWidget);
+    expect(find.text('Bến xe liên tỉnh Đà Lạt'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Hợp lệ')).dy,
+      greaterThan(
+        tester.getBottomLeft(find.byKey(const Key('journey-ticket-qr'))).dy,
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tên tuyến và điểm đón dài: hiện đủ, máy hẹp không tràn', (
+    tester,
+  ) async {
+    const pickup =
+        'Văn phòng Phương Trang Lê Hồng Phong và điểm trung chuyển Quận 10';
+    const address =
+        '231-233 Lê Hồng Phong, Phường Chợ Quán, Thành phố Hồ Chí Minh, Việt Nam';
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 640);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyJourneyFlow(api: _LongNamesApi(), onTabSelected: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('BX Miền Đông mới'), findsOneWidget);
+    expect(find.textContaining('Quốc lộ 20'), findsOneWidget);
+    for (final text in [pickup, address]) {
+      expect(tester.widget<Text>(find.text(text)).maxLines, isNull);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chạm mã QR: thẻ vé phóng to, xoay ngang; Back hoặc nút đóng thì trở lại', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
+    );
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+    const enlarged = Key('journey-ticket-enlarged');
+    const zoom = Key('journey-ticket-qr-zoom');
+
+    await tester.tap(find.byKey(zoom));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byKey(enlarged), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'đang chạy hiệu ứng');
+    await tester.pumpAndSettle();
+
+    final pass = tester.renderObject<RenderBox>(find.byKey(enlarged));
+    final bounds = Rect.fromPoints(
+      pass.localToGlobal(Offset.zero),
+      pass.localToGlobal(pass.size.bottomRight(Offset.zero)),
+    );
+    expect(bounds.height, greaterThan(bounds.width), reason: 'cạnh dài nằm dọc');
+    expect(bounds.width, greaterThan(412 * .85), reason: 'gần hết chiều ngang');
+    expect(const Rect.fromLTWH(0, 0, 412, 915).intersect(bounds), bounds);
+
+    // Trong màn phóng to, chạm mã QR không mở thêm lớp nữa.
+    expect(find.byKey(zoom), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byKey(enlarged), findsNothing);
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+
+    await tester.tap(find.byKey(zoom));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('journey-ticket-enlarged-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(enlarged), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('khách xoay máy ngang khi đang phóng to: thẻ không xoay thêm', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
+    );
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('journey-ticket-qr-zoom')));
+    await tester.pumpAndSettle();
+    tester.view.physicalSize = const Size(915, 412);
+    await tester.pumpAndSettle();
+    final pass = tester.renderObject<RenderBox>(
+      find.byKey(const Key('journey-ticket-enlarged')),
+    );
+    final bounds = Rect.fromPoints(
+      pass.localToGlobal(Offset.zero),
+      pass.localToGlobal(pass.size.bottomRight(Offset.zero)),
+    );
+    expect(bounds.width, greaterThan(bounds.height));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('vé đã hủy: mã QR không phóng to được', (tester) async {
+    final api = _FakeJourneyApi()..cancelled = true;
+    await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đã hủy'), findsWidgets);
+    expect(find.text('QR không còn hiệu lực'), findsOneWidget);
+    expect(find.byKey(const Key('journey-ticket-qr-zoom')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -418,6 +556,20 @@ class _UsedTicketApi extends _FakeJourneyApi {
     String bookingId, {
     String? accessToken,
   }) async => _withTicketStatus(_booking(), 'USED');
+}
+
+class _LongNamesApi extends _FakeJourneyApi {
+  @override
+  Future<JourneyBooking> loadBooking(
+    String bookingId, {
+    String? accessToken,
+  }) async => _booking(
+    routeName: 'TP. Hồ Chí Minh (BX Miền Đông mới) – Đà Lạt (Quốc lộ 20)',
+    pickupName:
+        'Văn phòng Phương Trang Lê Hồng Phong và điểm trung chuyển Quận 10',
+    pickupAddress:
+        '231-233 Lê Hồng Phong, Phường Chợ Quán, Thành phố Hồ Chí Minh, Việt Nam',
+  );
 }
 
 class _DepartedTripApi extends _FakeJourneyApi {
