@@ -123,6 +123,91 @@ void main() {
     await font.load();
   });
 
+  testWidgets('email phải khớp validation production trước khi xác nhận', (
+    tester,
+  ) async {
+    await _pumpApp(tester, home: _screen(FakeBookingApi()));
+    await _fillContact(tester);
+    for (final email in [
+      '.an@example.com',
+      'an..le@example.com',
+      'an@example.c',
+      'an@exam_ple.com',
+      '${'a' * 243}@example.com',
+    ]) {
+      await tester.enterText(find.byKey(const Key('contact-email-field')), email);
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(
+          find.byKey(const Key('passenger-information-continue')),
+        ).onPressed,
+        isNull,
+        reason: email,
+      );
+      expect(
+        tester.widget<TextField>(
+          find.byKey(const Key('contact-email-field')),
+        ).decoration!.errorText,
+        isNotNull,
+      );
+    }
+    await tester.enterText(
+      find.byKey(const Key('contact-email-field')),
+      "o'neil+ve@example.com",
+    );
+    await tester.pump();
+    expect(
+      tester.widget<FilledButton>(
+        find.byKey(const Key('passenger-information-continue')),
+      ).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('tên liên hệ, hành khách và người đi cùng tối đa 100 ký tự', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      home: _screen(FakeBookingApi(), doubleSeats: {'A03'}),
+    );
+    await _fillContact(tester);
+    for (final key in [
+      'contact-name-field',
+      'passenger-name-A03',
+      'companion-name-A03',
+    ]) {
+      final field = find.byKey(Key(key));
+      await tester.scrollUntilVisible(
+        field,
+        180,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('passenger-information-scroll')),
+          matching: find.byType(Scrollable),
+        ).first,
+      );
+      await tester.enterText(field, 'a' * 101);
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(
+          find.byKey(const Key('passenger-information-continue')),
+        ).onPressed,
+        isNull,
+        reason: key,
+      );
+      expect(tester.widget<TextField>(field).decoration!.errorText, isNotNull);
+      await tester.enterText(field, 'a' * 100);
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(
+          find.byKey(const Key('passenger-information-continue')),
+        ).onPressed,
+        isNotNull,
+        reason: key,
+      );
+    }
+  });
+
   testWidgets(
     'khách vãng lai: form trống, không có nút hành khách đã lưu, tổng theo giữ chỗ',
     (tester) async {

@@ -216,15 +216,30 @@ class TripBookingApi {
     return _tripPage(response.data!);
   }
 
-  /// Chuyến sắp chạy của mọi tuyến trong vài ngày tới — không gửi điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
+  /// Chuyến sắp chạy; chỉ gửi ngày / điểm đi / điểm đến khi người dùng đã chọn.
   Future<TripSearchPage> browseTrips(
     TripSearchFilters filters,
-    int page,
-  ) async {
+    int page, {
+    DateTime? date,
+    int? passengers,
+    HomeLocation? from,
+    HomeLocation? to,
+  }) async {
+    String? idOf(HomeLocation? place, HomeLocationKind kind) =>
+        place != null && place.kind == kind ? place.id : null;
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
-        passengers: 1,
+        date: date == null ? null : Date(date.year, date.month, date.day),
+        fromProvinceId: idOf(from, HomeLocationKind.province),
+        fromWardId: idOf(from, HomeLocationKind.ward),
+        fromAreaId: idOf(from, HomeLocationKind.area),
+        fromStopPointId: idOf(from, HomeLocationKind.stopPoint),
+        toProvinceId: idOf(to, HomeLocationKind.province),
+        toWardId: idOf(to, HomeLocationKind.ward),
+        toAreaId: idOf(to, HomeLocationKind.area),
+        toStopPointId: idOf(to, HomeLocationKind.stopPoint),
+        passengers: passengers ?? 1,
         operatorId: filters.operatorId,
         vehicleForm: filters.vehicleForm?.apiValue,
         vehicleClass: filters.vehicleClass?.apiValue,

@@ -22,7 +22,13 @@ const _danger = Color(0xFFD84A4A);
 
 /// Số điện thoại VN như API chấp nhận: `0xxxxxxxxx` hoặc `+84xxxxxxxxx` (bỏ khoảng trắng, chấm, gạch).
 final _phonePattern = RegExp(r'^(0|\+84)\d{9}$');
-final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+// Khớp z.email() của BookingInputSchema trên API production.
+final _emailPattern = RegExp(
+  r"^(?!\.)(?!.*\.\.)[A-Za-z0-9_'+\-.]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$",
+);
+
+String? _nameError(String value) =>
+    value.trim().length > 100 ? 'Họ và tên tối đa 100 ký tự.' : null;
 
 String _normalizePhone(String value) => value.replaceAll(RegExp(r'[\s.-]'), '');
 
@@ -140,13 +146,19 @@ class _PassengerInformationScreenState
 
   bool get _phoneValid => _phonePattern.hasMatch(_normalizePhone(_phone.text));
 
-  bool get _emailValid => _emailPattern.hasMatch(_email.text.trim());
+  bool get _emailValid =>
+      _email.text.trim().length <= 254 &&
+      _emailPattern.hasMatch(_email.text.trim());
 
   /// Ghế đầu mặc định là người liên hệ; chỉ hiện thẻ khi có hành khách đã lưu để chọn thay.
   bool get _showFirstSeat => _travellers.isNotEmpty;
 
   bool get _formValid =>
       _contactName.text.trim().isNotEmpty &&
+      _nameError(_contactName.text) == null &&
+      [..._passengerNames, ..._companionNames].every(
+        (controller) => _nameError(controller.text) == null,
+      ) &&
       _emailValid &&
       _phoneValid &&
       _passengerPhones.every(
@@ -637,6 +649,7 @@ class _ContactCard extends StatelessWidget {
             icon: Icons.person_rounded,
             controller: name,
             hintText: 'Nhập họ và tên người liên hệ',
+            errorText: _nameError(name.text),
             textInputAction: TextInputAction.next,
             onChanged: onChanged,
           ),
@@ -954,6 +967,7 @@ class _PassengerCard extends StatelessWidget {
               icon: Icons.person_rounded,
               controller: controller,
               hintText: 'Nhập họ và tên',
+              errorText: _nameError(controller.text),
               textInputAction: TextInputAction.next,
               onChanged: onChanged,
             ),
@@ -981,6 +995,7 @@ class _PassengerCard extends StatelessWidget {
                 icon: Icons.people_alt_rounded,
                 controller: companionController!,
                 hintText: 'Chỗ đôi chở tối đa 2 người, chung một vé',
+                errorText: _nameError(companionController!.text),
                 textInputAction: TextInputAction.next,
                 onChanged: onChanged,
               ),

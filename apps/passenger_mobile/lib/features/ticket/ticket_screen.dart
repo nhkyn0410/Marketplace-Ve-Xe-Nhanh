@@ -86,6 +86,7 @@ class _TicketScreenState extends State<TicketScreen>
   HomeSearchMode _mode = HomeSearchMode.route;
 
   HomeSearchQuery? _query;
+  DateTime? _selectedDate;
 
   /// Đang xem chuyến sắp chạy (chưa có điểm đi / đến) — [_query] là `null`.
   bool _browsing = false;
@@ -203,8 +204,10 @@ class _TicketScreenState extends State<TicketScreen>
             Expanded(
               child: _ExploreChip(
                 key: const Key('explore-date-chip'),
-                label: formatSearchDate(searchDate),
-                onTap: () => _editContext(pickSearchDate),
+                label: _selectedDate == null
+                    ? 'Ngày đi'
+                    : formatSearchDate(searchDate),
+                onTap: () => _editContext(_pickDate),
               ),
             ),
             const SizedBox(width: 8),
@@ -329,7 +332,9 @@ class _TicketScreenState extends State<TicketScreen>
             message: filtered
                 ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
                 : _browsing
-                ? 'Chưa có chuyến sắp chạy trong 14 ngày tới.'
+                ? _selectedDate == null
+                      ? 'Chưa có chuyến phù hợp trong 14 ngày tới.'
+                      : 'Chưa có chuyến phù hợp vào ngày đã chọn.'
                 : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
             actionLabel: filtered ? 'Bỏ lọc' : null,
             onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
@@ -340,12 +345,14 @@ class _TicketScreenState extends State<TicketScreen>
     return [
       if (_browsing)
         _messageSliver(
-          const Padding(
-            key: Key('ticket-browse-hint'),
-            padding: EdgeInsets.symmetric(horizontal: 15),
+          Padding(
+            key: const Key('ticket-browse-hint'),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Text(
-              'Chuyến sắp chạy của mọi tuyến trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
-              style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
+              _selectedDate == null
+                  ? 'Chuyến sắp chạy trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.'
+                  : 'Chuyến khởi hành ngày ${formatSearchDate(searchDate)}. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
+              style: const TextStyle(color: Color(0xFF607A8E), fontSize: 13),
             ),
           ),
           bottom: 14,
@@ -483,14 +490,15 @@ class _TicketScreenState extends State<TicketScreen>
     searchFrom = query.from;
     searchTo = query.to;
     searchDate = query.date;
+    _selectedDate = query.date;
     searchPassengers = query.passengers;
   }
 
-  /// Điều kiện theo các chip; chưa có điểm đi hoặc điểm đến thì `null`.
+  /// Điều kiện tìm theo tuyến; thiếu điểm đi, điểm đến hoặc ngày thì dùng danh sách khám phá.
   HomeSearchQuery? _contextQuery() {
     final from = searchFrom;
     final to = searchTo;
-    if (from == null || to == null) return null;
+    if (from == null || to == null || _selectedDate == null) return null;
     return HomeSearchQuery(
       mode: HomeSearchMode.route,
       from: from,
@@ -526,28 +534,49 @@ class _TicketScreenState extends State<TicketScreen>
     }
   }
 
+  Future<void> _pickDate() async {
+    if (await pickSearchDate() && mounted) {
+      setState(() => _selectedDate = searchDate);
+    }
+  }
+
   /// Mở ô chọn của một chip (ngày, số khách, điểm đi / đến); điều kiện đổi thì
   /// tải lại danh sách chuyến.
   Future<void> _editContext(Future<void> Function() pick) async {
-    final before = _contextQuery();
+    final before = (
+      searchFrom?.id,
+      searchFrom?.kind,
+      searchTo?.id,
+      searchTo?.kind,
+      _selectedDate,
+      searchPassengers,
+    );
     await pick();
     if (!mounted) return;
-    final query = _contextQuery();
-    if (query == null || _sameContext(before, query)) return;
-    if (query.from.id == query.to.id && query.from.kind == query.to.kind) {
+    final after = (
+      searchFrom?.id,
+      searchFrom?.kind,
+      searchTo?.id,
+      searchTo?.kind,
+      _selectedDate,
+      searchPassengers,
+    );
+    if (before == after) return;
+    if (searchFrom != null &&
+        searchTo != null &&
+        searchFrom!.id == searchTo!.id &&
+        searchFrom!.kind == searchTo!.kind) {
       showSearchMessage('Điểm đi và điểm đến phải khác nhau.');
       return;
     }
-    widget.onQueryChanged?.call(query);
-    _search(query);
+    final query = _contextQuery();
+    if (query != null) {
+      widget.onQueryChanged?.call(query);
+      _search(query);
+    } else {
+      _browse();
+    }
   }
-
-  bool _sameContext(HomeSearchQuery? a, HomeSearchQuery b) =>
-      a != null &&
-      a.from.id == b.from.id &&
-      a.to.id == b.to.id &&
-      a.date == b.date &&
-      a.passengers == b.passengers;
 
   /// Xem mọi chuyến sắp chạy (chưa có điểm đi / đến).
   Future<void> _browse() async {
@@ -563,7 +592,14 @@ class _TicketScreenState extends State<TicketScreen>
       _trips = const [];
     });
     try {
-      final page = await runner(_filters, 1);
+      final page = await runner(
+        _filters,
+        1,
+        date: _selectedDate,
+        passengers: searchPassengers,
+        from: searchFrom,
+        to: searchTo,
+      );
       if (!mounted || request != _request) return;
       setState(() {
         _page = page;
@@ -633,7 +669,14 @@ class _TicketScreenState extends State<TicketScreen>
     try {
       final next = query != null
           ? await runner!(query, _filters, page.page + 1)
-          : await browse!(_filters, page.page + 1);
+          : await browse!(
+              _filters,
+              page.page + 1,
+              date: _selectedDate,
+              passengers: searchPassengers,
+              from: searchFrom,
+              to: searchTo,
+            );
       if (!mounted || request != _request) return;
       setState(() {
         _page = next;

@@ -473,9 +473,6 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     loadAmenities: _bookingApi.loadAmenities,
   );
 
-  /// Lần tìm chuyến gần nhất — giữ để quay lại tab Mua vé vẫn thấy danh sách.
-  HomeSearchQuery? _lastSearchQuery;
-
   _AuthStep _step = _AuthStep.email;
 
   /// Đã dựng màn đăng nhập lần đầu (đã chạy splash).
@@ -1202,9 +1199,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
-  /// đã nhập; quay lại thì về Trang chủ. Tab Mua vé dùng lại điều kiện này.
+  /// đã nhập; quay lại thì về Trang chủ.
   void _openTripResults(HomeSearchQuery query) {
-    _lastSearchQuery = query;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TripResultsScreen(
@@ -1382,10 +1378,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         searchCatalog: _searchCatalog,
         searchTrips: _bookingApi.searchTrips,
         loadOperatorFare: _bookingApi.loadOperatorMinFare,
-        initialQuery: _lastSearchQuery,
-        // Chưa tìm lần nào: xem mọi chuyến sắp chạy, không cần nhập điểm hay ngày.
+        // Mỗi lần vào tab: xem mọi chuyến, không giữ bộ lọc của lần tìm trước.
         browseTrips: _bookingApi.browseTrips,
-        onQueryChanged: (query) => _lastSearchQuery = query,
         onTripSelected: _openTripDetail,
         onOperatorSelected: (operator) => _openOperatorProfile(operator.id),
       );

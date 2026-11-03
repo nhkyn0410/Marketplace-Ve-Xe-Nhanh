@@ -97,6 +97,16 @@ describe("TemporaryCredentialEmailLimiter", () => {
     expect(evalScript).toHaveBeenCalledOnce();
   });
 
+  it("uses a distinct one-hour cooldown for operator account recovery", async () => {
+    await limiter.reserve({ ...request, actorType: "platform", operatorAccountId: "owner-1" });
+    const [, keyCount, ...args] = evalScript.mock.calls[0] as [string, number, ...string[]];
+    expect(keyCount).toBe(4);
+    expect(args[3]).toBe("iam:temp-email:operator-reset:owner-1");
+    expect(args[8]).toBe("1");
+    evalScript.mockResolvedValue(4);
+    expect(await problemOf(limiter.reserve({ ...request, operatorAccountId: "owner-1" }))).toEqual({ status: 429, code: "ACCOUNT_TEMP_EMAIL_RATE_LIMITED" });
+  });
+
   it("fails closed with 503 when Redis is unavailable", async () => {
     evalScript.mockRejectedValue(new Error("Redis unavailable"));
 

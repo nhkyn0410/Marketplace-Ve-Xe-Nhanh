@@ -13,7 +13,7 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 - **Runtime**: TypeScript (strict) + Node.js LTS 24. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
 - **Backend**: NestJS 11 + **nestjs-zod** (KHÔNG class-validator). Modular monolith, 1 module / business domain.
 - **DB**: PostgreSQL 16 + **Prisma 7.8.0** (operational; driver adapter `@prisma/adapter-pg` + `pg`, `prisma.config.ts` cho Migrate/Studio); MongoDB 7 + Mongoose 8 (audit, cluster RIÊNG, chỉ `audit_event` + `system_log`, append-only).
-- **Cache / lock / queue**: Redis 7 (Upstash) + `ioredis`; **BullMQ** (`@nestjs/bullmq`).
+- **Cache / lock / queue**: Redis 7 + `ioredis` (production demo: Redis trong Docker Compose trên VM Lightsail — ADR-030, chờ duyệt; trước 03/11/2026 là Upstash); **BullMQ** (`@nestjs/bullmq`).
 - **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 10-role enum gồm `SALES_STAFF` bán vé quầy (Khanh 27/10/2026, COUNTER-SALES; role = trần quyền) + danh sách quyền riêng theo tài khoản cho quản trị / quản lý nhà xe (`can()`, claim `perms`, TASK-IAM-007); TenantGuard + Postgres RLS; TOTP.
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
 - **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo; UI = **Shadcn/ui + Tailwind CSS 4** trong `packages/ui` (ADR-013).

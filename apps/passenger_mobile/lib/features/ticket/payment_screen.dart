@@ -9,6 +9,7 @@ import 'payment_checkout_screen.dart';
 import 'payment_completion_screen.dart';
 import 'payment_models.dart';
 import 'trip_booking_api.dart';
+import 'vnpay_checkout_screen.dart';
 
 const _ink = Color(0xFF0B2942);
 const _blue = Color(0xFF1E8ABE);
@@ -40,6 +41,7 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen>
     with WidgetsBindingObserver {
+  final _vnpaySession = VnpayCheckoutSession();
   PassengerPaymentMethod _method = PassengerPaymentMethod.payos;
   BookingPaymentState? _state;
   Timer? _timer;
@@ -77,6 +79,7 @@ class _PaymentScreenState extends State<PaymentScreen>
   @override
   void dispose() {
     _timer?.cancel();
+    _vnpaySession.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -168,6 +171,7 @@ class _PaymentScreenState extends State<PaymentScreen>
           isSignedIn: widget.isSignedIn,
           onBookingFinished: widget.onBookingFinished,
           launchPaymentUrl: widget.launchPaymentUrl,
+          vnpaySession: _vnpaySession,
         ),
       ),
     );

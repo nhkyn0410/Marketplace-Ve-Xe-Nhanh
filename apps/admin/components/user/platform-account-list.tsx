@@ -62,6 +62,7 @@ export function PlatformAccountList({
       withReason: false,
       confirmLabel: "Cấp lại mật khẩu",
       run: () => resetPlatformPassword(account.id),
+      outcome: (result) => credentialOutcome(result as PlatformAccount, `Đã cấp lại mật khẩu tạm cho ${account.username}.`),
       done: `Đã cấp lại mật khẩu tạm cho ${account.username}.`
     });
   }
@@ -76,6 +77,7 @@ export function PlatformAccountList({
       confirmLabel: "Đặt lại",
       destructive: true,
       run: () => resetPlatformMfa(account.id),
+      outcome: (result) => credentialOutcome(result as PlatformAccount, `Đã đặt lại xác thực hai lớp cho ${account.username}.`),
       done: `Đã đặt lại xác thực hai lớp cho ${account.username}.`
     });
   }
@@ -262,4 +264,10 @@ export function PlatformAccountList({
       </div>
     </>
   );
+}
+
+function credentialOutcome(account: PlatformAccount, text: string): { text: string; tone: "success" | "warning" } {
+  return account.credentialDeliveryPending
+    ? { tone: "warning", text: `${text} Chưa gửi được email mật khẩu tạm; hãy thử cấp lại sau.` }
+    : { tone: "success", text };
 }

@@ -5092,6 +5092,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/operator-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorAccountController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-accounts/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorAccountController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/platform-accounts": {
         parameters: {
             query?: never;
@@ -11199,6 +11231,8 @@ export interface components {
                     id: string;
                     username: string;
                     email: string | null;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "LOCKED" | "DISABLED";
                     credentialDeliveryPending: boolean;
                 } | null;
                 routeCount: number;
@@ -11225,6 +11259,8 @@ export interface components {
                 id: string;
                 username: string;
                 email: string | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
                 credentialDeliveryPending: boolean;
             } | null;
             routeCount: number;
@@ -11850,6 +11886,59 @@ export interface components {
                 id: string;
                 name: string;
             }[];
+        };
+        AdminOperatorAccountPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                operatorStatus: "ACTIVE" | "SUSPENDED";
+                /** @enum {string} */
+                role: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                mfaEnabled: boolean;
+                passwordChangeRequired: boolean;
+                credentialDeliveryPending: boolean;
+                temporaryPasswordExpiresAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                lastLoginAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            operators: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
+        AdminOperatorAccountDto_Output: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            email: string | null;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            operatorStatus: "ACTIVE" | "SUSPENDED";
+            /** @enum {string} */
+            role: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            mfaEnabled: boolean;
+            passwordChangeRequired: boolean;
+            credentialDeliveryPending: boolean;
+            temporaryPasswordExpiresAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            lastLoginAt: string | null;
         };
         AdminPlatformAccountListDto_Output: {
             items: {
@@ -31614,6 +31703,131 @@ export interface operations {
             };
             /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorAccountController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                operatorId?: string;
+                role?: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+                status?: "ACTIVE" | "LOCKED" | "DISABLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang tài khoản nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorAccountPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorAccountController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountLockDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cấp lại; kiểm tra credentialDeliveryPending để biết kết quả gửi email. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description ACCOUNT_TEMP_EMAIL_RATE_LIMITED. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

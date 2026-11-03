@@ -39,8 +39,10 @@ export type TemporaryCredentialEmailRequest = {
   operatorId: string;
   actorType: string;
   actorId: string;
-  /** Only employee password resets are subject to the per-employee cooldown. */
+  /** Nhân viên dùng khóa cooldown riêng của luồng cấp lại mật khẩu nhân viên. */
   employeeId?: string;
+  /** Tài khoản chủ / quản lý dùng ngân sách cấp lại một lần mỗi giờ riêng. */
+  operatorAccountId?: string;
 };
 
 @Injectable()
@@ -51,13 +53,14 @@ export class TemporaryCredentialEmailLimiter {
 
   /** Reserve before account/password mutation. A later delivery failure does not refund the budget. */
   async reserve(request: TemporaryCredentialEmailRequest): Promise<void> {
+    const accountId = request.employeeId ?? request.operatorAccountId;
     const keys = [
       TEMP_EMAIL_GLOBAL_KEY,
       `iam:temp-email:tenant:${request.operatorId}`,
       `iam:temp-email:actor:${request.actorType}:${request.actorId}`,
     ];
-    if (request.employeeId) {
-      keys.push(`iam:temp-email:employee-reset:${request.employeeId}`);
+    if (accountId) {
+      keys.push(`iam:temp-email:${request.employeeId ? "employee" : "operator"}-reset:${accountId}`);
     }
 
     let result: unknown;
@@ -70,7 +73,7 @@ export class TemporaryCredentialEmailLimiter {
         String(TEMP_EMAIL_TENANT_MAX),
         String(TEMP_EMAIL_ACTOR_MAX),
         String(TEMP_EMAIL_WINDOW_SECONDS),
-        request.employeeId ? "1" : "0",
+        accountId ? "1" : "0",
         String(TEMP_EMAIL_EMPLOYEE_RESET_COOLDOWN_SECONDS),
       );
     } catch {
@@ -85,7 +88,7 @@ export class TemporaryCredentialEmailLimiter {
     }
     this.logger.warn({
       event: "iam.temporary_credential_email.rate_limited",
-      dimension: ["global", "tenant", "actor", "employee_reset"][result - 1],
+      dimension: ["global", "tenant", "actor", request.operatorAccountId ? "operator_reset" : "employee_reset"][result - 1],
     });
     throw new AuthException(
       HttpStatus.TOO_MANY_REQUESTS,

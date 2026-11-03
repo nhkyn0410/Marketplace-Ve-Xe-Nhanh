@@ -110,6 +110,7 @@ import { SystemStatusService } from "../admin/system-status.service";
 import { AdminAccountService } from "../iam/user/admin-account.service";
 import {
   AdminEmployeeController,
+  AdminOperatorAccountController,
   AdminPassengerController,
   AdminPlatformAccountController,
 } from "../iam/user/admin-user.controller";
@@ -243,6 +244,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     SystemStatusController,
     AdminPassengerController,
     AdminEmployeeController,
+    AdminOperatorAccountController,
     AdminPlatformAccountController,
   ],
   providers: [

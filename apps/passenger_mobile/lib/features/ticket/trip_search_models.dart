@@ -39,6 +39,7 @@ class TripSummary {
   final String tripId;
   final String operatorId;
   final String operatorName;
+
   /// Logo công khai của nhà xe; chưa có ảnh thì dùng chữ cái đầu.
   final String? operatorLogoUrl;
   final double? averageRating;
@@ -219,9 +220,15 @@ class TripSearchFilters {
 }
 
 /// Hàm tìm một trang chuyến theo điều kiện tìm + bộ lọc.
-/// Xem chuyến sắp chạy không cần điểm đi / đến hay ngày (tab Mua vé chưa tìm lần nào).
-typedef TripBrowseRunner =
-    Future<TripSearchPage> Function(TripSearchFilters filters, int page);
+/// Xem chuyến sắp chạy; ngày và hai phía hành trình có thể lọc độc lập.
+typedef TripBrowseRunner = Future<TripSearchPage> Function(
+  TripSearchFilters filters,
+  int page, {
+  DateTime? date,
+  int? passengers,
+  HomeLocation? from,
+  HomeLocation? to,
+});
 
 typedef TripSearchRunner = Future<TripSearchPage> Function(
   HomeSearchQuery query,
