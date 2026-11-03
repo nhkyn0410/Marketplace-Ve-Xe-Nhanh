@@ -188,7 +188,8 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
   });
 
   it("email lỗi → chờ giao; cấp lại thành công bỏ cờ pending; không tự mở nhà xe tạm khóa", async () => {
-    await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: { status: "SUSPENDED" } }));
+    const suspension = { status: "SUSPENDED" as const, suspendedReason: "Tạm khóa để kiểm thử khôi phục tài khoản", suspendedAt: new Date() };
+    await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: suspension }));
     try {
       sendTemporaryPassword.mockRejectedValueOnce(new Error("mail unavailable"));
       const pending = await accounts.resetOperatorPassword(authz, actor, ownerId, "Gửi lại mật khẩu");
@@ -196,9 +197,9 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
       expect((await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }))).credentialDeliveryPending).toBe(true);
       const delivered = await accounts.resetOperatorPassword(authz, actor, ownerId, "Thử gửi lại email");
       expect(delivered.credentialDeliveryPending).toBe(false);
-      expect((await prisma.withSystem((tx) => tx.operatorProfile.findUniqueOrThrow({ where: { id: operatorId } }))).status).toBe("SUSPENDED");
+      expect(await prisma.withSystem((tx) => tx.operatorProfile.findUniqueOrThrow({ where: { id: operatorId } }))).toMatchObject(suspension);
     } finally {
-      await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: { status: "ACTIVE" } }));
+      await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: { status: "ACTIVE", suspendedReason: null, suspendedAt: null } }));
     }
   });
 
@@ -226,12 +227,24 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     } finally {
       await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { status: "ACTIVE" } }));
     }
-    const before = await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { contactEmail: null } }));
+    const before = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }));
+    await prisma.withSystem((tx) => tx.operatorAccount.update({
+      where: { id: ownerId },
+      data: { contactEmail: null, passwordChangeRequired: false, temporaryPasswordExpiresAt: null, credentialDeliveryPending: false },
+    }));
     try {
       expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 409, code: "ACCOUNT_STATE_CONFLICT" });
       expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, randomUUID(), "Hỗ trợ khôi phục"))).toEqual({ status: 404, code: "ACCOUNT_NOT_FOUND" });
     } finally {
-      await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { contactEmail: `owner-${tag}@example.test`, passwordHash: before.passwordHash } }));
+      await prisma.withSystem((tx) => tx.operatorAccount.update({
+        where: { id: ownerId },
+        data: {
+          contactEmail: before.contactEmail,
+          passwordChangeRequired: before.passwordChangeRequired,
+          temporaryPasswordExpiresAt: before.temporaryPasswordExpiresAt,
+          credentialDeliveryPending: before.credentialDeliveryPending,
+        },
+      }));
     }
   });
 
