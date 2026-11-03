@@ -206,6 +206,8 @@ Class | Method | HTTP request | Description
 [*AdminTripsApi*](doc/AdminTripsApi.md) | [**adminTripControllerDetail**](doc/AdminTripsApi.md#admintripcontrollerdetail) | **GET** /v1/admin/trips/{id} | 
 [*AdminTripsApi*](doc/AdminTripsApi.md) | [**adminTripControllerList**](doc/AdminTripsApi.md#admintripcontrollerlist) | **GET** /v1/admin/trips | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminEmployeeControllerList**](doc/AdminUsersApi.md#adminemployeecontrollerlist) | **GET** /v1/admin/employees | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminOperatorAccountControllerList**](doc/AdminUsersApi.md#adminoperatoraccountcontrollerlist) | **GET** /v1/admin/operator-accounts | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminOperatorAccountControllerResetPassword**](doc/AdminUsersApi.md#adminoperatoraccountcontrollerresetpassword) | **POST** /v1/admin/operator-accounts/{id}/reset-password | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerBookings**](doc/AdminUsersApi.md#adminpassengercontrollerbookings) | **GET** /v1/admin/passengers/{id}/bookings | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerDetail**](doc/AdminUsersApi.md#adminpassengercontrollerdetail) | **GET** /v1/admin/passengers/{id} | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerList**](doc/AdminUsersApi.md#adminpassengercontrollerlist) | **GET** /v1/admin/passengers | 
@@ -287,9 +289,9 @@ Class | Method | HTTP request | Description
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerDownload**](doc/IncidentsApi.md#operatorincidentcontrollerdownload) | **GET** /v1/operator/incidents/{incidentId}/evidence/{index} | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerList**](doc/IncidentsApi.md#operatorincidentcontrollerlist) | **GET** /v1/operator/incidents | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerResolve**](doc/IncidentsApi.md#operatorincidentcontrollerresolve) | **PUT** /v1/operator/incidents/{incidentId}/resolution | 
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerCurrent**](doc/JourneyDemoApi.md#journeydemocontrollercurrent) | **GET** /v1/me/journey-demo |
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStart**](doc/JourneyDemoApi.md#journeydemocontrollerstart) | **POST** /v1/me/journey-demo |
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStop**](doc/JourneyDemoApi.md#journeydemocontrollerstop) | **DELETE** /v1/me/journey-demo/{sessionId} |
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerCurrent**](doc/JourneyDemoApi.md#journeydemocontrollercurrent) | **GET** /v1/me/journey-demo | 
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStart**](doc/JourneyDemoApi.md#journeydemocontrollerstart) | **POST** /v1/me/journey-demo | 
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStop**](doc/JourneyDemoApi.md#journeydemocontrollerstop) | **DELETE** /v1/me/journey-demo/{sessionId} | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**adminJourneyLogControllerList**](doc/JourneyLogsApi.md#adminjourneylogcontrollerlist) | **GET** /v1/admin/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerCreate**](doc/JourneyLogsApi.md#employeejourneylogcontrollercreate) | **POST** /v1/employee/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerList**](doc/JourneyLogsApi.md#employeejourneylogcontrollerlist) | **GET** /v1/employee/journey-logs | 
@@ -491,6 +493,9 @@ Class | Method | HTTP request | Description
  - [AdminEmployeePageDtoOutput](doc/AdminEmployeePageDtoOutput.md)
  - [AdminEmployeePageDtoOutputItemsInner](doc/AdminEmployeePageDtoOutputItemsInner.md)
  - [AdminMessageInputDto](doc/AdminMessageInputDto.md)
+ - [AdminOperatorAccountDtoOutput](doc/AdminOperatorAccountDtoOutput.md)
+ - [AdminOperatorAccountPageDtoOutput](doc/AdminOperatorAccountPageDtoOutput.md)
+ - [AdminOperatorAccountPageDtoOutputItemsInner](doc/AdminOperatorAccountPageDtoOutputItemsInner.md)
  - [AdminOperatorDetailDtoOutput](doc/AdminOperatorDetailDtoOutput.md)
  - [AdminOperatorDetailDtoOutputBankAccount](doc/AdminOperatorDetailDtoOutputBankAccount.md)
  - [AdminOperatorDetailDtoOutputStats](doc/AdminOperatorDetailDtoOutputStats.md)

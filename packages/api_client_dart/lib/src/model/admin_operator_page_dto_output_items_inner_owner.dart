@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -14,6 +15,7 @@ part 'admin_operator_page_dto_output_items_inner_owner.g.dart';
 /// * [id] 
 /// * [username] 
 /// * [email] 
+/// * [status] 
 /// * [credentialDeliveryPending] 
 @BuiltValue()
 abstract class AdminOperatorPageDtoOutputItemsInnerOwner implements Built<AdminOperatorPageDtoOutputItemsInnerOwner, AdminOperatorPageDtoOutputItemsInnerOwnerBuilder> {
@@ -25,6 +27,10 @@ abstract class AdminOperatorPageDtoOutputItemsInnerOwner implements Built<AdminO
 
   @BuiltValueField(wireName: r'email')
   String? get email;
+
+  @BuiltValueField(wireName: r'status')
+  AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum get status;
+  // enum statusEnum {  ACTIVE,  LOCKED,  DISABLED,  };
 
   @BuiltValueField(wireName: r'credentialDeliveryPending')
   bool get credentialDeliveryPending;
@@ -66,6 +72,11 @@ class _$AdminOperatorPageDtoOutputItemsInnerOwnerSerializer implements Primitive
     yield object.email == null ? null : serializers.serialize(
       object.email,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'status';
+    yield serializers.serialize(
+      object.status,
+      specifiedType: const FullType(AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum),
     );
     yield r'credentialDeliveryPending';
     yield serializers.serialize(
@@ -117,6 +128,13 @@ class _$AdminOperatorPageDtoOutputItemsInnerOwnerSerializer implements Primitive
           if (valueDes == null) continue;
           result.email = valueDes;
           break;
+        case r'status':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum),
+          ) as AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum;
+          result.status = valueDes;
+          break;
         case r'credentialDeliveryPending':
           final valueDes = serializers.deserialize(
             value,
@@ -153,4 +171,21 @@ class _$AdminOperatorPageDtoOutputItemsInnerOwnerSerializer implements Primitive
   }
 }
 
+
+class AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'ACTIVE')
+  static const AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum ACTIVE = _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnum_ACTIVE;
+  @BuiltValueEnumConst(wireName: r'LOCKED')
+  static const AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum LOCKED = _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnum_LOCKED;
+  @BuiltValueEnumConst(wireName: r'DISABLED')
+  static const AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum DISABLED = _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnum_DISABLED;
+
+  static Serializer<AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum> get serializer => _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnumSerializer;
+
+  const AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum._(String name): super(name);
+
+  static BuiltSet<AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum> get values => _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnumValues;
+  static AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum valueOf(String name) => _$adminOperatorPageDtoOutputItemsInnerOwnerStatusEnumValueOf(name);
+}
 
