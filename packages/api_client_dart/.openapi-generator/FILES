@@ -1433,10 +1433,3 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/admin_operator_account_dto_output_test.dart
-test/admin_operator_account_page_dto_output_items_inner_test.dart
-test/admin_operator_account_page_dto_output_test.dart
-test/journey_demo_api_test.dart
-test/journey_demo_current_dto_output_test.dart
-test/journey_demo_snapshot_dto_output_test.dart
-test/journey_demo_start_dto_test.dart
