@@ -262,6 +262,83 @@ void main() {
   });
 
   test(
+    'xem chuyến: ngày, số khách và từng phía hành trình được lọc độc lập',
+    () async {
+      final (api, adapter) = _api({
+        '/v1/trips/search': {
+          'items': <Object>[],
+          'total': 0,
+          'page': 1,
+          'limit': 20,
+          'facets': {
+            'operators': <Object>[],
+            'priceMin': null,
+            'priceMax': null,
+          },
+          'widenedToProvince': {'from': false, 'to': false},
+        },
+      });
+
+      await api.browseTrips(const TripSearchFilters(), 1);
+      final unfiltered = adapter.requests.last.uri.queryParameters;
+      expect(unfiltered['passengers'], '1');
+      expect(unfiltered.containsKey('date'), isFalse);
+      expect(unfiltered.keys.where((key) => key.startsWith('from')), isEmpty);
+      expect(unfiltered.keys.where((key) => key.startsWith('to')), isEmpty);
+
+      await api.browseTrips(
+        const TripSearchFilters(),
+        1,
+        date: DateTime(2026, 11, 7, 0, 30),
+        passengers: 3,
+      );
+      final byDate = adapter.requests.last.uri.queryParameters;
+      expect(byDate['date'], '2026-11-07');
+      expect(byDate['passengers'], '3');
+      expect(byDate.keys.where((key) => key.startsWith('from')), isEmpty);
+      expect(byDate.keys.where((key) => key.startsWith('to')), isEmpty);
+
+      for (final kind in HomeLocationKind.values) {
+        const fromKeys = {
+          HomeLocationKind.province: 'fromProvinceId',
+          HomeLocationKind.ward: 'fromWardId',
+          HomeLocationKind.area: 'fromAreaId',
+          HomeLocationKind.stopPoint: 'fromStopPointId',
+        };
+        const toKeys = {
+          HomeLocationKind.province: 'toProvinceId',
+          HomeLocationKind.ward: 'toWardId',
+          HomeLocationKind.area: 'toAreaId',
+          HomeLocationKind.stopPoint: 'toStopPointId',
+        };
+        final place = HomeLocation(
+          id: 'place-${kind.name}',
+          name: 'Điểm',
+          kind: kind,
+        );
+
+        await api.browseTrips(const TripSearchFilters(), 1, from: place);
+        final fromOnly = adapter.requests.last.uri.queryParameters;
+        expect(fromOnly[fromKeys[kind]], place.id);
+        expect(fromOnly.keys.where((key) => key.startsWith('from')), [
+          fromKeys[kind],
+        ]);
+        expect(fromOnly.keys.where((key) => key.startsWith('to')), isEmpty);
+        expect(fromOnly.containsKey('date'), isFalse);
+
+        await api.browseTrips(const TripSearchFilters(), 2, to: place);
+        final toOnly = adapter.requests.last.uri.queryParameters;
+        expect(toOnly[toKeys[kind]], place.id);
+        expect(toOnly.keys.where((key) => key.startsWith('to')), [
+          toKeys[kind],
+        ]);
+        expect(toOnly.keys.where((key) => key.startsWith('from')), isEmpty);
+        expect(toOnly['page'], '2');
+      }
+    },
+  );
+
+  test(
     'tìm chuyến: mỗi loại điểm gửi đúng tham số; đọc cờ đã nới ra cả tỉnh',
     () async {
       final (api, adapter) = _api({

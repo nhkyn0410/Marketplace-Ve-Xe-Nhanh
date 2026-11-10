@@ -49,6 +49,9 @@ doc/AdminLoyaltyApi.md
 doc/AdminMessageInputDto.md
 doc/AdminNotificationApi.md
 doc/AdminNotificationCampaignsApi.md
+doc/AdminOperatorAccountDtoOutput.md
+doc/AdminOperatorAccountPageDtoOutput.md
+doc/AdminOperatorAccountPageDtoOutputItemsInner.md
 doc/AdminOperatorApplicationsApi.md
 doc/AdminOperatorDetailDtoOutput.md
 doc/AdminOperatorDetailDtoOutputBankAccount.md
@@ -826,6 +829,9 @@ lib/src/model/admin_catalog_rename_dto.dart
 lib/src/model/admin_employee_page_dto_output.dart
 lib/src/model/admin_employee_page_dto_output_items_inner.dart
 lib/src/model/admin_message_input_dto.dart
+lib/src/model/admin_operator_account_dto_output.dart
+lib/src/model/admin_operator_account_page_dto_output.dart
+lib/src/model/admin_operator_account_page_dto_output_items_inner.dart
 lib/src/model/admin_operator_detail_dto_output.dart
 lib/src/model/admin_operator_detail_dto_output_bank_account.dart
 lib/src/model/admin_operator_detail_dto_output_stats.dart

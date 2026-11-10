@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/ticket/booking_flow_chrome.dart';
+import 'package:passenger_mobile/features/ticket/payment_checkout_screen.dart';
 import 'package:passenger_mobile/features/ticket/payment_models.dart';
 import 'package:passenger_mobile/features/ticket/payment_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -128,6 +129,146 @@ void main() {
       },
     );
   }
+
+  testWidgets('đóng VNPay kiểm tra máy chủ ngay và hiện vé đã phát hành', (
+    tester,
+  ) async {
+    final api = FakeBookingApi();
+    int? loadsAtReturn;
+    DateTime? returnedAt;
+    await _pumpScreen(
+      tester,
+      api: api,
+      launch: (_) async {
+        loadsAtReturn = api.paymentStateLoads;
+        returnedAt = tester.binding.clock.now();
+        api.confirmAfterPayment = true;
+        return true;
+      },
+    );
+    await _show(tester, const Key('payment-method-VNPAY'));
+    await tester.tap(find.byKey(const Key('payment-method-VNPAY')));
+    await _pay(tester);
+
+    expect(api.payments, [PassengerPaymentMethod.vnpay]);
+    expect(api.paymentStateLoads, loadsAtReturn! + 1);
+    expect(
+      tester.binding.clock.now().difference(returnedAt!),
+      lessThan(const Duration(seconds: 4)),
+    );
+    expect(find.byKey(const Key('payment-completion-screen')), findsOneWidget);
+    expect(find.text('Mã vé: TKT-A01'), findsOneWidget);
+    expect(find.byKey(const Key('ticket-issued-qr')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('VNPay trả về nhưng API còn xử lý thì chờ vé từ máy chủ', (
+    tester,
+  ) async {
+    final api = FakeBookingApi()
+      ..paymentState = const BookingPaymentState(
+        bookingStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PROCESSING',
+      );
+    int? loadsAtReturn;
+    await _pumpScreen(
+      tester,
+      api: api,
+      launch: (_) async {
+        loadsAtReturn = api.paymentStateLoads;
+        return true;
+      },
+    );
+    await _show(tester, const Key('payment-method-VNPAY'));
+    await tester.tap(find.byKey(const Key('payment-method-VNPAY')));
+    await _pay(tester);
+
+    expect(api.paymentStateLoads, loadsAtReturn! + 1);
+    expect(find.byKey(const Key('payment-checkout-screen')), findsOneWidget);
+    expect(find.byKey(const Key('payment-completion-screen')), findsNothing);
+    expect(find.byKey(const Key('ticket-issued-qr')), findsNothing);
+    expect(find.byKey(const Key('payment-error')), findsNothing);
+
+    api.confirmAfterPayment = true;
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-completion-screen')), findsOneWidget);
+    expect(find.text('Mã vé: TKT-A01'), findsOneWidget);
+    expect(api.payments, [PassengerPaymentMethod.vnpay]);
+  });
+
+  for (final status in ['FAILED', 'CANCELLED']) {
+    testWidgets('VNPay trả về trạng thái $status thì không phát hành vé', (
+      tester,
+    ) async {
+      final api = FakeBookingApi();
+      int? loadsAtReturn;
+      await _pumpScreen(
+        tester,
+        api: api,
+        launch: (_) async {
+          loadsAtReturn = api.paymentStateLoads;
+          api.paymentState = BookingPaymentState(
+            bookingStatus: 'PENDING_PAYMENT',
+            paymentStatus: status,
+          );
+          return true;
+        },
+      );
+      await _show(tester, const Key('payment-method-VNPAY'));
+      await tester.tap(find.byKey(const Key('payment-method-VNPAY')));
+      await _pay(tester);
+
+      expect(api.paymentStateLoads, loadsAtReturn! + 1);
+      expect(find.byKey(const Key('payment-completion-screen')), findsNothing);
+      expect(find.byKey(const Key('ticket-issued-qr')), findsNothing);
+      await _show(tester, const Key('payment-error'));
+      expect(find.textContaining('Thanh toán chưa thành công'), findsOneWidget);
+      expect(api.payments, [PassengerPaymentMethod.vnpay]);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('quay lại chọn cổng rồi mở VNPay giữ cùng phiên của đơn', (
+    tester,
+  ) async {
+    final launched = <Uri>[];
+    final api = await _pumpScreen(
+      tester,
+      launch: (uri) async {
+        launched.add(uri);
+        return true;
+      },
+    );
+    await _show(tester, const Key('payment-method-VNPAY'));
+    await tester.tap(find.byKey(const Key('payment-method-VNPAY')));
+    await _pay(tester);
+    final first = tester.widget<PaymentCheckoutScreen>(
+      find.byType(PaymentCheckoutScreen),
+    );
+    expect(first.vnpaySession, isNotNull);
+
+    await tester.tap(find.byKey(const Key('payment-back')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-screen')), findsOneWidget);
+    await _show(tester, const Key('payment-method-VNPAY'));
+    await tester.tap(find.byKey(const Key('payment-method-VNPAY')));
+    await _pay(tester);
+    final reopened = tester.widget<PaymentCheckoutScreen>(
+      find.byType(PaymentCheckoutScreen),
+    );
+
+    expect(reopened.vnpaySession, same(first.vnpaySession));
+    expect(reopened.booking, same(first.booking));
+    expect(api.payments, [
+      PassengerPaymentMethod.vnpay,
+      PassengerPaymentMethod.vnpay,
+    ]);
+    expect(launched, hasLength(2));
+    expect(api.bookings, isEmpty);
+    expect(find.byKey(const Key('payment-completion-screen')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('quay lại đổi cổng giữ nguyên đơn và hạn thanh toán', (
     tester,

@@ -13,6 +13,11 @@ import {
   AdminEmployeeListQueryDto,
   AdminEmployeePageDto,
   type EmployeePage,
+  AdminOperatorAccountDto,
+  type AdminOperatorAccount,
+  AdminOperatorAccountListQueryDto,
+  AdminOperatorAccountPageDto,
+  type OperatorAccountPage,
   AdminPassengerBookingPageDto,
   type AdminPassengerBookingPage,
   AdminPassengerBookingQueryDto,
@@ -134,6 +139,41 @@ export class AdminEmployeeController {
   @ZodResponse({ status: 200, description: "Một trang nhân viên nhà xe.", type: AdminEmployeePageDto })
   list(@Authz() authz: Authorization, @Query() query: AdminEmployeeListQueryDto): Promise<EmployeePage> {
     return this.accounts.listEmployees(authz, query);
+  }
+}
+
+@ApiTags("admin-users")
+@Controller("admin/operator-accounts")
+/** Admin xem tài khoản chủ / quản lý nhà xe và cấp lại mật khẩu tạm qua email. */
+export class AdminOperatorAccountController {
+  constructor(@Inject(AdminAccountService) private readonly accounts: AdminAccountService) {}
+
+  /** Tìm và lọc tài khoản Operator OS trên mọi nhà xe. */
+  @Get()
+  @Authorize("user:manage")
+  @ZodResponse({ status: 200, description: "Một trang tài khoản nhà xe.", type: AdminOperatorAccountPageDto })
+  list(@Authz() authz: Authorization, @Query() query: AdminOperatorAccountListQueryDto): Promise<OperatorAccountPage> {
+    return this.accounts.listOperatorAccounts(authz, query);
+  }
+
+  /** Cấp lại mật khẩu tạm hoặc gửi lại khi email lỗi; giữ nguyên trạng thái tài khoản và nhà xe. */
+  @Post(":id/reset-password")
+  @HttpCode(200)
+  @Authorize("user:manage", { requireReauth: true })
+  @ApiParam({ name: "id", type: String, format: "uuid" })
+  @ApiBody({ type: AdminAccountLockDto })
+  @ZodResponse({ status: 200, description: "Tài khoản sau khi cấp lại; kiểm tra credentialDeliveryPending để biết kết quả gửi email.", type: AdminOperatorAccountDto })
+  @ApiResponse(NOT_FOUND)
+  @ApiResponse(STATE)
+  @ApiResponse({ status: 429, description: "ACCOUNT_TEMP_EMAIL_RATE_LIMITED.", content: problemContent })
+  @ApiResponse(UNAVAILABLE)
+  resetPassword(
+    @Authz() authz: Authorization,
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Param() params: AdminAccountIdParamDto,
+    @Body() input: AdminAccountLockDto,
+  ): Promise<AdminOperatorAccount> {
+    return this.accounts.resetOperatorPassword(authz, actor, params.id, input.reason);
   }
 }
 

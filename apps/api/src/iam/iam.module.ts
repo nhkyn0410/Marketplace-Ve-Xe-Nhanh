@@ -29,6 +29,7 @@ import { AccountProvisioningService } from "./user/account-provisioning.service"
 import { AdminAccountService } from "./user/admin-account.service";
 import {
   AdminEmployeeController,
+  AdminOperatorAccountController,
   AdminPassengerController,
   AdminPlatformAccountController,
 } from "./user/admin-user.controller";
@@ -50,6 +51,7 @@ import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
     OperatorManagerController,
     AdminPassengerController,
     AdminEmployeeController,
+    AdminOperatorAccountController,
     AdminPlatformAccountController,
   ],
   providers: [

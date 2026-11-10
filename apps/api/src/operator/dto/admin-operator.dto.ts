@@ -1,7 +1,7 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { TimeCursorField } from "../../common/time-cursor";
-import { OperatorStatus } from "../../database/prisma.types";
+import { AccountStatus, OperatorStatus } from "../../database/prisma.types";
 
 // API §7.5 `/admin/operators` — Admin xem / tạm khóa / mở lại nhà xe (FR-ADM-02/03, UC-23 A6; Figma ADM-02e/f).
 
@@ -39,6 +39,7 @@ const AdminOperatorSchema = z.object({
       id: z.uuid(),
       username: z.string(),
       email: z.string().nullable(),
+      status: z.enum(AccountStatus),
       /** Mật khẩu tạm chưa gửi được (UC-23 A4) — hiện nút "Gửi lại". */
       credentialDeliveryPending: z.boolean(),
     })

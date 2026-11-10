@@ -12,6 +12,7 @@ import type { SessionService } from "../session/session.service";
 import { AdminAccountService } from "./admin-account.service";
 import {
   EmployeeListQuerySchema,
+  OperatorAccountListQuerySchema,
   PassengerListQuerySchema,
   PlatformAccountCreateSchema,
   PlatformAccountListQuerySchema,
@@ -41,6 +42,10 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
   const adminId = randomUUID();
   const operatorId = randomUUID();
   const employeeId = randomUUID();
+  const ownerId = randomUUID();
+  const managerId = randomUUID();
+  const foreignOperatorId = randomUUID();
+  const foreignOwnerId = randomUUID();
   const passengerId = `psg${tag}`;
   const createdPlatform: string[] = [];
   const actor = { sub: adminId, role: "PLATFORM_ADMIN", scope: "platform" as const };
@@ -48,6 +53,7 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
   const recordAuditEvent = vi.fn(async (_event: AuditEventInput, _options?: unknown) => undefined);
   const revokeAllForSubject = vi.fn(async () => 1);
   const lastLoginAt = vi.fn(async () => new Map<string, Date>());
+  const reserve = vi.fn(async (_request: unknown) => undefined);
   const mfa = { enabledSubjects: vi.fn(async () => new Set<string>()), resetForSubject: vi.fn(async () => 1) };
   const sent: TemporaryPasswordEmailMessage[] = [];
   const sendTemporaryPassword = vi.fn(async (message: TemporaryPasswordEmailMessage) => {
@@ -62,7 +68,7 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
       { revokeAllForSubject, lastLoginAt } as unknown as SessionService,
       mfa as unknown as MfaService,
       credentials,
-      { reserve: async () => undefined } as unknown as TemporaryCredentialEmailLimiter,
+      { reserve } as unknown as TemporaryCredentialEmailLimiter,
       { sendOtp: async () => undefined, sendTemporaryPassword } as EmailNotifier,
     );
     await prisma.withSystem(async (tx) => {
@@ -72,6 +78,12 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
       await tx.user.create({ data: { id: passengerId, email: `rider-${tag}@example.com`, name: `Khách ${tag}` } });
       await tx.account.create({ data: { id: randomUUID(), userId: passengerId, accountId: "g-1", providerId: "google" } });
       await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `adm-u-${tag}`, displayName: `Nhà xe U ${tag}` } });
+      await tx.operatorProfile.create({ data: { id: foreignOperatorId, operatorSlug: `adm-f-${tag}`, displayName: `Nhà xe F ${tag}` } });
+      await tx.operatorAccount.createMany({ data: [
+        { id: ownerId, operatorId, operatorSlug: `adm-u-${tag}`, username: "owner01", contactEmail: `owner-${tag}@example.test`, passwordHash: "old-owner-hash", role: "OPERATOR_OWNER" },
+        { id: managerId, operatorId, operatorSlug: `adm-u-${tag}`, username: "manager01", contactEmail: `manager-${tag}@example.test`, passwordHash: "old-manager-hash", role: "OPERATOR_MANAGER", permissions: ["booking:read"] },
+        { id: foreignOwnerId, operatorId: foreignOperatorId, operatorSlug: `adm-f-${tag}`, username: "owner01", contactEmail: `foreign-${tag}@example.test`, passwordHash: "foreign-owner-hash", role: "OPERATOR_OWNER" },
+      ] });
       await tx.employeeAccount.create({
         data: { id: employeeId, operatorId, username: "nv.ve01", passwordHash: "x", role: "TICKET_STAFF", contactEmail: `ve@${tag}.test` },
       });
@@ -84,7 +96,8 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     }
     await prisma.withSystem(async (tx) => {
       await tx.employeeAccount.deleteMany({ where: { operatorId } });
-      await tx.operatorProfile.deleteMany({ where: { id: operatorId } });
+      await tx.operatorAccount.deleteMany({ where: { operatorId: { in: [operatorId, foreignOperatorId] } } });
+      await tx.operatorProfile.deleteMany({ where: { id: { in: [operatorId, foreignOperatorId] } } });
       await tx.account.deleteMany({ where: { userId: passengerId } });
       await tx.user.deleteMany({ where: { id: passengerId } });
       await tx.platformAccount.deleteMany({ where: { id: { in: [adminId, ...createdPlatform] } } });
@@ -97,6 +110,7 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     recordAuditEvent.mockResolvedValue(undefined);
     revokeAllForSubject.mockClear();
     sendTemporaryPassword.mockClear();
+    reserve.mockReset().mockResolvedValue(undefined);
     sent.length = 0;
   });
 
@@ -134,6 +148,112 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     ]);
     expect(page.operators).toEqual(expect.arrayContaining([{ id: operatorId, name: `Nhà xe U ${tag}` }]));
     expect((await accounts.listEmployees(authz, EmployeeListQuerySchema.parse({ operatorId, role: "DRIVER" }))).total).toBe(0);
+  });
+
+  it("tài khoản nhà xe: Owner + Manager, lọc tenant / vai trò / tên đăng nhập đầy đủ và phân trang không trùng", async () => {
+    const query = OperatorAccountListQuerySchema.parse({ operatorId, limit: 1 });
+    const first = await accounts.listOperatorAccounts(authz, query);
+    const second = await accounts.listOperatorAccounts(authz, { ...query, cursor: first.nextCursor! });
+    expect(first.total).toBe(2);
+    expect(first.nextCursor).not.toBeNull();
+    expect(second.nextCursor).toBeNull();
+    expect(new Set([...first.items, ...second.items].map((row) => row.id))).toEqual(new Set([ownerId, managerId]));
+    expect(JSON.stringify(first)).not.toMatch(/passwordHash|authEpoch|old-owner-hash/);
+    expect((await accounts.listOperatorAccounts(authz, OperatorAccountListQuerySchema.parse({ operatorId, role: "OPERATOR_MANAGER" }))).items.map((row) => row.id)).toEqual([managerId]);
+    expect((await accounts.listOperatorAccounts(authz, OperatorAccountListQuerySchema.parse({ q: `adm-u-${tag}/owner01` }))).items.map((row) => row.id)).toEqual([ownerId]);
+    expect((await accounts.listOperatorAccounts(authz, OperatorAccountListQuerySchema.parse({ operatorId: foreignOperatorId }))).items.map((row) => row.id)).toEqual([foreignOwnerId]);
+  });
+
+  it.each([ownerId, managerId])("cấp mật khẩu nhà xe %s: hạn 24h, epoch tăng, thu hồi phiên trước / sau, giữ 2FA và tài khoản tenant khác", async (id) => {
+    const before = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id } }));
+    const foreign = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: foreignOwnerId } }));
+    mfa.resetForSubject.mockClear();
+    const updated = await accounts.resetOperatorPassword(authz, actor, id, "Hỗ trợ nhà xe quên mật khẩu");
+    const after = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id } }));
+    expect(after.authEpoch).toBe(before.authEpoch + 1);
+    expect(after.version).toBe(before.version + 2);
+    expect(after.passwordChangeRequired).toBe(true);
+    expect(after.credentialDeliveryPending).toBe(false);
+    expect(after.temporaryPasswordExpiresAt!.getTime() - Date.now()).toBeGreaterThan(23 * 3_600_000);
+    expect(await credentials.verify(sent[0]!.temporaryPassword, after.passwordHash)).toBe(true);
+    expect(sent[0]!.loginIdentifier).toBe(updated.username);
+    expect(updated).toMatchObject({ id, passwordChangeRequired: true, credentialDeliveryPending: false });
+    expect(JSON.stringify(updated)).not.toContain(sent[0]!.temporaryPassword);
+    expect(revokeAllForSubject).toHaveBeenCalledTimes(2);
+    expect(revokeAllForSubject).toHaveBeenCalledWith("OPERATOR", id, "PASSWORD_RESET");
+    expect(mfa.resetForSubject).not.toHaveBeenCalled();
+    expect(reserve).toHaveBeenCalledWith({ operatorId, actorType: "platform", actorId: actor.sub, operatorAccountId: id });
+    expect(recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({ action: "iam.operator_account.password_reset", operatorId, reason: "Hỗ trợ nhà xe quên mật khẩu" }), expect.anything());
+    expect(await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: foreignOwnerId } }))).toEqual(foreign);
+  });
+
+  it("email lỗi → chờ giao; cấp lại thành công bỏ cờ pending; không tự mở nhà xe tạm khóa", async () => {
+    const suspension = { status: "SUSPENDED" as const, suspendedReason: "Tạm khóa để kiểm thử khôi phục tài khoản", suspendedAt: new Date() };
+    await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: suspension }));
+    try {
+      sendTemporaryPassword.mockRejectedValueOnce(new Error("mail unavailable"));
+      const pending = await accounts.resetOperatorPassword(authz, actor, ownerId, "Gửi lại mật khẩu");
+      expect(pending).toMatchObject({ credentialDeliveryPending: true, operatorStatus: "SUSPENDED", status: "ACTIVE" });
+      expect((await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }))).credentialDeliveryPending).toBe(true);
+      const delivered = await accounts.resetOperatorPassword(authz, actor, ownerId, "Thử gửi lại email");
+      expect(delivered.credentialDeliveryPending).toBe(false);
+      expect(await prisma.withSystem((tx) => tx.operatorProfile.findUniqueOrThrow({ where: { id: operatorId } }))).toMatchObject(suspension);
+    } finally {
+      await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: operatorId }, data: { status: "ACTIVE", suspendedReason: null, suspendedAt: null } }));
+    }
+  });
+
+  it("quota hoặc audit lỗi → không đổi mật khẩu; lỗi audit sau update → transaction rollback", async () => {
+    const before = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }));
+    reserve.mockRejectedValueOnce(new Error("quota exhausted"));
+    await expect(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục")).rejects.toThrow("quota exhausted");
+    expect(sendTemporaryPassword).not.toHaveBeenCalled();
+    expect(revokeAllForSubject).not.toHaveBeenCalled();
+    recordAuditEvent.mockRejectedValueOnce(new AuditWriteError(new Error("mongo unavailable")));
+    expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 503, code: "SERVICE_UNAVAILABLE" });
+    recordAuditEvent.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new AuditWriteError(new Error("mongo unavailable")));
+    expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 503, code: "SERVICE_UNAVAILABLE" });
+    expect(await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }))).toEqual(before);
+    expect(sendTemporaryPassword).not.toHaveBeenCalled();
+  });
+
+  it.each(["LOCKED", "DISABLED"] as const)("không cấp lại hoặc tự mở tài khoản %s; thiếu email / id không có bị chặn", async (status) => {
+    await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { status } }));
+    try {
+      expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 409, code: "ACCOUNT_STATE_CONFLICT" });
+      expect((await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }))).status).toBe(status);
+      expect(sendTemporaryPassword).not.toHaveBeenCalled();
+      expect(reserve).not.toHaveBeenCalled();
+    } finally {
+      await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { status: "ACTIVE" } }));
+    }
+    const before = await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }));
+    await prisma.withSystem((tx) => tx.operatorAccount.update({
+      where: { id: ownerId },
+      data: { contactEmail: null, passwordChangeRequired: false, temporaryPasswordExpiresAt: null, credentialDeliveryPending: false },
+    }));
+    try {
+      expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 409, code: "ACCOUNT_STATE_CONFLICT" });
+      expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, randomUUID(), "Hỗ trợ khôi phục"))).toEqual({ status: 404, code: "ACCOUNT_NOT_FOUND" });
+    } finally {
+      await prisma.withSystem((tx) => tx.operatorAccount.update({
+        where: { id: ownerId },
+        data: {
+          contactEmail: before.contactEmail,
+          passwordChangeRequired: before.passwordChangeRequired,
+          temporaryPasswordExpiresAt: before.temporaryPasswordExpiresAt,
+          credentialDeliveryPending: before.credentialDeliveryPending,
+        },
+      }));
+    }
+  });
+
+  it("không xóa cờ chờ giao của mật khẩu mới hơn nếu account thay đổi trong lúc gửi email", async () => {
+    sendTemporaryPassword.mockImplementationOnce(async () => {
+      await prisma.withSystem((tx) => tx.operatorAccount.update({ where: { id: ownerId }, data: { version: { increment: 1 }, credentialDeliveryPending: true } }));
+    });
+    expect(await rejectionOf(accounts.resetOperatorPassword(authz, actor, ownerId, "Hỗ trợ khôi phục"))).toEqual({ status: 409, code: "ACCOUNT_STATE_CONFLICT" });
+    expect((await prisma.withSystem((tx) => tx.operatorAccount.findUniqueOrThrow({ where: { id: ownerId } }))).credentialDeliveryPending).toBe(true);
   });
 
   it("cấp tài khoản quản trị: mật khẩu tạm gửi email, phải đổi lần đầu; trùng tên → 409; gửi lỗi → chờ giao, cấp lại để gửi lại", async () => {

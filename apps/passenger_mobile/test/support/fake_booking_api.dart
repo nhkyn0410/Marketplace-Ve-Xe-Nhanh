@@ -491,8 +491,12 @@ class FakeBookingApi implements TripBookingApi {
   @override
   Future<TripSearchPage> browseTrips(
     TripSearchFilters filters,
-    int page,
-  ) async => const TripSearchPage(
+    int page, {
+    DateTime? date,
+    int? passengers,
+    HomeLocation? from,
+    HomeLocation? to,
+  }) async => const TripSearchPage(
     items: [],
     total: 0,
     page: 1,

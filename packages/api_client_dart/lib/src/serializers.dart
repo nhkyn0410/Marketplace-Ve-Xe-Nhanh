@@ -52,6 +52,9 @@ import 'package:api_client_dart/src/model/admin_catalog_rename_dto.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_message_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_bank_account.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_stats.dart';
@@ -692,6 +695,9 @@ part 'serializers.g.dart';
   AdminEmployeePageDtoOutput,
   AdminEmployeePageDtoOutputItemsInner,
   AdminMessageInputDto,
+  AdminOperatorAccountDtoOutput,
+  AdminOperatorAccountPageDtoOutput,
+  AdminOperatorAccountPageDtoOutputItemsInner,
   AdminOperatorDetailDtoOutput,
   AdminOperatorDetailDtoOutputBankAccount,
   AdminOperatorDetailDtoOutputStats,
@@ -1511,6 +1517,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CounterTripListDtoOutputItemsInnerSeatsInner)]),
         () => ListBuilder<CounterTripListDtoOutputItemsInnerSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminOperatorAccountPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorAccountPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),

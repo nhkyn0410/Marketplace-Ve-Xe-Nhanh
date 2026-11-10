@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
@@ -12,6 +13,7 @@ import 'payment_checkout_card.dart';
 import 'payment_models.dart';
 import 'trip_booking_api.dart';
 import 'trip_search_models.dart';
+import 'vnpay_checkout_screen.dart';
 
 const _ink = Color(0xFF0B2942);
 const _blue = Color(0xFF1E8ABE);
@@ -30,6 +32,7 @@ class PaymentCheckoutScreen extends StatefulWidget {
     this.isSignedIn = false,
     this.onBookingFinished,
     this.launchPaymentUrl,
+    this.vnpaySession,
   });
 
   final TripBookingApi api;
@@ -40,12 +43,16 @@ class PaymentCheckoutScreen extends StatefulWidget {
   final VoidCallback? onBookingFinished;
   final Future<bool> Function(Uri)? launchPaymentUrl;
 
+  /// Giữ phiên VNPay của đơn khi quay lại chọn phương thức rồi mở tiếp.
+  final VnpayCheckoutSession? vnpaySession;
+
   @override
   State<PaymentCheckoutScreen> createState() => _PaymentCheckoutScreenState();
 }
 
 class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen>
     with WidgetsBindingObserver {
+  late final _vnpaySession = widget.vnpaySession ?? VnpayCheckoutSession();
   Timer? _timer;
   Timer? _pollTimer;
   Duration _remaining = Duration.zero;
@@ -90,6 +97,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen>
   void dispose() {
     _timer?.cancel();
     _pollTimer?.cancel();
+    if (widget.vnpaySession == null) _vnpaySession.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -171,9 +179,23 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen>
       if (!const {'http', 'https'}.contains(uri.scheme) || uri.host.isEmpty) {
         throw const FormatException('Invalid payment URL');
       }
-      final opened =
-          await (widget.launchPaymentUrl?.call(uri) ??
-              launchUrl(uri, mode: LaunchMode.externalApplication));
+      final embeddedVnpay =
+          widget.method == PassengerPaymentMethod.vnpay &&
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS);
+      final opened = await (widget.launchPaymentUrl?.call(uri) ??
+          (embeddedVnpay
+              ? openVnpayCheckout(
+                  context,
+                  paymentUrl: uri,
+                  bookingId: widget.booking.bookingId,
+                  session: _vnpaySession,
+                )
+              : launchUrl(uri, mode: LaunchMode.externalApplication)));
+      if (opened && mounted && widget.method == PassengerPaymentMethod.vnpay) {
+        await _checkState();
+      }
       if (!opened && mounted) {
         setState(
           () => _error = 'Không mở được trang thanh toán. Vui lòng thử lại hoặc quay lại chọn phương thức khác.',

@@ -20,6 +20,9 @@ export type PlatformRole = PlatformAccount["role"];
 export type PlatformAccountInput = Schemas["AdminPlatformAccountCreateDto"];
 export type PlatformAccountList = Schemas["AdminPlatformAccountListDto_Output"];
 export type PlatformGrantable = PlatformAccountList["grantable"];
+export type OperatorAccountPage = Schemas["AdminOperatorAccountPageDto_Output"];
+export type OperatorAccount = Schemas["AdminOperatorAccountDto_Output"];
+export type OperatorAccountRole = OperatorAccount["role"];
 
 const PAGE_SIZE = "20";
 
@@ -78,6 +81,19 @@ export function listEmployees(
   cursor: string | null
 ): Promise<EmployeePage> {
   return apiRequest<EmployeePage>(`/admin/employees?${query({ ...filters, cursor })}`);
+}
+
+/** Tài khoản chủ / quản lý nhà xe với phân trang và bộ lọc theo nhà xe. */
+export function listOperatorAccounts(
+  filters: { q?: string; operatorId?: string; role?: string; status?: string },
+  cursor: string | null
+): Promise<OperatorAccountPage> {
+  return apiRequest<OperatorAccountPage>(`/admin/operator-accounts?${query({ ...filters, cursor })}`);
+}
+
+/** Cấp mật khẩu tạm qua email, giữ nguyên trạng thái tài khoản và nhà xe. */
+export function resetOperatorPassword(id: string, reason: string): Promise<OperatorAccount> {
+  return apiRequest<OperatorAccount>(`/admin/operator-accounts/${id}/reset-password`, { method: "POST", body: { reason } });
 }
 
 /** Danh sách + `grantable` = quyền người đang xem được tick cho từng vai trò (TASK-IAM-007). */
