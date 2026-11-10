@@ -72,6 +72,16 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AdminEmployeePageDtoOutputItemsInnerRoleEnum.serializer)
       ..add(AdminEmployeePageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminMessageInputDto.serializer)
+      ..add(AdminOperatorAccountDtoOutput.serializer)
+      ..add(AdminOperatorAccountDtoOutputOperatorStatusEnum.serializer)
+      ..add(AdminOperatorAccountDtoOutputRoleEnum.serializer)
+      ..add(AdminOperatorAccountDtoOutputStatusEnum.serializer)
+      ..add(AdminOperatorAccountPageDtoOutput.serializer)
+      ..add(AdminOperatorAccountPageDtoOutputItemsInner.serializer)
+      ..add(AdminOperatorAccountPageDtoOutputItemsInnerOperatorStatusEnum
+          .serializer)
+      ..add(AdminOperatorAccountPageDtoOutputItemsInnerRoleEnum.serializer)
+      ..add(AdminOperatorAccountPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminOperatorDetailDtoOutput.serializer)
       ..add(AdminOperatorDetailDtoOutputBankAccount.serializer)
       ..add(AdminOperatorDetailDtoOutputStats.serializer)
@@ -79,6 +89,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AdminOperatorPageDtoOutput.serializer)
       ..add(AdminOperatorPageDtoOutputItemsInner.serializer)
       ..add(AdminOperatorPageDtoOutputItemsInnerOwner.serializer)
+      ..add(AdminOperatorPageDtoOutputItemsInnerOwnerStatusEnum.serializer)
       ..add(AdminOperatorPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminOperatorStopPointDtoOutput.serializer)
       ..add(AdminOperatorStopPointDtoOutputStatusEnum.serializer)
@@ -1163,6 +1174,16 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(AdminEmployeePageDtoOutputItemsInner)]),
           () => ListBuilder<AdminEmployeePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminVehicleImageListDtoOutputOperatorsInner)
+          ]),
+          () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminOperatorAccountPageDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminOperatorAccountPageDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(AdminVehicleImageListDtoOutputOperatorsInner)
