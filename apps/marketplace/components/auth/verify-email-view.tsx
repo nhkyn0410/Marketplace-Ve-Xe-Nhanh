@@ -122,13 +122,15 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
 
     setIsSubmitting(true);
     try {
+      const target = flow === "register" ? "/register/profile" : "/account";
+      // Thành công thì Server Action tự redirect tới `target` (router.push sau Server Action ghi cookie trong modal bị hủy).
       const res = await verifyOtp({
         email,
         otp: digits.join("")
-      });
+      }, target);
+      if (!res) return;
       if (res.status === "ok") {
-        router.push(flow === "register" ? "/register/profile" : "/account");
-        router.refresh();
+        window.location.assign(target);
       } else if (res.status === "unavailable") {
         setErrorMessage("Chưa thể xác minh mã. Vui lòng thử lại sau.");
       } else if (res.status === "error") {

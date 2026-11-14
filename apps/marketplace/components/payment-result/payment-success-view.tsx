@@ -74,7 +74,7 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
                 <strong className="text-vxn-ink font-semibold">
                   {result.customerEmail ?? ""}
                 </strong>
-                . Bạn có thể mở hoặc in vé bên dưới. Khách đặt không đăng nhập nên giữ mã đặt vé để tra cứu lại.
+                . Bạn có thể mở hoặc in vé bên dưới.{result.isGuestBooking && " Khách đặt không đăng nhập nên giữ mã đặt vé để tra cứu lại."}
               </p>
             </div>
           </div>

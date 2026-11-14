@@ -77,20 +77,20 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
           {/* Hàng 2: Lộ trình & Giá vé */}
           <div className="mt-3.5 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             {/* Cột thời gian di chuyển */}
-            <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 shrink-0">
+            <div className="flex min-w-0 items-center justify-between sm:justify-start gap-3 sm:gap-4">
               {/* Giờ đi */}
-              <div>
+              <div className="min-w-0">
                 <div className="text-2xl font-extrabold text-slate-900">
                   {trip.departureTime}
                 </div>
-                <div className="text-xs font-medium text-slate-500">{trip.departureCity}</div>
+                <div className="truncate text-xs font-medium text-slate-500">{trip.departureCity}</div>
                 {showDate && trip.departureDateText && (
                   <div className="text-[11px] font-semibold text-[#00506a]">{trip.departureDateText}</div>
                 )}
               </div>
 
               {/* Đường kẻ thời gian */}
-              <div className="flex flex-col items-center px-1">
+              <div className="flex shrink-0 flex-col items-center px-1">
                 <span className="text-[11px] font-medium text-slate-500 whitespace-nowrap">{trip.durationText}</span>
                 <div className="relative my-1 flex w-14 sm:w-16 items-center justify-between">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00506a]" />
@@ -101,7 +101,7 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
               </div>
 
               {/* Giờ đến */}
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-2xl font-extrabold text-slate-900">
                     {trip.arrivalTime}
@@ -112,7 +112,7 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
                     </span>
                   )}
                 </div>
-                <div className="text-xs font-medium text-slate-500">{trip.arrivalCity}</div>
+                <div className="truncate text-xs font-medium text-slate-500">{trip.arrivalCity}</div>
               </div>
             </div>
 

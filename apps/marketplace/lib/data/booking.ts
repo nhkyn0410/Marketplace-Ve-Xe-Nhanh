@@ -166,6 +166,8 @@ export async function getBookingPaymentResult(bookingId: string): Promise<DataRe
   try {
     const mapped = mapPaymentResult(result.data);
     const tickets = await Promise.all((mapped.tickets ?? []).map(async (ticket) => ({ ...ticket, qrCodeDataUrl: await QRCode.toDataURL(result.data.tickets.find((t) => t.ticketId === ticket.ticketId)!.qrToken) })));
-    return ok({ ...mapped, tickets });
+    // Lời dặn "giữ mã đặt vé để tra cứu" chỉ dành cho khách không đăng nhập.
+    const isGuestBooking = !(await cookies()).get(ACCESS_COOKIE)?.value;
+    return ok({ ...mapped, tickets, isGuestBooking });
   } catch { return failed("GET /bookings/{bookingId}", "Không thể đọc kết quả thanh toán."); }
 }

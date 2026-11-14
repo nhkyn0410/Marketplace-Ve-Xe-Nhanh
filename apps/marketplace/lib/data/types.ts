@@ -240,6 +240,8 @@ export interface TripDetailData {
   readonly statusBadge: string;
   readonly routeName: string;
   readonly routeMeta: string;
+  /** Ngày khách lên xe (theo điểm đón của chặng) — ô "Ngày đi" ở khung đặt vé. */
+  readonly departureDateText: string;
   readonly departureTime: string;
   readonly departureStation: string;
   readonly durationText: string;
@@ -578,6 +580,8 @@ export interface BookingPaymentResultData {
   readonly customerEmail?: string;
   readonly failureReason?: string;
   readonly holdCountdownSeconds?: number;
+  /** Người xem không có phiên đăng nhập → hiện lời dặn giữ mã đặt vé để tra cứu. */
+  readonly isGuestBooking?: boolean;
   readonly tickets?: readonly IssuedTicketItem[];
   readonly trip?: {
     readonly operatorName: string;

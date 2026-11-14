@@ -106,7 +106,7 @@ export function PaymentSummarySidebar({
                       {p.fullName || `Hành khách chỗ ${p.seatCode}`}
                     </div>
                     <div className="text-[11px] text-vxn-fg-4">
-                      {p.seatTypeLabel} • {p.floorLabel}
+                      {p.seatTypeLabel}{p.floorLabel ? ` • ${p.floorLabel}` : ""}
                     </div>
                   </div>
                 </div>

@@ -53,8 +53,8 @@ export function RegisterProfileView({ email, initialFullName = "", initialPhone 
     try {
       const result = await updateAccountProfile({ name, phone: phoneValue || null });
       if (result.status === "ok") {
+        // Không gọi router.refresh() ngay sau push: lệnh refresh hủy điều hướng đang chờ (form đứng nguyên).
         router.push(nextHref);
-        router.refresh();
       } else {
         setErrorMessage(result.status === "error" ? result.message ?? "Không thể lưu thông tin." : "Chưa thể lưu thông tin. Vui lòng thử lại sau.");
       }

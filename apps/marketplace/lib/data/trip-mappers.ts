@@ -174,6 +174,7 @@ export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"
     seatTypeName: formNames[trip.vehicleType.form], vehicleClass: trip.vehicleType.class === "LIMOUSINE" ? "Limousine" : "Tiêu chuẩn",
     statusBadge: "", routeName: segment?.title ?? trip.routeName,
     routeMeta: segment ? `${trip.routeName} · ${formatDateVi(startAt)}` : formatDateVi(trip.departureAt),
+    departureDateText: formatDateVi(startAt),
     departureTime: formatTimeVi(startAt), departureStation: from?.name ?? stops[0]?.name ?? "",
     durationText: duration(Math.round((Date.parse(endAt) - Date.parse(startAt)) / 60000)),
     stopsSummaryText: `${stops.length} điểm dừng`, arrivalTime: formatTimeVi(endAt),

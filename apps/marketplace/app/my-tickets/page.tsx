@@ -8,6 +8,7 @@ import {
 import { PassengerTopBar } from "../../components/passenger-topbar";
 import { FeatureUnavailable, ErrorState } from "../../components/states";
 import { MyTicketsView } from "../../components/my-tickets/my-tickets-view";
+import { AccountSignInRequired } from "../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Hành trình của tôi",
@@ -69,6 +70,8 @@ export default async function MyTicketsPage({ searchParams }: MyTicketsPageProps
   }
 
   if (result.status === "error") {
+    // Khách chưa đăng nhập (API trả 401) → mời đăng nhập như các trang tài khoản, không báo lỗi máy chủ.
+    if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />

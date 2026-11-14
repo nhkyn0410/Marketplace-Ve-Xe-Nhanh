@@ -59,8 +59,8 @@ export function PassengerListForm({
                     Hành khách chỗ {passenger.seatCode}
                   </h4>
                   <p className="text-[11px] text-vxn-fg-4">
-                    {passenger.seatTypeLabel} • {passenger.floorLabel} •{" "}
-                    {formatVnd(passenger.priceVnd)}
+                    {/* API chưa trả tầng (floorLabel rỗng) → bỏ phần trống, tránh "Giường nằm • • 290.000đ". */}
+                    {[passenger.seatTypeLabel, passenger.floorLabel, formatVnd(passenger.priceVnd)].filter(Boolean).join(" • ")}
                   </p>
                 </div>
               </div>

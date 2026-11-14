@@ -21,3 +21,22 @@ export function mapLegalDocument(slug: string, item: components["schemas"]["Publ
   return { slug, title: item.title, effectiveDateText: "", lastUpdatedText: formatDateVi(item.updatedAt),
     noteText: "", tableOfContents: [], sections: [{ id: item.id, title: item.title, paragraphs: [item.bodyMarkdown] }] };
 }
+
+/**
+ * Link pháp lý cố định trên web (chân trang, form đăng ký, ô đồng ý khi thanh toán) → slug trang tĩnh do quản trị tạo ở
+ * CMS. Bộ nội dung mẫu dùng slug tiếng Việt (`chinh-sach-bao-mat`, `quy-che-hoat-dong`) nên link cố định trả 404.
+ * Ánh xạ "Điều khoản sử dụng" → "Quy chế hoạt động" là đề xuất, chờ Khanh duyệt (12/11/2026).
+ */
+const LEGAL_SLUG_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  "terms-of-service": ["dieu-khoan-su-dung", "quy-che-hoat-dong"],
+  terms: ["terms-of-service", "dieu-khoan-su-dung", "quy-che-hoat-dong"],
+  "privacy-policy": ["chinh-sach-bao-mat"],
+  privacy: ["privacy-policy", "chinh-sach-bao-mat"],
+  "refund-policy": ["chinh-sach-hoan-tien"],
+  refund: ["refund-policy", "chinh-sach-hoan-tien"]
+};
+
+/** Slug trang tĩnh đã xuất bản dùng thay cho link cố định chưa có trong CMS; không có trang tương ứng thì `null`. */
+export function resolveLegalAlias(slug: string, publishedSlugs: readonly string[]): string | null {
+  return LEGAL_SLUG_ALIASES[slug]?.find((candidate) => publishedSlugs.includes(candidate)) ?? null;
+}

@@ -26,13 +26,16 @@ export async function getFeaturedOperators(limit = 5): Promise<DataResult<readon
   return result.status === "ok" ? ok(result.data.items.map(mapFeaturedOperator)) : result;
 }
 
+/** Khối "Cẩm nang xe khách" ở trang chủ chỉ hiện vài bài mới nhất (Figma 776:791: 3 bài); xem hết ở /explore. */
+const HOME_HANDBOOK_LIMIT = 3;
+
 /**
  * Lấy bài viết cẩm nang xe khách.
  * Endpoint: GET /content/articles?tag=handbook (chưa có trong hợp đồng API).
  */
 export async function getHandbookArticles(): Promise<DataResult<readonly HandbookArticleItem[]>> {
   const result = await getArticles();
-  return result.status === "ok" ? ok(result.data.articles.map((a) => ({ id: a.id, title: a.title,
+  return result.status === "ok" ? ok(result.data.articles.slice(0, HOME_HANDBOOK_LIMIT).map((a) => ({ id: a.id, title: a.title,
     category: a.category, readTimeText: "", slug: a.slug }))) : result;
 }
 
