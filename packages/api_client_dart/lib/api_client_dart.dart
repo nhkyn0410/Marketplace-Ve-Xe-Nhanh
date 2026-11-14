@@ -479,6 +479,11 @@ export 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_out
 export 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_totals.dart';
 export 'package:api_client_dart/src/model/passenger_profile_dto_output.dart';
 export 'package:api_client_dart/src/model/passenger_profile_update_dto.dart';
+export 'package:api_client_dart/src/model/passenger_reviews_dto_output.dart';
+export 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending.dart';
+export 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending_items_inner.dart';
+export 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed.dart';
+export 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed_items_inner.dart';
 export 'package:api_client_dart/src/model/passenger_support_page_dto_output.dart';
 export 'package:api_client_dart/src/model/passenger_support_page_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/passenger_ticket_page_dto_output.dart';

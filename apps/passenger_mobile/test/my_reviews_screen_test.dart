@@ -6,9 +6,19 @@ import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
 
 const _empty = MyReviewsData(pending: [], reviewed: []);
 
+/// Mục đơn giản cho các test phân trang: [id] là mã đơn, tên tuyến theo mã.
+ReviewTripItem _trip(String id, {int? rating}) => ReviewTripItem(
+  bookingId: id,
+  routeName: 'Tuyến $id',
+  operatorName: 'Nhà xe',
+  departureAt: DateTime(2026, 10, 16),
+  rating: rating,
+);
+
 Future<void> _pumpReviews(
   WidgetTester tester, {
-  required MyReviewsLoader loader,
+  Future<MyReviewsData> Function()? loader,
+  MyReviewsLoader? pagedLoader,
   ReviewSubmitter? submitter,
 }) async {
   tester.view.devicePixelRatio = 1;
@@ -20,7 +30,8 @@ Future<void> _pumpReviews(
     MaterialApp(
       theme: ThemeData(fontFamily: 'Be Vietnam Pro'),
       home: MyReviewsScreen(
-        loadReviews: loader,
+        loadReviews:
+            pagedLoader ?? ({pendingCursor, reviewedCursor}) => loader!(),
         submitReview: submitter ?? (_, _) async => true,
         onBack: () {},
       ),
@@ -175,5 +186,287 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('5/5'), findsOneWidget);
+  });
+
+  testWidgets(
+    'tab đếm theo tổng máy chủ; "Xem thêm" chỉ nối trang kế của tab đang mở',
+    (tester) async {
+      final calls = <(String?, String?)>[];
+      await _pumpReviews(
+        tester,
+        pagedLoader: ({pendingCursor, reviewedCursor}) async {
+          calls.add((pendingCursor, reviewedCursor));
+          return MyReviewsData(
+            pending: [_trip(pendingCursor == 'p1' ? 'p2' : 'p1')],
+            pendingTotal: 2,
+            pendingNextCursor: pendingCursor == 'p1' ? null : 'p1',
+            reviewed: [_trip(reviewedCursor == 'r1' ? 'r2' : 'r1', rating: 5)],
+            reviewedTotal: 2,
+            reviewedNextCursor: reviewedCursor == 'r1' ? null : 'r1',
+          );
+        },
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Chờ đánh giá (2)'), findsOneWidget);
+      expect(find.text('Đã đánh giá (2)'), findsOneWidget);
+      expect(find.byType(PendingReviewCard), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('my-reviews-more')));
+      await tester.pumpAndSettle();
+
+      expect(calls.last, ('p1', null));
+      expect(find.byKey(const Key('pending-review-p1')), findsOneWidget);
+      expect(find.byKey(const Key('pending-review-p2')), findsOneWidget);
+      expect(find.byKey(const Key('my-reviews-more')), findsNothing);
+
+      // Tab kia chưa bị nối thêm, vẫn còn nút của riêng nó.
+      await tester.tap(find.byKey(const Key('completed-review-tab')));
+      await tester.pump();
+      expect(find.byType(CompletedReviewCard), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('my-reviews-more')));
+      await tester.pumpAndSettle();
+
+      expect(calls.last, (null, 'r1'));
+      expect(find.byType(CompletedReviewCard), findsNWidgets(2));
+      expect(find.byKey(const Key('my-reviews-more')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('pending-review-tab')));
+      await tester.pump();
+      expect(find.byType(PendingReviewCard), findsNWidgets(2));
+      expect(calls, hasLength(3));
+    },
+  );
+
+  testWidgets('tải thêm lỗi thì giữ danh sách, bấm lại được', (tester) async {
+    var failNext = true;
+    await _pumpReviews(
+      tester,
+      pagedLoader: ({pendingCursor, reviewedCursor}) async {
+        if (pendingCursor == null) {
+          return MyReviewsData(
+            pending: [_trip('p1')],
+            pendingNextCursor: 'p1',
+            reviewed: const [],
+          );
+        }
+        if (failNext) {
+          failNext = false;
+          throw StateError('mất mạng');
+        }
+        return MyReviewsData(pending: [_trip('p2')], reviewed: const []);
+      },
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('my-reviews-more')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('pending-review-p1')), findsOneWidget);
+    expect(
+      find.text('Chưa tải được thêm đánh giá. Vui lòng thử lại.'),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('my-reviews-more')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('pending-review-p2')), findsOneWidget);
+  });
+
+  testWidgets(
+    'gửi xong tải lại từ đầu, mở tab Đã đánh giá, bỏ các trang đã nối',
+    (tester) async {
+      var submitted = false;
+      var loads = 0;
+      await _pumpReviews(
+        tester,
+        pagedLoader: ({pendingCursor, reviewedCursor}) async {
+          loads += 1;
+          if (submitted) {
+            return MyReviewsData(
+              pending: const [],
+              reviewed: [_trip('p1', rating: 4)],
+            );
+          }
+          return MyReviewsData(pending: [_trip('p1')], reviewed: const []);
+        },
+        submitter: (_, _) async {
+          submitted = true;
+          return true;
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(loads, 1);
+
+      await tester.tap(find.byKey(const Key('write-review-p1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('review-rating-4')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('submit-review')));
+      await tester.pumpAndSettle();
+
+      expect(loads, 2);
+      expect(find.text('Đã đánh giá (1)'), findsOneWidget);
+      expect(find.text('Chờ đánh giá (0)'), findsOneWidget);
+      expect(find.byKey(const Key('completed-review-p1')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'gửi lỗi vì đơn đã có đánh giá: đóng form thì danh sách tự đúng lại',
+    (tester) async {
+      var alreadyReviewed = false;
+      var loads = 0;
+      await _pumpReviews(
+        tester,
+        pagedLoader: ({pendingCursor, reviewedCursor}) async {
+          loads += 1;
+          return alreadyReviewed
+              ? MyReviewsData(
+                  pending: const [],
+                  reviewed: [_trip('p1', rating: 4)],
+                )
+              : MyReviewsData(pending: [_trip('p1')], reviewed: const []);
+        },
+        submitter: (_, _) async {
+          alreadyReviewed = true;
+          return false;
+        },
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('write-review-p1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('review-rating-4')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('submit-review')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('review-submit-error')), findsOneWidget);
+      expect(loads, 1);
+
+      await tester.tap(find.byKey(const Key('close-review-form')));
+      await tester.pumpAndSettle();
+
+      expect(loads, 2);
+      expect(find.text('Chờ đánh giá (0)'), findsOneWidget);
+      expect(find.text('Đã đánh giá (1)'), findsOneWidget);
+    },
+  );
+
+  testWidgets('đóng form không gửi thì không tải lại', (tester) async {
+    var loads = 0;
+    await _pumpReviews(
+      tester,
+      pagedLoader: ({pendingCursor, reviewedCursor}) async {
+        loads += 1;
+        return MyReviewsData(pending: [_trip('p1')], reviewed: const []);
+      },
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('write-review-p1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('close-review-form')));
+    await tester.pumpAndSettle();
+
+    expect(loads, 1);
+  });
+
+  testWidgets(
+    'tải lỗi hiện nút thử lại, thử lại thành công không ném lỗi ra ngoài',
+    (tester) async {
+      var attempts = 0;
+      await _pumpReviews(
+        tester,
+        pagedLoader: ({pendingCursor, reviewedCursor}) async {
+          attempts += 1;
+          if (attempts <= 2) throw StateError('API lỗi');
+          return MyReviewsData(pending: [_trip('p1')], reviewed: const []);
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Chưa thể tải đánh giá'), findsOneWidget);
+
+      // Lần thử lại đầu vẫn lỗi: giữ màn lỗi, không có lỗi chưa xử lý.
+      await tester.tap(find.byKey(const Key('my-reviews-retry')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Chưa thể tải đánh giá'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('my-reviews-retry')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('pending-review-p1')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'đánh giá đang giữ chờ / đã ẩn hiện dòng trạng thái thay cho ngày gửi',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      await _pumpReviews(
+        tester,
+        loader: () async => MyReviewsData(
+          pending: const [],
+          reviewed: [
+            ReviewTripItem(
+              bookingId: 'held',
+              routeName: 'Tuyến giữ',
+              operatorName: 'Nhà xe',
+              departureAt: DateTime(2026, 10, 16),
+              rating: 2,
+              reviewedAt: DateTime(2026, 10, 17),
+              visibility: ReviewVisibility.held,
+            ),
+            ReviewTripItem(
+              bookingId: 'hidden',
+              routeName: 'Tuyến ẩn',
+              operatorName: 'Nhà xe',
+              departureAt: DateTime(2026, 10, 16),
+              rating: 1,
+              reviewedAt: DateTime(2026, 10, 17),
+              visibility: ReviewVisibility.hidden,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('completed-review-tab')));
+      await tester.pump();
+
+      expect(find.text('Đánh giá đang chờ duyệt'), findsOneWidget);
+      expect(find.text('Đánh giá hiện không được hiển thị'), findsOneWidget);
+      expect(find.textContaining('Đánh giá ngày'), findsNothing);
+    },
+  );
+
+  testWidgets('ngày trên thẻ theo giờ máy, không theo UTC API trả về', (
+    tester,
+  ) async {
+    final departure = DateTime.utc(2026, 10, 15, 23, 30);
+    final local = departure.toLocal();
+    await _pumpReviews(
+      tester,
+      loader: () async => MyReviewsData(
+        pending: [
+          ReviewTripItem(
+            bookingId: 'early',
+            routeName: 'Chuyến sáng sớm',
+            operatorName: 'Nhà xe',
+            departureAt: departure,
+          ),
+        ],
+        reviewed: const [],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final expected =
+        '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year}';
+    expect(find.text(expected), findsOneWidget);
   });
 }

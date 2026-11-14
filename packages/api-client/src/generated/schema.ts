@@ -3748,6 +3748,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerReviewController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/reviews": {
         parameters: {
             query?: never;
@@ -10369,6 +10385,50 @@ export interface components {
             signals: ("SPAM" | "OPERATOR_REPORTED" | "DISPUTED" | "REPEATED")[];
             /** Format: date-time */
             createdAt: string;
+        };
+        PassengerReviewsDto_Output: {
+            pending: {
+                items: {
+                    /** Format: uuid */
+                    bookingId: string;
+                    bookingCode: string;
+                    /** Format: uuid */
+                    operatorId: string;
+                    operatorName: string;
+                    routeName: string;
+                    vehicleTypeName: string | null;
+                    /** Format: date-time */
+                    departureAt: string;
+                }[];
+                nextCursor: string | null;
+                total: number;
+            };
+            reviewed: {
+                items: {
+                    /** Format: uuid */
+                    reviewId: string;
+                    /** Format: uuid */
+                    bookingId: string;
+                    bookingCode: string;
+                    /** Format: uuid */
+                    operatorId: string;
+                    operatorName: string;
+                    authorName: string;
+                    rating: number;
+                    comment: string | null;
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** @enum {string} */
+                    status: "VISIBLE" | "HELD" | "HIDDEN";
+                    operatorReply: string | null;
+                    operatorRepliedAt: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                nextCursor: string | null;
+                total: number;
+            };
         };
         ReviewPageDto_Output: {
             items: {
@@ -26199,6 +26259,48 @@ export interface operations {
             };
             /** @description `REVIEW_NOT_ALLOWED` — chuyến chưa hoàn thành / chưa đi / đã đánh giá. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerReviewController_list: {
+        parameters: {
+            query?: {
+                pendingCursor?: string;
+                reviewedCursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chuyến chờ đánh giá + đánh giá đã gửi, mỗi danh sách phân trang riêng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerReviewsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -11,7 +11,7 @@ import { DisputeService } from "../dispute/dispute.service";
 import { type AccessTokenClaims, TokenService } from "../iam/auth/token.service";
 import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
-import { AdminReviewController, CustomerReviewController, OperatorReviewController } from "../review/review.controller";
+import { AdminReviewController, CustomerReviewController, OperatorReviewController, PassengerReviewController } from "../review/review.controller";
 import { ReviewService } from "../review/review.service";
 import { AdminSupportController } from "./admin-support.controller";
 import { CustomerSupportController } from "./customer-support.controller";
@@ -32,7 +32,13 @@ describe("Khiếu nại, tranh chấp, đánh giá — HTTP", () => {
     classify: vi.fn(),
   };
   const disputes = { decide: vi.fn(), requestEvidence: vi.fn(), openFromBooking: vi.fn(), adminList: vi.fn(async () => page) };
-  const reviews = { customerGet: vi.fn(async () => ({ review: null, canReview: false })), moderate: vi.fn(), adminList: vi.fn(async () => page) };
+  const emptyList = { items: [], nextCursor: null, total: 0 };
+  const reviews = {
+    customerGet: vi.fn(async () => ({ review: null, canReview: false })),
+    customerList: vi.fn(async () => ({ pending: emptyList, reviewed: emptyList })),
+    moderate: vi.fn(),
+    adminList: vi.fn(async () => page),
+  };
   const reauth = { value: false };
   let app: INestApplication;
   let base: string;
@@ -47,6 +53,7 @@ describe("Khiếu nại, tranh chấp, đánh giá — HTTP", () => {
       OperatorDisputeController,
       CustomerDisputeController,
       CustomerReviewController,
+      PassengerReviewController,
       OperatorReviewController,
       AdminReviewController,
     ],
@@ -116,6 +123,25 @@ describe("Khiếu nại, tranh chấp, đánh giá — HTTP", () => {
     expect((await call("GET", `/bookings/${bookingId}/review`, await token("PASSENGER"))).status).toBe(200);
     expect((await call("GET", `/bookings/${bookingId}/review`, await token("OPERATOR_OWNER"))).status).toBe(403);
     expect((await call("POST", `/bookings/${bookingId}/review`, await token("PASSENGER"), { rating: 6 })).status).toBe(400);
+  });
+
+  it("đánh giá của tôi: chỉ hành khách, chủ tài khoản lấy từ token; cursor / limit sai 400", async () => {
+    expect((await call("GET", "/me/reviews", null)).status).toBe(401);
+    for (const role of ["OPERATOR_OWNER", "DRIVER", "PLATFORM_ADMIN"] as const) {
+      expect((await call("GET", "/me/reviews", await token(role))).status).toBe(403);
+    }
+    expect((await call("GET", "/me/reviews?pendingCursor=abc", await token("PASSENGER"))).status).toBe(400);
+    expect((await call("GET", "/me/reviews?reviewedCursor=abc", await token("PASSENGER"))).status).toBe(400);
+    expect((await call("GET", "/me/reviews?limit=0", await token("PASSENGER"))).status).toBe(400);
+    expect((await call("GET", "/me/reviews?limit=101", await token("PASSENGER"))).status).toBe(400);
+    expect(reviews.customerList).not.toHaveBeenCalled();
+
+    const passengerToken = await token("PASSENGER");
+    expect((await call("GET", `/me/reviews?pendingCursor=${id}&limit=5`, passengerToken)).status).toBe(200);
+    const [actor, query] = reviews.customerList.mock.calls[0] as unknown as [{ sub: string; role: string }, unknown];
+    expect(actor.role).toBe("PASSENGER");
+    expect(actor.sub).toMatch(/^user/);
+    expect(query).toEqual({ pendingCursor: id, limit: 5 });
   });
 
   it("nhà xe: chủ nhà xe xem / phản hồi (tenant từ token); nhân viên 403; Admin hỗ trợ không gọi được route nhà xe phản hồi", async () => {

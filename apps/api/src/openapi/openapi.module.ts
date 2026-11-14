@@ -81,7 +81,7 @@ import { OperatorSupportController } from "../support/operator-support.controlle
 import { SupportService } from "../support/support.service";
 import { AdminDisputeController, CustomerDisputeController, OperatorDisputeController } from "../dispute/dispute.controller";
 import { DisputeService } from "../dispute/dispute.service";
-import { AdminReviewController, CustomerReviewController, OperatorReviewController } from "../review/review.controller";
+import { AdminReviewController, CustomerReviewController, OperatorReviewController, PassengerReviewController } from "../review/review.controller";
 import { ReviewService } from "../review/review.service";
 import { AdminPromotionController, OperatorPromotionController, PublicPromotionController } from "../promotion/promotion.controller";
 import { PromotionService } from "../promotion/promotion.service";
@@ -224,6 +224,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     OperatorDisputeController,
     CustomerDisputeController,
     CustomerReviewController,
+    PassengerReviewController,
     OperatorReviewController,
     AdminReviewController,
     AdminPromotionController,

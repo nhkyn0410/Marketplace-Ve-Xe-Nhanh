@@ -876,13 +876,51 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     return vouchers;
   }
 
-  Future<MyReviewsData> _loadMyReviews() async {
-    // API hiện chỉ hỗ trợ GET/POST đánh giá theo từng bookingId. Không gọi
-    // N+1 qua lịch sử booking. Fixture Figma chỉ hiển thị ở debug; release
-    // vẫn trả trạng thái rỗng cho đến khi có endpoint danh sách Passenger.
-    return kDebugMode
-        ? figmaMyReviewsSample
-        : const MyReviewsData(pending: [], reviewed: []);
+  Future<MyReviewsData> _loadMyReviews({
+    String? pendingCursor,
+    String? reviewedCursor,
+  }) async {
+    final response = await _api.getReviewsApi().passengerReviewControllerList(
+      pendingCursor: pendingCursor,
+      reviewedCursor: reviewedCursor,
+    );
+    final data = response.data;
+    if (data == null) {
+      throw StateError('Reviews response did not contain data.');
+    }
+    return MyReviewsData(
+      pending: [
+        for (final item in data.pending.items)
+          ReviewTripItem(
+            bookingId: item.bookingId,
+            routeName: item.routeName,
+            operatorName: item.operatorName,
+            departureAt: item.departureAt,
+            vehicleType: item.vehicleTypeName,
+          ),
+      ],
+      pendingTotal: data.pending.total,
+      pendingNextCursor: data.pending.nextCursor,
+      reviewed: [
+        for (final item in data.reviewed.items)
+          ReviewTripItem(
+            bookingId: item.bookingId,
+            routeName: item.routeName,
+            operatorName: item.operatorName,
+            departureAt: item.departureAt,
+            rating: item.rating,
+            comment: item.comment,
+            reviewedAt: item.createdAt,
+            visibility: switch (item.status.name) {
+              'HELD' => ReviewVisibility.held,
+              'HIDDEN' => ReviewVisibility.hidden,
+              _ => ReviewVisibility.visible,
+            },
+          ),
+      ],
+      reviewedTotal: data.reviewed.total,
+      reviewedNextCursor: data.reviewed.nextCursor,
+    );
   }
 
   Future<bool> _submitReview(String bookingId, ReviewSubmission input) {

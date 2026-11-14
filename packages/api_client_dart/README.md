@@ -434,6 +434,7 @@ Class | Method | HTTP request | Description
 [*PublicOperatorsApi*](doc/PublicOperatorsApi.md) | [**publicOperatorProfileControllerGet**](doc/PublicOperatorsApi.md#publicoperatorprofilecontrollerget) | **GET** /v1/operators/{operatorId}/public-profile | 
 [*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerCreate**](doc/ReviewsApi.md#customerreviewcontrollercreate) | **POST** /v1/bookings/{bookingId}/review | 
 [*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerGet**](doc/ReviewsApi.md#customerreviewcontrollerget) | **GET** /v1/bookings/{bookingId}/review | 
+[*ReviewsApi*](doc/ReviewsApi.md) | [**passengerReviewControllerList**](doc/ReviewsApi.md#passengerreviewcontrollerlist) | **GET** /v1/me/reviews | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerCreate**](doc/SeatHoldsApi.md#seatholdcontrollercreate) | **POST** /v1/seat-holds | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerGet**](doc/SeatHoldsApi.md#seatholdcontrollerget) | **GET** /v1/seat-holds/{holdId} | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerRelease**](doc/SeatHoldsApi.md#seatholdcontrollerrelease) | **DELETE** /v1/seat-holds/{holdId} | 
@@ -852,6 +853,11 @@ Class | Method | HTTP request | Description
  - [PassengerLoyaltyTransactionsDtoOutputTotals](doc/PassengerLoyaltyTransactionsDtoOutputTotals.md)
  - [PassengerProfileDtoOutput](doc/PassengerProfileDtoOutput.md)
  - [PassengerProfileUpdateDto](doc/PassengerProfileUpdateDto.md)
+ - [PassengerReviewsDtoOutput](doc/PassengerReviewsDtoOutput.md)
+ - [PassengerReviewsDtoOutputPending](doc/PassengerReviewsDtoOutputPending.md)
+ - [PassengerReviewsDtoOutputPendingItemsInner](doc/PassengerReviewsDtoOutputPendingItemsInner.md)
+ - [PassengerReviewsDtoOutputReviewed](doc/PassengerReviewsDtoOutputReviewed.md)
+ - [PassengerReviewsDtoOutputReviewedItemsInner](doc/PassengerReviewsDtoOutputReviewedItemsInner.md)
  - [PassengerSupportPageDtoOutput](doc/PassengerSupportPageDtoOutput.md)
  - [PassengerSupportPageDtoOutputItemsInner](doc/PassengerSupportPageDtoOutputItemsInner.md)
  - [PassengerTicketPageDtoOutput](doc/PassengerTicketPageDtoOutput.md)
