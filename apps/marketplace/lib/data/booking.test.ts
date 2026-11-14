@@ -32,6 +32,18 @@ describe("booking API integration", () => {
     expect(mapPaymentResult(bookingFixture()).status).toBe("success");
   });
 
+  it("ô logo nhà xe ở kết quả thanh toán và chi tiết vé có chữ viết tắt, không để trống", () => {
+    expect(mapPaymentResult(bookingFixture()).trip?.operatorCode).toBe("NH");
+    expect(mapTicketDetail(bookingFixture()).trip.operatorCode).toBe("NH");
+  });
+
+  it("thời gian đi trên vé hiện giờ + phút như chi tiết chuyến", () => {
+    const booking = bookingFixture();
+    const at = (iso: string) => ({ ...booking, pickup: { ...booking.pickup, plannedAt: "2030-01-01T01:00:00Z" }, dropoff: { ...booking.dropoff, plannedAt: iso } });
+    expect(mapTicketDetail(at("2030-01-01T07:15:00Z")).trip.travelDurationText).toBe("6 giờ 15 phút");
+    expect(mapTicketDetail(at("2030-01-01T01:45:00Z")).trip.travelDurationText).toBe("45 phút");
+  });
+
   it("giữ trạng thái đã sử dụng/vắng mặt và nhãn thanh toán chưa thành công", () => {
     const booking = bookingFixture();
     booking.tickets[0]!.status = "NO_SHOW";

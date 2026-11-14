@@ -79,7 +79,8 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
             pointName={ticketDetail.trip.departurePointName}
             address={ticketDetail.trip.departureAddress}
           />
-          <TicketBoardingRules rules={ticketDetail.boardingRules} />
+          {/* API chưa trả quy định lên xe (boardingRules rỗng) → ẩn khối thay vì hiện khung trống. */}
+          {ticketDetail.boardingRules.length > 0 && <TicketBoardingRules rules={ticketDetail.boardingRules} />}
         </div>
 
         {/* Cột phải: 5 cột */}

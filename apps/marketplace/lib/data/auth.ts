@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest, ACCESS_COOKIE } from "./api";
@@ -37,14 +38,22 @@ export async function registerAccount(payload: RegisterPayload): Promise<DataRes
   return ok({ email: parsed.data.email });
 }
 
-/** Xác minh OTP, lưu token vào cookie httpOnly rồi trả metadata không chứa credential. */
-export async function verifyOtp(payload: VerifyOtpPayload): Promise<DataResult<{ authenticated: boolean }>> {
+/** Trang được phép chuyển tới sau khi xác minh OTP (danh sách cố định, không nhận URL tùy ý). */
+const AFTER_VERIFY_PATHS = ["/account", "/register/profile"] as const;
+
+/**
+ * Xác minh OTP, lưu token vào cookie httpOnly rồi trả metadata không chứa credential.
+ * Có `next` thì chuyển trang ngay trong Server Action: modal OTP là route bị chặn (`@modal/(.)verify-email`), Server
+ * Action ghi cookie ở đó làm router tải lại cứng chính trang modal và hủy router.push / location.assign phía client.
+ */
+export async function verifyOtp(payload: VerifyOtpPayload, next?: (typeof AFTER_VERIFY_PATHS)[number]): Promise<DataResult<{ authenticated: boolean }>> {
   const parsed = z.object({ email: z.email(), otp: z.string().regex(/^\d{6}$/) }).safeParse(payload);
   if (!parsed.success) return failed("POST /auth/otp/verify", "Vui lòng nhập email hợp lệ và mã OTP gồm 6 chữ số.");
   const result = await apiRequest<TokenPair>("/auth/otp/verify", { method: "POST", body: JSON.stringify(parsed.data) });
   if (result.status !== "ok") return result;
   if (result.data.scope !== "passenger") return failed("POST /auth/otp/verify", "Tài khoản không thuộc cổng hành khách.");
   await saveSession(result.data);
+  if (next && AFTER_VERIFY_PATHS.includes(next)) redirect(next);
   return ok({ authenticated: true });
 }
 

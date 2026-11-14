@@ -138,14 +138,17 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
         {/* Cuống vé: mã QR */}
         <div className="relative flex shrink-0 flex-col items-center justify-center gap-2.5 border-t-[1.5px] border-dashed border-vxn-saffron-600 bg-white/70 p-6 lg:w-[260px] lg:border-t-0 lg:border-l-[1.5px]">
           <div className="flex size-[204px] items-center justify-center rounded-xl bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.08)]">
-            {currentTicket?.qrCodeDataUrl ? (
+            {/* Vé đã hủy: không hiện QR / "Lên xe quét mã" để khách không mang vé hủy ra bến. */}
+            {currentTicket?.status === "cancelled" ? (
+              <p className="px-4 text-center text-xs text-vxn-fg-5">Vé đã hủy — mã QR không còn hiệu lực</p>
+            ) : currentTicket?.qrCodeDataUrl ? (
               <Image src={currentTicket.qrCodeDataUrl} alt={`Mã QR vé ${currentTicket.ticketCode}`} width={180} height={180} unoptimized />
             ) : (
               <p className="px-4 text-center text-xs text-vxn-fg-5">Mã QR chưa khả dụng</p>
             )}
           </div>
           <p className="font-mono text-[13px]/[19.5px] font-semibold text-vxn-ink">{currentTicket?.ticketCode ?? trip.operatorCode}</p>
-          <p className="text-xs/[18px] font-medium text-[#9e6410]">Lên xe quét mã</p>
+          {currentTicket?.status !== "cancelled" && <p className="text-xs/[18px] font-medium text-[#9e6410]">Lên xe quét mã</p>}
         </div>
 
         {/* Khía răng cưa trên/dưới đường cắt cuống vé */}

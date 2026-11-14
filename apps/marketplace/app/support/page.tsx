@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getPreview } from "../../lib/preview";
 import {
@@ -10,6 +9,7 @@ import { getMyComplaints } from "../../lib/data/support";
 import { FeatureUnavailable } from "../../components/states/feature-unavailable";
 import { ErrorState } from "../../components/states/error-state";
 import { SupportView } from "../../components/support/support-view";
+import { AccountSignInRequired } from "../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Khiếu nại và hỗ trợ",
@@ -61,13 +61,14 @@ export default async function SupportPage({
   }
 
   if (result.status === "error") {
+    // Khách chưa đăng nhập (API trả 401) → mời đăng nhập như các trang tài khoản, không hiện thẻ lỗi "phiên hết hạn".
+    if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <ErrorState
           title="Không thể tải danh sách khiếu nại"
           description={result.message ?? "Đã xảy ra sự cố khi tải dữ liệu khiếu nại của bạn. Vui lòng thử lại sau."}
         />
-        {result.httpStatus === 401 && <Link href="/login?next=%2Fsupport" className="mt-4 inline-block rounded-xl bg-teal-900 px-4 py-2 text-sm font-semibold text-white">Đăng nhập để xem hỗ trợ</Link>}
       </div>
     );
   }

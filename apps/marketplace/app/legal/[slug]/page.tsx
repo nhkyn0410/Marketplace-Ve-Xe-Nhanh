@@ -1,7 +1,9 @@
 import React from "react";
+import { redirect } from "next/navigation";
 import { FeatureUnavailable } from "../../../components/states";
 import { LegalView } from "../../../components/legal/legal-view";
 import { getLegalDocument, getPublishedPageLinks } from "../../../lib/data/content";
+import { resolveLegalAlias } from "../../../lib/data/content-mappers";
 import { getPreview } from "../../../lib/preview";
 import { legalTermsDocumentFixture } from "../../../lib/preview/fixtures/content";
 
@@ -41,6 +43,12 @@ export default async function LegalDocumentPage(
 
   // Nhánh Thật: gọi API backend
   const [result, pageLinks] = await Promise.all([getLegalDocument(slug), getPublishedPageLinks()]);
+
+  // Link cố định (chân trang, đăng ký, thanh toán) dùng slug chưa có trong CMS → chuyển sang trang tĩnh tương ứng đã xuất bản.
+  if (result.status === "error" && result.httpStatus === 404) {
+    const alias = resolveLegalAlias(slug, pageLinks.map((page) => page.slug));
+    if (alias) redirect(`/legal/${alias}`);
+  }
 
   if (result.status === "unavailable") {
     return (

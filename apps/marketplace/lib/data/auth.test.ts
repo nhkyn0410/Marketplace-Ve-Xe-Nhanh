@@ -37,6 +37,18 @@ describe("marketplace auth server actions", () => {
     expect(JSON.stringify(result)).not.toContain("secret-");
   });
 
+  it("xác minh OTP kèm trang đích thì lưu phiên rồi redirect ngay trong Server Action", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(pair));
+    await expect(verifyOtp({ email: "customer@example.com", otp: "123456" }, "/account")).rejects.toMatchObject({ digest: expect.stringContaining("/account") });
+    expect(mocks.values.get(ACCESS_COOKIE)).toBe(pair.accessToken);
+  });
+
+  it("OTP sai thì không redirect, trả lỗi để hiện trong modal", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ title: "Unauthorized", detail: "Mã OTP không đúng." }, { status: 401 }));
+    expect(await verifyOtp({ email: "customer@example.com", otp: "000000" }, "/account")).toMatchObject({ status: "error", message: "Mã OTP không đúng." });
+    expect(mocks.set).not.toHaveBeenCalled();
+  });
+
   it("chặn email đăng ký không hợp lệ trước khi gọi API", async () => {
     expect((await registerAccount({ email: "invalid" })).status).toBe("error");
     expect(fetch).not.toHaveBeenCalled();

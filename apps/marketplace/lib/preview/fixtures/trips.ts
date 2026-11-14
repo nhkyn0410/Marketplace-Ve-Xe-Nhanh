@@ -180,6 +180,7 @@ export const tripDetailFixture = {
   statusBadge: "Đang mở bán",
   routeName: "TP. Hồ Chí Minh → Đà Lạt",
   routeMeta: "Thứ Sáu, 16/10/2026 • 308 km • 7 giờ",
+  departureDateText: "Thứ Sáu, 16/10/2026",
   departureTime: "22:30",
   departureStation: "Bến xe Miền Đông mới",
   durationText: "7 giờ",

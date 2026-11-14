@@ -145,6 +145,9 @@ describe("API trip boundary", () => {
       durationText: "2 giờ 0 phút"
     });
     expect(segmented.routeMeta.startsWith("TP.HCM - Gia Nghĩa - BMT · ")).toBe(true);
+    // Ô "Ngày đi" ở khung đặt vé chỉ hiện ngày, không kèm tên tuyến.
+    expect(segmented.routeMeta.endsWith(` · ${segmented.departureDateText}`)).toBe(true);
+    expect(segmented.departureDateText).not.toContain("TP.HCM");
     expect(segmented.timeline.map((item) => item.badges)).toEqual([["Hết giờ bán online"], ["Bạn lên xe"], ["Bạn xuống xe"]]);
   });
 });
