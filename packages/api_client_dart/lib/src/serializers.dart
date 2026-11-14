@@ -408,6 +408,11 @@ import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_out
 import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_totals.dart';
 import 'package:api_client_dart/src/model/passenger_profile_dto_output.dart';
 import 'package:api_client_dart/src/model/passenger_profile_update_dto.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed_items_inner.dart';
 import 'package:api_client_dart/src/model/passenger_support_page_dto_output.dart';
 import 'package:api_client_dart/src/model/passenger_support_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output.dart';
@@ -1048,6 +1053,11 @@ part 'serializers.g.dart';
   PassengerLoyaltyTransactionsDtoOutputTotals,
   PassengerProfileDtoOutput,
   PassengerProfileUpdateDto,
+  PassengerReviewsDtoOutput,
+  PassengerReviewsDtoOutputPending,
+  PassengerReviewsDtoOutputPendingItemsInner,
+  PassengerReviewsDtoOutputReviewed,
+  PassengerReviewsDtoOutputReviewedItemsInner,
   PassengerSupportPageDtoOutput,
   PassengerSupportPageDtoOutputItemsInner,
   PassengerTicketPageDtoOutput,
@@ -1837,6 +1847,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PassengerReviewsDtoOutputReviewedItemsInner)]),
+        () => ListBuilder<PassengerReviewsDtoOutputReviewedItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputTicketsInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputTicketsInner>(),
       )
@@ -1875,6 +1889,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminArticlePageDtoOutputItemsInner)]),
         () => ListBuilder<AdminArticlePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PassengerReviewsDtoOutputPendingItemsInner)]),
+        () => ListBuilder<PassengerReviewsDtoOutputPendingItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PromotionPageDtoOutputItemsInner)]),

@@ -12,12 +12,15 @@ import {
   CustomerReviewDto,
   ModerationInputDto,
   OperatorReviewQueryDto,
+  PassengerReviewQueryDto,
+  PassengerReviewsDto,
   ReplyInputDto,
   ReportInputDto,
   ReviewDto,
   ReviewInputDto,
   ReviewPageDto,
   type CustomerReview,
+  type PassengerReviews,
   type Review,
   type ReviewPage,
 } from "./dto/review.dto";
@@ -54,6 +57,25 @@ export class CustomerReviewController {
   @ApiResponse({ status: 409, description: "`REVIEW_NOT_ALLOWED` — chuyến chưa hoàn thành / chưa đi / đã đánh giá.", content: problemContent })
   create(@CurrentUser() user: VerifiedAccessToken, @Param("bookingId", new ParseUUIDPipe()) bookingId: string, @Body() input: ReviewInputDto): Promise<Review> {
     return this.reviews.customerCreate(user, bookingId, input);
+  }
+}
+
+// Chủ tài khoản lấy từ token; dữ liệu trải qua nhiều nhà xe nên không có tenant (SCR-PSG-14).
+@ApiTags("reviews")
+@Controller("me")
+/** "Đánh giá của tôi" của hành khách đăng nhập. */
+export class PassengerReviewController {
+  constructor(@Inject(ReviewService) private readonly reviews: ReviewService) {}
+
+  /** Chuyến chờ đánh giá và đánh giá đã gửi của tài khoản hiện tại. */
+  @Get("reviews")
+  @Authorize("review:create")
+  @ApiQuery({ name: "pendingCursor", required: false, type: String, format: "uuid" })
+  @ApiQuery({ name: "reviewedCursor", required: false, type: String, format: "uuid" })
+  @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 100 })
+  @ZodResponse({ status: 200, description: "Chuyến chờ đánh giá + đánh giá đã gửi, mỗi danh sách phân trang riêng.", type: PassengerReviewsDto })
+  list(@CurrentUser() user: VerifiedAccessToken, @Query() query: PassengerReviewQueryDto): Promise<PassengerReviews> {
+    return this.reviews.customerList(user, query);
   }
 }
 

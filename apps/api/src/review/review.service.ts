@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import type { DbScope } from "../database/db-scope";
 import { withBookingOperator } from "../database/marketplace-scope";
+import { withPassengerData } from "../database/passenger-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import { DisputeStatus, ReviewStatus, TicketStatus, TripStatus } from "../database/prisma.types";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -11,12 +12,14 @@ import { maskName } from "../payment/admin-payment.service";
 import { OPEN_DISPUTE_STATUSES } from "../dispute/dto/dispute.dto";
 import { platformDb } from "../support/support.service";
 import { reviewNotAllowed, reviewNotFound, trustAuditUnavailable } from "../support/support.errors";
-import { REVIEW_SIGNALS, type CustomerReview, type ModerationInput, type ReplyInput, type ReportInput, type Review, type ReviewInput, type ReviewPage } from "./dto/review.dto";
+import { REVIEW_SIGNALS, type CustomerReview, type ModerationInput, type PassengerReviews, type ReplyInput, type ReportInput, type Review, type ReviewInput, type ReviewPage } from "./dto/review.dto";
 
 const AUDIT_TIMEOUT_MS = 2_000;
 const OPEN_DISPUTES: DisputeStatus[] = [...OPEN_DISPUTE_STATUSES];
 /** Vé chứng tỏ khách đã đi chuyến (BR-18 "ticket hợp lệ trên chuyến đã hoàn thành"). */
 const RIDDEN: TicketStatus[] = [TicketStatus.USED, TicketStatus.CHECKED_IN];
+/** BR-18: chuyến đã hoàn thành và đơn có vé đã đi. */
+const REVIEWABLE = { trip: { status: TripStatus.COMPLETED }, tickets: { some: { status: { in: RIDDEN } } } };
 /** Số điện thoại / đường dẫn trong nhận xét — dấu hiệu quảng cáo (Figma ADM-10a "Nghi quảng cáo / spam"). */
 const SPAM_PATTERN = /(https?:\/\/|www\.|\b0\d(?:[ .-]?\d){7,}\b|\d{2}x{2,})/i;
 const SPAM_SQL = "(https?://|www\\.|0[0-9]([ .-]?[0-9]){7,}|[0-9]{2}x{2,})";
@@ -66,6 +69,14 @@ export class ReviewService {
   ) {}
 
   // ------------------------------------------------------------------ Hành khách
+
+  /** Chuyến chờ đánh giá + đánh giá đã gửi trên mọi nhà xe (SCR-PSG-14); đơn của tài khoản khác và khách vãng lai không có ở đây. */
+  async customerList(user: VerifiedAccessToken, query: { pendingCursor?: string; reviewedCursor?: string; limit: number }): Promise<PassengerReviews> {
+    return withPassengerData(this.prisma, user.sub, async (tx, userId) => ({
+      pending: await pendingPage(tx, userId, query.pendingCursor, query.limit),
+      reviewed: await reviewedPage(tx, userId, query.reviewedCursor, query.limit),
+    }));
+  }
 
   async customerGet(user: VerifiedAccessToken, bookingId: string): Promise<CustomerReview> {
     return this.asOwner(user, bookingId, async (tx, operatorId) => {
@@ -206,13 +217,64 @@ export class ReviewService {
   }
 }
 
-/** BR-18: chuyến đã hoàn thành và đơn có vé đã đi. */
 async function eligible(tx: DbTransaction, operatorId: string, bookingId: string): Promise<boolean> {
-  const booking = await tx.booking.findFirst({
-    where: { id: bookingId, operatorId, trip: { status: TripStatus.COMPLETED } },
-    select: { tickets: { where: { status: { in: RIDDEN } }, select: { id: true }, take: 1 } },
+  return (await tx.booking.findFirst({ where: { id: bookingId, operatorId, ...REVIEWABLE }, select: { id: true } })) !== null;
+}
+
+/** Đơn đủ điều kiện `eligible` chưa có đánh giá, chuyến gần nhất trước. Cursor của tài khoản khác không dùng được. */
+async function pendingPage(tx: DbTransaction, userId: string, cursorId: string | undefined, limit: number): Promise<PassengerReviews["pending"]> {
+  const where = { userId, ...REVIEWABLE, reviews: { none: {} } };
+  const total = await tx.booking.count({ where });
+  const cursor = cursorId ? await tx.booking.findFirst({ where: { id: cursorId, userId }, select: { id: true, trip: { select: { departureAt: true } } } }) : null;
+  if (cursorId && !cursor) {
+    return { items: [], nextCursor: null, total };
+  }
+  const rows = await tx.booking.findMany({
+    where: { ...where, ...(cursor ? { OR: [{ trip: { departureAt: { lt: cursor.trip.departureAt } } }, { trip: { departureAt: cursor.trip.departureAt }, id: { lt: cursor.id } }] } : {}) },
+    orderBy: [{ trip: { departureAt: "desc" } }, { id: "desc" }],
+    take: limit + 1,
+    select: {
+      id: true,
+      bookingCode: true,
+      operatorId: true,
+      operator: { select: { displayName: true } },
+      trip: { select: { departureAt: true, route: { select: { name: true } }, vehicle: { select: { vehicleType: { select: { name: true } } } } } },
+    },
   });
-  return (booking?.tickets.length ?? 0) > 0;
+  return {
+    items: rows.slice(0, limit).map((row) => ({
+      bookingId: row.id,
+      bookingCode: row.bookingCode,
+      operatorId: row.operatorId,
+      operatorName: row.operator.displayName,
+      routeName: row.trip.route.name,
+      vehicleTypeName: row.trip.vehicle?.vehicleType.name ?? null,
+      departureAt: row.trip.departureAt.toISOString(),
+    })),
+    nextCursor: rows.length > limit ? rows[limit - 1]!.id : null,
+    total,
+  };
+}
+
+/** Đánh giá đã gửi, mới trước, gồm cả đang giữ chờ / đã ẩn để khách biết trạng thái. Cursor của tài khoản khác không dùng được. */
+async function reviewedPage(tx: DbTransaction, userId: string, cursorId: string | undefined, limit: number): Promise<PassengerReviews["reviewed"]> {
+  const where = { booking: { userId } };
+  const total = await tx.review.count({ where });
+  const cursor = cursorId ? await tx.review.findFirst({ where: { id: cursorId, ...where }, select: { id: true, createdAt: true } }) : null;
+  if (cursorId && !cursor) {
+    return { items: [], nextCursor: null, total };
+  }
+  const rows = await tx.review.findMany({
+    where: { ...where, ...(cursor ? { OR: [{ createdAt: { lt: cursor.createdAt } }, { createdAt: cursor.createdAt, id: { lt: cursor.id } }] } : {}) },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
+    select: SELECT,
+  });
+  return {
+    items: rows.slice(0, limit).map((row) => toReview(row, "CUSTOMER")),
+    nextCursor: rows.length > limit ? rows[limit - 1]!.id : null,
+    total,
+  };
 }
 
 async function lockReview(tx: DbTransaction, reviewId: string, operatorId?: string) {

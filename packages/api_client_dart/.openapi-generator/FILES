@@ -458,6 +458,11 @@ doc/PassengerLoyaltyTransactionsDtoOutputTotals.md
 doc/PassengerProfileApi.md
 doc/PassengerProfileDtoOutput.md
 doc/PassengerProfileUpdateDto.md
+doc/PassengerReviewsDtoOutput.md
+doc/PassengerReviewsDtoOutputPending.md
+doc/PassengerReviewsDtoOutputPendingItemsInner.md
+doc/PassengerReviewsDtoOutputReviewed.md
+doc/PassengerReviewsDtoOutputReviewedItemsInner.md
 doc/PassengerSupportPageDtoOutput.md
 doc/PassengerSupportPageDtoOutputItemsInner.md
 doc/PassengerTicketPageDtoOutput.md
@@ -1183,6 +1188,11 @@ lib/src/model/passenger_loyalty_transactions_dto_output_items_inner.dart
 lib/src/model/passenger_loyalty_transactions_dto_output_totals.dart
 lib/src/model/passenger_profile_dto_output.dart
 lib/src/model/passenger_profile_update_dto.dart
+lib/src/model/passenger_reviews_dto_output.dart
+lib/src/model/passenger_reviews_dto_output_pending.dart
+lib/src/model/passenger_reviews_dto_output_pending_items_inner.dart
+lib/src/model/passenger_reviews_dto_output_reviewed.dart
+lib/src/model/passenger_reviews_dto_output_reviewed_items_inner.dart
 lib/src/model/passenger_support_page_dto_output.dart
 lib/src/model/passenger_support_page_dto_output_items_inner.dart
 lib/src/model/passenger_ticket_page_dto_output.dart
@@ -1427,3 +1437,8 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/passenger_reviews_dto_output_pending_items_inner_test.dart
+test/passenger_reviews_dto_output_pending_test.dart
+test/passenger_reviews_dto_output_reviewed_items_inner_test.dart
+test/passenger_reviews_dto_output_reviewed_test.dart
+test/passenger_reviews_dto_output_test.dart

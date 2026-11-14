@@ -697,6 +697,12 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PassengerLoyaltyTransactionsDtoOutputTotals.serializer)
       ..add(PassengerProfileDtoOutput.serializer)
       ..add(PassengerProfileUpdateDto.serializer)
+      ..add(PassengerReviewsDtoOutput.serializer)
+      ..add(PassengerReviewsDtoOutputPending.serializer)
+      ..add(PassengerReviewsDtoOutputPendingItemsInner.serializer)
+      ..add(PassengerReviewsDtoOutputReviewed.serializer)
+      ..add(PassengerReviewsDtoOutputReviewedItemsInner.serializer)
+      ..add(PassengerReviewsDtoOutputReviewedItemsInnerStatusEnum.serializer)
       ..add(PassengerSupportPageDtoOutput.serializer)
       ..add(PassengerSupportPageDtoOutputItemsInner.serializer)
       ..add(PassengerTicketPageDtoOutput.serializer)
@@ -1772,6 +1778,16 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)
           ]),
           () => ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(PassengerReviewsDtoOutputPendingItemsInner)
+          ]),
+          () => ListBuilder<PassengerReviewsDtoOutputPendingItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(PassengerReviewsDtoOutputReviewedItemsInner)
+          ]),
+          () => ListBuilder<PassengerReviewsDtoOutputReviewedItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(PassengerSupportPageDtoOutputItemsInner)]),

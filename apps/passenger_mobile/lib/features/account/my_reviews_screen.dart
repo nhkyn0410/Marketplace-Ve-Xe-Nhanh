@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/common/app_toast.dart';
 
 const _primary = Color(0xFF2088C9);
 const _ink = Color(0xFF0C173D);
@@ -20,8 +21,8 @@ const reviewSampleTripAssets = <String>[
   'assets/account/reviews/trip_3.png',
 ];
 
-/// Fixture đối chiếu node Figma 2381:1840. Chỉ được dùng ở debug khi API
-/// chưa có endpoint danh sách đánh giá dành cho Passenger.
+/// Fixture đối chiếu node Figma 2381:1840. Chỉ dùng trong test; app luôn lấy
+/// dữ liệu từ `GET /me/reviews`.
 final figmaMyReviewsSample = MyReviewsData(
   pending: [
     ReviewTripItem(
@@ -105,7 +106,11 @@ final figmaMyReviewsSample = MyReviewsData(
   ],
 );
 
-typedef MyReviewsLoader = Future<MyReviewsData> Function();
+/// Danh sách nào có cursor thì trả trang kế, danh sách còn lại trả trang đầu.
+typedef MyReviewsLoader = Future<MyReviewsData> Function({
+  String? pendingCursor,
+  String? reviewedCursor,
+});
 typedef ReviewSubmitter = Future<bool> Function(
   String bookingId,
   ReviewSubmission submission,
@@ -114,10 +119,25 @@ typedef ReviewSubmitter = Future<bool> Function(
 enum ReviewVisibility { visible, held, hidden }
 
 class MyReviewsData {
-  const MyReviewsData({required this.pending, required this.reviewed});
+  const MyReviewsData({
+    required this.pending,
+    required this.reviewed,
+    this.pendingTotal,
+    this.reviewedTotal,
+    this.pendingNextCursor,
+    this.reviewedNextCursor,
+  });
 
   final List<ReviewTripItem> pending;
   final List<ReviewTripItem> reviewed;
+
+  /// Tổng trên máy chủ, gồm cả trang chưa tải; không có thì tính theo số mục đang giữ.
+  final int? pendingTotal;
+  final int? reviewedTotal;
+
+  /// `null` là đã hết trang.
+  final String? pendingNextCursor;
+  final String? reviewedNextCursor;
 }
 
 class ReviewTripItem {
@@ -183,27 +203,86 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
   _ReviewTab _tab = _ReviewTab.pending;
   late Future<MyReviewsData> _reviews = widget.loadReviews();
 
+  /// Dữ liệu đã nối thêm trang sau; `null` khi mới có trang đầu của [_reviews].
+  MyReviewsData? _extended;
+  bool _loadingMore = false;
+
   Future<void> _reload() async {
     final next = widget.loadReviews();
     setState(() {
       _reviews = next;
+      _extended = null;
+      _loadingMore = false;
     });
-    await next;
+    try {
+      await next;
+    } catch (_) {
+      // FutureBuilder hiển thị lỗi; ở đây chỉ chờ để vòng làm mới tắt đúng lúc.
+    }
+  }
+
+  Future<void> _loadMore(MyReviewsData current) async {
+    if (_loadingMore) return;
+    final isPending = _tab == _ReviewTab.pending;
+    final request = _reviews;
+    setState(() => _loadingMore = true);
+    try {
+      final next = await widget.loadReviews(
+        pendingCursor: isPending ? current.pendingNextCursor : null,
+        reviewedCursor: isPending ? null : current.reviewedNextCursor,
+      );
+      if (!mounted || !identical(request, _reviews)) return;
+      setState(() {
+        _extended = MyReviewsData(
+          pending: isPending
+              ? [...current.pending, ...next.pending]
+              : current.pending,
+          reviewed: isPending
+              ? current.reviewed
+              : [...current.reviewed, ...next.reviewed],
+          pendingTotal: next.pendingTotal,
+          reviewedTotal: next.reviewedTotal,
+          pendingNextCursor: isPending
+              ? next.pendingNextCursor
+              : current.pendingNextCursor,
+          reviewedNextCursor: isPending
+              ? current.reviewedNextCursor
+              : next.reviewedNextCursor,
+        );
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted || !identical(request, _reviews)) return;
+      setState(() => _loadingMore = false);
+      AppToast.show(
+        context,
+        message: 'Chưa tải được thêm đánh giá. Vui lòng thử lại.',
+        type: AppToastType.error,
+      );
+    }
   }
 
   Future<void> _writeReview(ReviewTripItem trip) async {
+    var failed = false;
     final submitted = await showReviewFormSheet(
       context,
       trip: trip,
       errorMessage: widget.errorMessage,
       onInputChanged: widget.onInputChanged,
-      onSubmit: (input) => widget.submitReview(trip.bookingId, input),
+      onSubmit: (input) async {
+        final succeeded = await widget.submitReview(trip.bookingId, input);
+        if (!succeeded) failed = true;
+        return succeeded;
+      },
     );
-    if (submitted != true || !mounted) return;
-    setState(() {
+    if (!mounted) return;
+    if (submitted == true) {
       _tab = _ReviewTab.reviewed;
-      _reviews = widget.loadReviews();
-    });
+    } else if (!failed) {
+      return;
+    }
+    // Gửi lỗi có thể do đơn đã được đánh giá (mất phản hồi, gửi từ máy khác) nên vẫn tải lại.
+    await _reload();
   }
 
   @override
@@ -230,16 +309,23 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                     if (snapshot.hasError || !snapshot.hasData) {
                       return _LoadError(onRetry: _reload);
                     }
-                    final data = snapshot.requireData;
+                    final data = _extended ?? snapshot.requireData;
                     final items = _tab == _ReviewTab.pending
                         ? data.pending
                         : data.reviewed;
+                    final hasMore =
+                        (_tab == _ReviewTab.pending
+                            ? data.pendingNextCursor
+                            : data.reviewedNextCursor) !=
+                        null;
                     return Column(
                       children: [
                         _ReviewTabs(
                           selected: _tab,
-                          pendingCount: data.pending.length,
-                          reviewedCount: data.reviewed.length,
+                          pendingCount:
+                              data.pendingTotal ?? data.pending.length,
+                          reviewedCount:
+                              data.reviewedTotal ?? data.reviewed.length,
                           onSelected: (tab) => setState(() => _tab = tab),
                         ),
                         const SizedBox(height: 16),
@@ -263,10 +349,16 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                                       12,
                                       28,
                                     ),
-                                    itemCount: items.length,
+                                    itemCount: items.length + (hasMore ? 1 : 0),
                                     separatorBuilder: (_, _) =>
                                         const SizedBox(height: 14),
                                     itemBuilder: (_, index) {
+                                      if (index == items.length) {
+                                        return _LoadMoreButton(
+                                          loading: _loadingMore,
+                                          onPressed: () => _loadMore(data),
+                                        );
+                                      }
                                       final item = items[index];
                                       if (_tab == _ReviewTab.pending) {
                                         return PendingReviewCard(
@@ -1210,6 +1302,40 @@ class _EmptyReviews extends StatelessWidget {
   }
 }
 
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({required this.loading, required this.onPressed});
+
+  final bool loading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: OutlinedButton(
+        key: const Key('my-reviews-more'),
+        onPressed: loading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _primary,
+          side: const BorderSide(color: _border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: loading
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _primary,
+                ),
+              )
+            : const Text('Xem thêm'),
+      ),
+    );
+  }
+}
+
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.onRetry});
 
@@ -1246,8 +1372,11 @@ BoxDecoration _cardDecoration() => BoxDecoration(
   ],
 );
 
-String _formatDate(DateTime value) =>
-    '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
+/// API trả giờ UTC; chuyến sáng sớm sẽ lệch một ngày nếu không đổi về giờ máy.
+String _formatDate(DateTime value) {
+  final local = value.toLocal();
+  return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year}';
+}
 
 String _reviewFooter(ReviewTripItem review) {
   if (review.visibility == ReviewVisibility.held) {

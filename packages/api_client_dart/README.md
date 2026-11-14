@@ -287,9 +287,9 @@ Class | Method | HTTP request | Description
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerDownload**](doc/IncidentsApi.md#operatorincidentcontrollerdownload) | **GET** /v1/operator/incidents/{incidentId}/evidence/{index} | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerList**](doc/IncidentsApi.md#operatorincidentcontrollerlist) | **GET** /v1/operator/incidents | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerResolve**](doc/IncidentsApi.md#operatorincidentcontrollerresolve) | **PUT** /v1/operator/incidents/{incidentId}/resolution | 
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerCurrent**](doc/JourneyDemoApi.md#journeydemocontrollercurrent) | **GET** /v1/me/journey-demo |
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStart**](doc/JourneyDemoApi.md#journeydemocontrollerstart) | **POST** /v1/me/journey-demo |
-[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStop**](doc/JourneyDemoApi.md#journeydemocontrollerstop) | **DELETE** /v1/me/journey-demo/{sessionId} |
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerCurrent**](doc/JourneyDemoApi.md#journeydemocontrollercurrent) | **GET** /v1/me/journey-demo | 
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStart**](doc/JourneyDemoApi.md#journeydemocontrollerstart) | **POST** /v1/me/journey-demo | 
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStop**](doc/JourneyDemoApi.md#journeydemocontrollerstop) | **DELETE** /v1/me/journey-demo/{sessionId} | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**adminJourneyLogControllerList**](doc/JourneyLogsApi.md#adminjourneylogcontrollerlist) | **GET** /v1/admin/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerCreate**](doc/JourneyLogsApi.md#employeejourneylogcontrollercreate) | **POST** /v1/employee/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerList**](doc/JourneyLogsApi.md#employeejourneylogcontrollerlist) | **GET** /v1/employee/journey-logs | 
@@ -432,6 +432,7 @@ Class | Method | HTTP request | Description
 [*PublicOperatorsApi*](doc/PublicOperatorsApi.md) | [**publicOperatorProfileControllerGet**](doc/PublicOperatorsApi.md#publicoperatorprofilecontrollerget) | **GET** /v1/operators/{operatorId}/public-profile | 
 [*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerCreate**](doc/ReviewsApi.md#customerreviewcontrollercreate) | **POST** /v1/bookings/{bookingId}/review | 
 [*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerGet**](doc/ReviewsApi.md#customerreviewcontrollerget) | **GET** /v1/bookings/{bookingId}/review | 
+[*ReviewsApi*](doc/ReviewsApi.md) | [**passengerReviewControllerList**](doc/ReviewsApi.md#passengerreviewcontrollerlist) | **GET** /v1/me/reviews | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerCreate**](doc/SeatHoldsApi.md#seatholdcontrollercreate) | **POST** /v1/seat-holds | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerGet**](doc/SeatHoldsApi.md#seatholdcontrollerget) | **GET** /v1/seat-holds/{holdId} | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerRelease**](doc/SeatHoldsApi.md#seatholdcontrollerrelease) | **DELETE** /v1/seat-holds/{holdId} | 
@@ -847,6 +848,11 @@ Class | Method | HTTP request | Description
  - [PassengerLoyaltyTransactionsDtoOutputTotals](doc/PassengerLoyaltyTransactionsDtoOutputTotals.md)
  - [PassengerProfileDtoOutput](doc/PassengerProfileDtoOutput.md)
  - [PassengerProfileUpdateDto](doc/PassengerProfileUpdateDto.md)
+ - [PassengerReviewsDtoOutput](doc/PassengerReviewsDtoOutput.md)
+ - [PassengerReviewsDtoOutputPending](doc/PassengerReviewsDtoOutputPending.md)
+ - [PassengerReviewsDtoOutputPendingItemsInner](doc/PassengerReviewsDtoOutputPendingItemsInner.md)
+ - [PassengerReviewsDtoOutputReviewed](doc/PassengerReviewsDtoOutputReviewed.md)
+ - [PassengerReviewsDtoOutputReviewedItemsInner](doc/PassengerReviewsDtoOutputReviewedItemsInner.md)
  - [PassengerSupportPageDtoOutput](doc/PassengerSupportPageDtoOutput.md)
  - [PassengerSupportPageDtoOutputItemsInner](doc/PassengerSupportPageDtoOutputItemsInner.md)
  - [PassengerTicketPageDtoOutput](doc/PassengerTicketPageDtoOutput.md)
