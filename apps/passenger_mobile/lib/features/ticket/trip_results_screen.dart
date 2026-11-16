@@ -67,6 +67,9 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
         priceMax: _filters.priceMax,
         amenityIds: _filters.amenityIds,
         operatorId: operator.id,
+        pickupPoint: _filters.pickupPoint,
+        dropoffPoint: _filters.dropoffPoint,
+        minRating: _filters.minRating,
         sort: _filters.sort,
       );
       _operatorName ??= operator.name;
@@ -361,6 +364,8 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
         priceMin: _page?.priceMin,
         priceMax: _page?.priceMax,
         loadAmenities: widget.searchCatalog?.loadAmenities,
+        pickupPoints: _page?.pickupPoints ?? const [],
+        dropoffPoints: _page?.dropoffPoints ?? const [],
       ),
     );
     if (result != null && mounted) _applyFilters(result);
@@ -1034,6 +1039,12 @@ class _ActiveFilterChips extends StatelessWidget {
           '${filters.amenityIds.length} tiện ích',
           _copy(filters, clearAmenities: true),
         ),
+      if (filters.pickupPoint != null)
+        ('Đón: ${filters.pickupPoint}', _copy(filters, clearPickup: true)),
+      if (filters.dropoffPoint != null)
+        ('Trả: ${filters.dropoffPoint}', _copy(filters, clearDropoff: true)),
+      if (filters.minRating != null)
+        (formatMinRating(filters.minRating!), _copy(filters, clearRating: true)),
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -1062,6 +1073,9 @@ class _ActiveFilterChips extends StatelessWidget {
     bool clearPrice = false,
     bool clearAmenities = false,
     bool clearOperator = false,
+    bool clearPickup = false,
+    bool clearDropoff = false,
+    bool clearRating = false,
   }) {
     return TripSearchFilters(
       vehicleForm: clearVehicleForm ? null : source.vehicleForm,
@@ -1071,6 +1085,9 @@ class _ActiveFilterChips extends StatelessWidget {
       priceMax: clearPrice ? null : source.priceMax,
       amenityIds: clearAmenities ? const {} : source.amenityIds,
       operatorId: clearOperator ? null : source.operatorId,
+      pickupPoint: clearPickup ? null : source.pickupPoint,
+      dropoffPoint: clearDropoff ? null : source.dropoffPoint,
+      minRating: clearRating ? null : source.minRating,
       sort: source.sort,
     );
   }

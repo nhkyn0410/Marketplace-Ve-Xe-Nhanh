@@ -78,6 +78,21 @@ class TripOperatorFacet {
   final int count;
 }
 
+/// Một điểm đón / trả có trong kết quả (theo tên) kèm số chuyến — lựa chọn của bộ lọc điểm (FR-MKT-03).
+class TripPointFacet {
+  const TripPointFacet({required this.name, required this.count});
+
+  final String name;
+  final int count;
+}
+
+/// Mức đánh giá nhà xe tối thiểu của bộ lọc, như web.
+const tripMinRatingOptions = [3.0, 4.0, 4.5];
+
+/// `4.5` → `Từ 4,5 ★`.
+String formatMinRating(double value) =>
+    'Từ ${value == value.roundToDouble() ? value.toInt() : value.toString().replaceAll('.', ',')} ★';
+
 /// Một trang kết quả tìm chuyến kèm gợi ý bộ lọc.
 class TripSearchPage {
   const TripSearchPage({
@@ -90,7 +105,13 @@ class TripSearchPage {
     this.priceMax,
     this.widenedFrom = false,
     this.widenedTo = false,
+    this.pickupPoints = const [],
+    this.dropoffPoints = const [],
   });
+
+  /// Điểm đón / trả có trong kết quả (chưa áp bộ lọc) — lựa chọn của bộ lọc điểm.
+  final List<TripPointFacet> pickupPoints;
+  final List<TripPointFacet> dropoffPoints;
 
   final List<TripSummary> items;
   final int total;
@@ -181,8 +202,18 @@ class TripSearchFilters {
     this.priceMax,
     this.amenityIds = const {},
     this.operatorId,
+    this.pickupPoint,
+    this.dropoffPoint,
+    this.minRating,
     this.sort = TripSearchSort.departure,
   });
+
+  /// Tên điểm đón / trả chọn trong bộ lọc (FR-MKT-03).
+  final String? pickupPoint;
+  final String? dropoffPoint;
+
+  /// Điểm đánh giá nhà xe tối thiểu (một trong [tripMinRatingOptions]).
+  final double? minRating;
 
   final TripVehicleForm? vehicleForm;
   final TripVehicleClass? vehicleClass;
@@ -202,7 +233,10 @@ class TripSearchFilters {
       (departureSlot == null ? 0 : 1) +
       (priceMin == null && priceMax == null ? 0 : 1) +
       amenityIds.length +
-      (operatorId == null ? 0 : 1);
+      (operatorId == null ? 0 : 1) +
+      (pickupPoint == null ? 0 : 1) +
+      (dropoffPoint == null ? 0 : 1) +
+      (minRating == null ? 0 : 1);
 
   TripSearchFilters withSort(TripSearchSort value) => TripSearchFilters(
     vehicleForm: vehicleForm,
@@ -212,6 +246,9 @@ class TripSearchFilters {
     priceMax: priceMax,
     amenityIds: amenityIds,
     operatorId: operatorId,
+    pickupPoint: pickupPoint,
+    dropoffPoint: dropoffPoint,
+    minRating: minRating,
     sort: value,
   );
 

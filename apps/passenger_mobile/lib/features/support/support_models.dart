@@ -81,7 +81,7 @@ class SupportMessage {
     required this.authorName,
     required this.body,
     required this.createdAt,
-    this.attachmentNames = const [],
+    this.attachments = const [],
   });
 
   final String id;
@@ -92,8 +92,8 @@ class SupportMessage {
   final String body;
   final DateTime createdAt;
 
-  /// Tên tệp đính kèm; xem tệp trên web (đính kèm trên app làm đợt sau).
-  final List<String> attachmentNames;
+  /// Tệp đính kèm; bấm để mở qua URL có hạn (A24).
+  final List<SupportAttachment> attachments;
 
   bool get fromPassenger => party == 'PASSENGER' || party == 'GUEST';
 
@@ -147,13 +147,77 @@ class SupportTicketDraft {
     required this.priority,
     required this.subject,
     required this.body,
+    this.attachments = const [],
   });
 
   final SupportCategory category;
   final SupportPriority priority;
   final String subject;
   final String body;
+  final List<SupportUpload> attachments;
 }
+
+/// Tối đa 5 tệp mỗi lượt gửi, mỗi tệp PDF / JPEG / PNG ≤ 10 MB — như API.
+const supportMaxFiles = 5;
+const supportMaxFileBytes = 10 * 1024 * 1024;
+
+/// Kiểu tệp API nhận theo đuôi tên tệp; `null` = không nhận.
+String? supportContentType(String fileName) {
+  final name = fileName.toLowerCase();
+  if (name.endsWith('.pdf')) return 'application/pdf';
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+  if (name.endsWith('.png')) return 'image/png';
+  return null;
+}
+
+/// Tệp đính kèm của một lượt trao đổi.
+class SupportAttachment {
+  const SupportAttachment({
+    required this.id,
+    required this.fileName,
+    required this.sizeBytes,
+  });
+
+  final String id;
+  final String fileName;
+  final int sizeBytes;
+
+  String get sizeLabel => '${(sizeBytes / 1024).ceil()} KB';
+}
+
+/// Tệp khách vừa chọn trên máy, chưa tải lên.
+class SupportPickedFile {
+  const SupportPickedFile({
+    required this.name,
+    required this.contentType,
+    required this.bytes,
+  });
+
+  final String name;
+  final String contentType;
+  final List<int> bytes;
+}
+
+/// Tệp đã tải lên kho riêng tư, gửi kèm khiếu nại / phản hồi.
+class SupportUpload {
+  const SupportUpload({required this.objectKey, required this.fileName});
+
+  final String objectKey;
+  final String fileName;
+}
+
+/// Lỗi chọn / kiểm tệp, câu đã là tiếng Việt.
+class SupportAttachmentError implements Exception {
+  const SupportAttachmentError(this.message);
+
+  final String message;
+}
+
+/// Chọn tệp trên máy (mặc định `pickSupportFiles`).
+typedef SupportFilePicker = Future<List<SupportPickedFile>> Function();
+
+/// Mở URL tệp bằng ứng dụng ngoài; `false` = không mở được.
+typedef SupportUrlOpener = Future<bool> Function(Uri url);
 
 /// Đơn vé gắn với khiếu nại.
 class SupportBookingRef {
@@ -184,8 +248,15 @@ abstract interface class SupportTicketService {
   Future<SupportTicketDetail> reply(
     String bookingId,
     String ticketId,
-    String body,
-  );
+    String body, {
+    List<SupportUpload> attachments = const [],
+  });
+
+  /// Xin URL rồi tải tệp lên kho riêng tư của đơn.
+  Future<SupportUpload> upload(String bookingId, SupportPickedFile file);
+
+  /// URL có hạn để xem một tệp đã gửi.
+  Future<Uri> attachmentUrl(String bookingId, String attachmentId);
 }
 
 /// Giờ Việt Nam `HH:mm · dd/MM/yyyy`.

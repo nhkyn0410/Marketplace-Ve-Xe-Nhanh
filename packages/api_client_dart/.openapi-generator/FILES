@@ -635,6 +635,7 @@ doc/TicketDetailDtoOutputDispute.md
 doc/TicketDetailDtoOutputMessagesInner.md
 doc/TicketDetailDtoOutputMessagesInnerAttachmentsInner.md
 doc/TicketDetailDtoOutputPaymentsInner.md
+doc/TicketEmailResponseDtoOutput.md
 doc/TicketLookupAccessDtoOutput.md
 doc/TicketLookupBookingListDtoOutput.md
 doc/TicketLookupBookingListDtoOutputItemsInner.md
@@ -690,6 +691,7 @@ doc/TripScheduleResponseDtoOutput.md
 doc/TripSearchResponseDtoOutput.md
 doc/TripSearchResponseDtoOutputFacets.md
 doc/TripSearchResponseDtoOutputFacetsOperatorsInner.md
+doc/TripSearchResponseDtoOutputFacetsPickupPointsInner.md
 doc/TripSearchResponseDtoOutputItemsInner.md
 doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md
 doc/TripSearchResponseDtoOutputItemsInnerOperator.md
@@ -1364,6 +1366,7 @@ lib/src/model/ticket_detail_dto_output_dispute.dart
 lib/src/model/ticket_detail_dto_output_messages_inner.dart
 lib/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart
 lib/src/model/ticket_detail_dto_output_payments_inner.dart
+lib/src/model/ticket_email_response_dto_output.dart
 lib/src/model/ticket_lookup_access_dto_output.dart
 lib/src/model/ticket_lookup_booking_list_dto_output.dart
 lib/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart
@@ -1418,6 +1421,7 @@ lib/src/model/trip_schedule_response_dto_output.dart
 lib/src/model/trip_search_response_dto_output.dart
 lib/src/model/trip_search_response_dto_output_facets.dart
 lib/src/model/trip_search_response_dto_output_facets_operators_inner.dart
+lib/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_operator.dart
@@ -1447,3 +1451,5 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/ticket_email_response_dto_output_test.dart
+test/trip_search_response_dto_output_facets_pickup_points_inner_test.dart

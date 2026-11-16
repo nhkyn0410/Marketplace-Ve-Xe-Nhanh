@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**bookingControllerCreate**](BookingsApi.md#bookingcontrollercreate) | **POST** /v1/bookings | 
 [**bookingControllerGet**](BookingsApi.md#bookingcontrollerget) | **GET** /v1/bookings/{bookingId} | 
+[**bookingControllerResendTickets**](BookingsApi.md#bookingcontrollerresendtickets) | **POST** /v1/bookings/{bookingId}/tickets/email | 
 
 
 # **bookingControllerCreate**
@@ -85,6 +86,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**BookingResponseDtoOutput**](BookingResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **bookingControllerResendTickets**
+> TicketEmailResponseDtoOutput bookingControllerResendTickets(bookingId, xBookingToken)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getBookingsApi();
+final String bookingId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final String xBookingToken = xBookingToken_example; // String | Mã truy cập trả lúc tạo booking (khách vãng lai).
+
+try {
+    final response = api.bookingControllerResendTickets(bookingId, xBookingToken);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling BookingsApi->bookingControllerResendTickets: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **bookingId** | **String**|  | 
+ **xBookingToken** | **String**| Mã truy cập trả lúc tạo booking (khách vãng lai). | [optional] 
+
+### Return type
+
+[**TicketEmailResponseDtoOutput**](TicketEmailResponseDtoOutput.md)
 
 ### Authorization
 

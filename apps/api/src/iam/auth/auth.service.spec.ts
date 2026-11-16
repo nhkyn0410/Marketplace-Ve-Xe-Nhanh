@@ -24,6 +24,7 @@ function setup() {
     employeeAccount: { findUnique: vi.fn() },
     platformAccount: { findUnique: vi.fn() },
     authSession: { findUnique: vi.fn() },
+    verification: { findFirst: vi.fn().mockResolvedValue(null) },
     // Ngữ cảnh RLS (IAM-003): unit test không có Postgres — chạy callback thẳng trên chính mock này.
     withSystem: vi.fn(),
     withTenant: vi.fn()
@@ -129,6 +130,16 @@ async function statusOf(promise: Promise<unknown>): Promise<number> {
     return 0;
   } catch (error) {
     return (error as HttpException).getStatus();
+  }
+}
+
+/** Câu `detail` của lỗi auth (A21). */
+async function detailOf(promise: Promise<unknown>): Promise<string | undefined> {
+  try {
+    await promise;
+    return undefined;
+  } catch (error) {
+    return ((error as HttpException).getResponse() as { detail?: string }).detail;
   }
 }
 
@@ -798,6 +809,39 @@ describe("AuthService passenger OTP", () => {
     expect(ctx.history.record).toHaveBeenCalledWith(
       expect.objectContaining({ result: "failure", reason: "otp_invalid" })
     );
+  });
+
+  // PASSENGER-PARITY A21: OTP đăng nhập sai báo số lần thử còn lại (mã lỗi giữ nguyên).
+  it("OTP sai: báo còn bao nhiêu lần thử theo bản ghi Better Auth; hết lượt / hết hạn thì nhắc gửi lại mã", async () => {
+    const renew = "Mã xác minh đã hết hạn hoặc hết lượt thử. Vui lòng gửi lại mã mới.";
+    ctx.auth.api.signInEmailOTP.mockRejectedValue(
+      Object.assign(new Error("Invalid OTP"), { status: "BAD_REQUEST", body: { code: "INVALID_OTP" } })
+    );
+    ctx.prisma.verification.findFirst.mockResolvedValue({ value: "123456:1" });
+    expect(await problemOf(ctx.service.verifyOtp("A@B.com", "000000", {}))).toMatchObject({
+      status: 401,
+      code: "AUTH_INVALID_CREDENTIALS"
+    });
+    expect(await detailOf(ctx.service.verifyOtp("A@B.com", "000000", {}))).toBe("Mã xác minh không đúng. Còn 2 lần thử.");
+    expect(ctx.prisma.verification.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { identifier: "sign-in-otp-a@b.com" } })
+    );
+
+    ctx.prisma.verification.findFirst.mockResolvedValue({ value: "123456:3" });
+    expect(await detailOf(ctx.service.verifyOtp("a@b.com", "000000", {}))).toBe(renew);
+
+    ctx.auth.api.signInEmailOTP.mockRejectedValue(
+      Object.assign(new Error("Too many"), { status: "FORBIDDEN", body: { code: "TOO_MANY_ATTEMPTS" } })
+    );
+    expect(await statusOf(ctx.service.verifyOtp("a@b.com", "000000", {}))).toBe(401);
+    expect(await detailOf(ctx.service.verifyOtp("a@b.com", "000000", {}))).toBe(renew);
+  });
+
+  it("OTP sai mà chưa có bản ghi mã (email chưa xin mã) giữ câu chung, không lộ thêm", async () => {
+    ctx.auth.api.signInEmailOTP.mockRejectedValue(
+      Object.assign(new Error("Invalid OTP"), { status: "BAD_REQUEST", body: { code: "INVALID_OTP" } })
+    );
+    expect(await detailOf(ctx.service.verifyOtp("a@b.com", "000000", {}))).toBe("Thông tin đăng nhập không hợp lệ.");
   });
 
   it("KHÔNG biến lỗi hạ tầng thành 401 và không ghi audit sai sự thật", async () => {

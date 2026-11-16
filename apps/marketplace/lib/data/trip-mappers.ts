@@ -21,6 +21,15 @@ export interface TripOperatorOption {
   readonly count: number;
 }
 
+/** Điểm đón / trả có trong kết quả (theo tên) kèm số chuyến — lựa chọn của bộ lọc điểm (FR-MKT-03). */
+export interface TripPointOption {
+  readonly name: string;
+  readonly count: number;
+}
+
+/** Mức đánh giá nhà xe tối thiểu cho bộ lọc (FR-MKT-03). */
+export const MIN_RATING_OPTIONS = ["3", "4", "4.5"] as const;
+
 /** Danh sách id trên URL: lặp khóa (`a=1&a=2`, form GET) hoặc nối dấu phẩy (`a=1,2`, link); bỏ rỗng, bỏ trùng. */
 export function idList(value: string | readonly string[] | undefined): string[] {
   const raw = typeof value === "string" ? [value] : (value ?? []);
@@ -43,6 +52,11 @@ export interface SearchTripsParams {
   readonly operatorId?: string;
   /** Tiện ích chuyến phải có đủ (id từ `GET /catalog/amenities`). */
   readonly amenityIds?: readonly string[];
+  /** Tên điểm đón / trả chọn trong bộ lọc (FR-MKT-03). */
+  readonly pickupPoint?: string;
+  readonly dropoffPoint?: string;
+  /** Điểm đánh giá nhà xe tối thiểu: một trong `MIN_RATING_OPTIONS`. */
+  readonly minRating?: string;
   readonly sortBy?: TripSortBy;
   readonly page?: string;
   /** Xem vé không cần nhập ngày (không gửi `date`): API trả chuyến sắp chạy trong vài ngày tới. */
@@ -143,6 +157,8 @@ export function searchQuery(params: SearchTripsParams): URLSearchParams {
     operatorId: params.operatorId, priceMin: params.minPriceVnd, priceMax: params.maxPriceVnd,
     vehicleForm: params.seatType ? forms[params.seatType] : undefined,
     vehicleClass: params.vehicleType?.toUpperCase(), amenityIds: params.amenityIds?.join(","), page: params.page,
+    pickupPoint: params.pickupPoint, dropoffPoint: params.dropoffPoint,
+    minRating: params.minRating && (MIN_RATING_OPTIONS as readonly string[]).includes(params.minRating) ? params.minRating : undefined,
     sort: params.sortBy === "price_asc" ? "price" : params.sortBy === "fastest" ? "duration" : params.sortBy === "rating" ? "rating" : "departure"
   };
   for (const [key, value] of Object.entries(values)) if (value) query.set(key, value);

@@ -56,6 +56,7 @@ import { SeatHoldController } from "../seat-hold/seat-hold.controller";
 import { SeatHoldService } from "../seat-hold/seat-hold.service";
 import { BookingController } from "../booking/booking.controller";
 import { BookingService } from "../booking/booking.service";
+import { TicketEmailService } from "../booking/ticket-email.service";
 import { OperatorBookingController } from "../booking/operator-booking.controller";
 import { OperatorBookingService } from "../booking/operator-booking.service";
 import { PAYMENT_GATEWAYS } from "../external/payment/payment-gateway";
@@ -303,6 +304,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: TripSearchService, useValue: {} },
     { provide: SeatHoldService, useValue: {} },
     { provide: BookingService, useValue: {} },
+    { provide: TicketEmailService, useValue: {} },
     { provide: OperatorBookingService, useValue: {} },
     { provide: PaymentService, useValue: {} },
     { provide: PAYMENT_GATEWAYS, useValue: new Map() },

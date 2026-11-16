@@ -208,6 +208,9 @@ class TripBookingApi {
         priceMin: filters.priceMin,
         priceMax: filters.priceMax,
         amenityIds: amenityIds.isEmpty ? null : amenityIds,
+        pickupPoint: filters.pickupPoint,
+        dropoffPoint: filters.dropoffPoint,
+        minRating: filters.minRating,
         sort: filters.sort.apiValue,
         page: page,
         limit: 20,
@@ -248,6 +251,9 @@ class TripBookingApi {
         priceMin: filters.priceMin,
         priceMax: filters.priceMax,
         amenityIds: amenityIds.isEmpty ? null : amenityIds,
+        pickupPoint: filters.pickupPoint,
+        dropoffPoint: filters.dropoffPoint,
+        minRating: filters.minRating,
         sort: filters.sort.apiValue,
         page: page,
         limit: 20,
@@ -265,6 +271,14 @@ class TripBookingApi {
       priceMax: data.facets.priceMax,
       widenedFrom: data.widenedToProvince.from,
       widenedTo: data.widenedToProvince.to,
+      pickupPoints: [
+        for (final point in data.facets.pickupPoints)
+          TripPointFacet(name: point.name, count: point.count),
+      ],
+      dropoffPoints: [
+        for (final point in data.facets.dropoffPoints)
+          TripPointFacet(name: point.name, count: point.count),
+      ],
       operators: [
         for (final facet in data.facets.operators)
           TripOperatorFacet(id: facet.id, name: facet.name, count: facet.count),
@@ -740,6 +754,17 @@ class TripBookingApi {
               description: transfer.description,
             ),
     );
+  }
+
+  /// Gửi lại email vé điện tử tới email liên hệ của đơn (SCR-PSG-22); trả email đã che bớt.
+  Future<String> resendTicketEmail(CreatedBooking booking) async {
+    final response = await _call(
+      () => _client.getBookingsApi().bookingControllerResendTickets(
+        bookingId: booking.bookingId,
+        xBookingToken: booking.accessToken,
+      ),
+    );
+    return response.data!.sentTo;
   }
 
   /// Lấy kết quả thanh toán và vé từ máy chủ khi chờ hoặc quay lại ứng dụng.

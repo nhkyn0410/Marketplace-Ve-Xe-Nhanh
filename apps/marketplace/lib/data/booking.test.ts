@@ -11,7 +11,7 @@ vi.mock("./auth", () => ({ getAccountProfile: profile }));
 vi.mock("./loyalty", () => ({ getUserVouchers: wallet }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats } from "./booking";
+import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats, resendTicketEmail } from "./booking";
 
 describe("booking API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); wallet.mockResolvedValue({ status: "ok", data: { vouchers: [], availableCount: 0, usedCount: 0, expiredCount: 0 } }); });
@@ -297,6 +297,18 @@ describe("booking API integration", () => {
     const body = JSON.parse(request.mock.calls[1]![1].body);
     expect(body).toMatchObject({ userVoucherId: "v-redeem", expectedTotal: 50_001 });
     expect(body.promotionCode).toBeUndefined();
+  });
+
+  // SCR-PSG-22 (PASSENGER-PARITY giai đoạn 4): gửi lại email vé tới email liên hệ của đơn.
+  it("gửi lại email vé: POST kèm mã truy cập khách vãng lai, trả email đã che; mã đơn sai không gọi API", async () => {
+    const booking = bookingFixture();
+    values.set(`vxn_booking_${booking.bookingId}`, "private-guest-token");
+    request.mockResolvedValue({ status: "ok", data: { sentTo: "k***@example.com", resendAfterSeconds: 60 } });
+    expect(await resendTicketEmail(booking.bookingId)).toEqual({ status: "ok", data: { sentTo: "k***@example.com" } });
+    expect(request).toHaveBeenCalledWith(`/bookings/${booking.bookingId}/tickets/email`, expect.objectContaining({ method: "POST", headers: { "X-Booking-Token": "private-guest-token" } }));
+    request.mockClear();
+    expect((await resendTicketEmail("khong-phai-uuid")).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
   });
 
   it("gửi đúng provider và token qua header, từ chối liên kết thanh toán thực thi mã", async () => {

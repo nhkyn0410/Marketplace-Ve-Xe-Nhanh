@@ -647,6 +647,7 @@ export 'package:api_client_dart/src/model/ticket_detail_dto_output_dispute.dart'
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner.dart';
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart';
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_payments_inner.dart';
+export 'package:api_client_dart/src/model/ticket_email_response_dto_output.dart';
 export 'package:api_client_dart/src/model/ticket_lookup_access_dto_output.dart';
 export 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output.dart';
 export 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart';
@@ -701,6 +702,7 @@ export 'package:api_client_dart/src/model/trip_schedule_response_dto_output.dart
 export 'package:api_client_dart/src/model/trip_search_response_dto_output.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_facets.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_operators_inner.dart';
+export 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';

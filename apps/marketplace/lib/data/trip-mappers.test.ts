@@ -165,4 +165,13 @@ describe("API trip boundary", () => {
     expect(segmented.departureDateText).not.toContain("TP.HCM");
     expect(segmented.timeline.map((item) => item.badges)).toEqual([["Hết giờ bán online"], ["Bạn lên xe"], ["Bạn xuống xe"]]);
   });
+
+  // FR-MKT-03: điểm đón / trả và đánh giá tối thiểu tới API; mức đánh giá ngoài danh sách bị bỏ.
+  it("gửi pickupPoint / dropoffPoint / minRating, bỏ minRating lạ", () => {
+    const query = searchQuery({ date: "2026-11-20", pickupPoint: "Bến xe Miền Đông", dropoffPoint: "Bến xe Đà Lạt", minRating: "4.5" });
+    expect(query.get("pickupPoint")).toBe("Bến xe Miền Đông");
+    expect(query.get("dropoffPoint")).toBe("Bến xe Đà Lạt");
+    expect(query.get("minRating")).toBe("4.5");
+    expect(searchQuery({ date: "2026-11-20", minRating: "9" }).has("minRating")).toBe(false);
+  });
 });

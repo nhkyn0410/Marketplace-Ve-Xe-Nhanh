@@ -579,6 +579,7 @@ import 'package:api_client_dart/src/model/ticket_detail_dto_output_dispute.dart'
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_payments_inner.dart';
+import 'package:api_client_dart/src/model/ticket_email_response_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_access_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart';
@@ -633,6 +634,7 @@ import 'package:api_client_dart/src/model/trip_schedule_response_dto_output.dart
 import 'package:api_client_dart/src/model/trip_search_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_operators_inner.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';
@@ -1229,6 +1231,7 @@ part 'serializers.g.dart';
   TicketDetailDtoOutputMessagesInner,
   TicketDetailDtoOutputMessagesInnerAttachmentsInner,
   TicketDetailDtoOutputPaymentsInner,
+  TicketEmailResponseDtoOutput,
   TicketLookupAccessDtoOutput,
   TicketLookupBookingListDtoOutput,
   TicketLookupBookingListDtoOutputItemsInner,
@@ -1283,6 +1286,7 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutput,
   TripSearchResponseDtoOutputFacets,
   TripSearchResponseDtoOutputFacetsOperatorsInner,
+  TripSearchResponseDtoOutputFacetsPickupPointsInner,
   TripSearchResponseDtoOutputItemsInner,
   TripSearchResponseDtoOutputItemsInnerAmenitiesInner,
   TripSearchResponseDtoOutputItemsInnerOperator,
@@ -1707,6 +1711,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(InboxPageDtoOutputItemsInner)]),
         () => ListBuilder<InboxPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
+        () => ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorBookingPageDtoOutputItemsInner)]),

@@ -266,6 +266,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen>
               .toList(),
           isSignedIn: widget.isSignedIn,
           onBookingFinished: widget.onBookingFinished,
+          resendTicketEmail: () => widget.api.resendTicketEmail(widget.booking),
         ),
       ),
     );

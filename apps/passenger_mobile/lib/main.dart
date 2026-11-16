@@ -92,7 +92,10 @@ String describePassengerAuthFailure(ApiFailure failure) {
     return 'Bạn đã yêu cầu hoặc thử quá nhiều lần. Vui lòng thử lại sau.';
   }
   if (failure.code == 'AUTH_INVALID_CREDENTIALS') {
-    return 'Mã OTP không đúng hoặc đã hết hạn.';
+    // OTP sai: máy chủ ghi số lần thử còn lại hoặc nhắc gửi lại mã (A21); câu chung thì giữ câu cũ.
+    return failure.detail.startsWith('Mã xác minh')
+        ? failure.detail
+        : 'Mã OTP không đúng hoặc đã hết hạn.';
   }
   return failure.detail;
 }

@@ -2532,6 +2532,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/bookings/{bookingId}/tickets/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BookingController_resendTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/bookings": {
         parameters: {
             query?: never;
@@ -8434,6 +8450,14 @@ export interface components {
                     name: string;
                     count: number;
                 }[];
+                pickupPoints: {
+                    name: string;
+                    count: number;
+                }[];
+                dropoffPoints: {
+                    name: string;
+                    count: number;
+                }[];
                 priceMin: number | null;
                 priceMax: number | null;
             };
@@ -8814,6 +8838,10 @@ export interface components {
             }[];
             /** Format: date-time */
             createdAt: string;
+        };
+        TicketEmailResponseDto_Output: {
+            sentTo: string;
+            resendAfterSeconds: number;
         };
         OperatorBookingPageDto_Output: {
             items: {
@@ -21682,6 +21710,9 @@ export interface operations {
                 priceMin?: number;
                 priceMax?: number;
                 amenityIds?: string;
+                pickupPoint?: string;
+                dropoffPoint?: string;
+                minRating?: number;
                 sort?: "departure" | "price" | "price_desc" | "duration" | "rating";
                 page?: number;
                 limit?: number;
@@ -22005,6 +22036,67 @@ export interface operations {
             };
             /** @description `BOOKING_NOT_FOUND`. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_resendTickets: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã xếp hàng gửi lại vé điện tử. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketEmailResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_NOT_AVAILABLE` — đơn chưa có vé còn hiệu lực. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_RATE_LIMITED` — 1 lần / phút, 5 lần / ngày. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

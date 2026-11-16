@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:passenger_mobile/features/support/support_api.dart';
+import 'package:passenger_mobile/features/support/support_file_picker.dart';
 import 'package:passenger_mobile/features/support/support_models.dart';
 
 const _primary = Color(0xFF2088C9);
@@ -19,6 +20,8 @@ class SupportTicketsScreen extends StatefulWidget {
     required this.onBack,
     this.booking,
     this.loadBookings,
+    this.pickFiles = pickSupportFiles,
+    this.openUrl = openSupportUrl,
     super.key,
   });
 
@@ -26,6 +29,8 @@ class SupportTicketsScreen extends StatefulWidget {
   final VoidCallback onBack;
   final SupportBookingRef? booking;
   final Future<List<SupportBookingRef>> Function()? loadBookings;
+  final SupportFilePicker pickFiles;
+  final SupportUrlOpener openUrl;
 
   @override
   State<SupportTicketsScreen> createState() => _SupportTicketsScreenState();
@@ -65,6 +70,8 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
           bookingId: bookingId,
           ticketId: ticketId,
           initial: initial,
+          pickFiles: widget.pickFiles,
+          openUrl: widget.openUrl,
           onBack: () => Navigator.of(routeContext).pop(),
         ),
       ),
@@ -80,6 +87,8 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
         builder: (routeContext) => SupportTicketFormScreen(
           booking: booking,
           submit: (draft) => widget.service.create(booking.bookingId, draft),
+          upload: (file) => widget.service.upload(booking.bookingId, file),
+          pickFiles: widget.pickFiles,
           onCreated: (detail) => Navigator.of(routeContext).pop(detail),
           onBack: () => Navigator.of(routeContext).pop(),
         ),
@@ -242,11 +251,17 @@ class SupportTicketFormScreen extends StatefulWidget {
     required this.submit,
     required this.onCreated,
     required this.onBack,
+    this.upload,
+    this.pickFiles = pickSupportFiles,
     super.key,
   });
 
   final SupportBookingRef booking;
   final Future<SupportTicketDetail> Function(SupportTicketDraft draft) submit;
+
+  /// Tải tệp lên kho; `null` = không có nút đính kèm.
+  final Future<SupportUpload> Function(SupportPickedFile file)? upload;
+  final SupportFilePicker pickFiles;
   final ValueChanged<SupportTicketDetail> onCreated;
   final VoidCallback onBack;
 
@@ -263,6 +278,30 @@ class _SupportTicketFormScreenState extends State<SupportTicketFormScreen> {
   final _body = TextEditingController();
   bool _busy = false;
   String? _error;
+  final _uploads = <SupportUpload>[];
+  bool _uploading = false;
+
+  Future<void> _attach() async {
+    final upload = widget.upload;
+    if (upload == null || _uploading) return;
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    try {
+      final added = await pickAndUploadSupportFiles(
+        already: _uploads.length,
+        pick: widget.pickFiles,
+        upload: upload,
+      );
+      if (!mounted) return;
+      setState(() => _uploads.addAll(added));
+    } catch (error) {
+      if (mounted) setState(() => _error = describeSupportFailure(error));
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -293,6 +332,7 @@ class _SupportTicketFormScreenState extends State<SupportTicketFormScreen> {
           priority: _priority,
           subject: subject,
           body: body,
+          attachments: List.unmodifiable(_uploads),
         ),
       );
       if (!mounted) return;
@@ -411,6 +451,16 @@ class _SupportTicketFormScreenState extends State<SupportTicketFormScreen> {
                         'Mô tả vấn đề, thời gian, người liên quan…',
                       ),
                     ),
+                    if (widget.upload != null)
+                      _AttachmentStrip(
+                        keyPrefix: 'support-form',
+                        uploads: _uploads,
+                        uploading: _uploading,
+                        enabled: !_busy,
+                        onAdd: _attach,
+                        onRemove: (upload) =>
+                            setState(() => _uploads.remove(upload)),
+                      ),
                   ],
                 ),
               ),
@@ -432,7 +482,7 @@ class _SupportTicketFormScreenState extends State<SupportTicketFormScreen> {
                       height: 48,
                       child: FilledButton(
                         key: const Key('support-submit'),
-                        onPressed: _busy ? null : _send,
+                        onPressed: _busy || _uploading ? null : _send,
                         style: FilledButton.styleFrom(
                           backgroundColor: _primary,
                           shape: RoundedRectangleBorder(
@@ -464,6 +514,8 @@ class SupportTicketDetailScreen extends StatefulWidget {
     required this.ticketId,
     required this.onBack,
     this.initial,
+    this.pickFiles = pickSupportFiles,
+    this.openUrl = openSupportUrl,
     super.key,
   });
 
@@ -471,6 +523,8 @@ class SupportTicketDetailScreen extends StatefulWidget {
   final String bookingId;
   final String ticketId;
   final VoidCallback onBack;
+  final SupportFilePicker pickFiles;
+  final SupportUrlOpener openUrl;
 
   /// Chi tiết đã có (vừa gửi khiếu nại) thì không tải lại.
   final SupportTicketDetail? initial;
@@ -487,6 +541,46 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
   final _reply = TextEditingController();
   bool _sending = false;
   String? _replyError;
+  final _uploads = <SupportUpload>[];
+  bool _uploading = false;
+
+  Future<void> _attach() async {
+    if (_uploading) return;
+    setState(() {
+      _uploading = true;
+      _replyError = null;
+    });
+    try {
+      final added = await pickAndUploadSupportFiles(
+        already: _uploads.length,
+        pick: widget.pickFiles,
+        upload: (file) => widget.service.upload(widget.bookingId, file),
+      );
+      if (!mounted) return;
+      setState(() => _uploads.addAll(added));
+    } catch (error) {
+      if (mounted) setState(() => _replyError = describeSupportFailure(error));
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _openAttachment(SupportAttachment file) async {
+    var opened = false;
+    try {
+      opened = await widget.openUrl(
+        await widget.service.attachmentUrl(widget.bookingId, file.id),
+      );
+    } catch (_) {
+      opened = false;
+    }
+    if (opened || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Chưa mở được tệp "${file.fileName}".')),
+      );
+  }
 
   @override
   void initState() {
@@ -552,9 +646,11 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         widget.bookingId,
         widget.ticketId,
         body,
+        attachments: List.unmodifiable(_uploads),
       );
       if (!mounted) return;
       _reply.clear();
+      _uploads.clear();
       setState(() {
         _detail = updated;
         _sending = false;
@@ -627,7 +723,10 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                   for (final message in detail.messages)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: _MessageBubble(message: message),
+                      child: _MessageBubble(
+                        message: message,
+                        onOpen: _openAttachment,
+                      ),
                     ),
                 ],
               ),
@@ -639,6 +738,14 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
             sending: _sending,
             error: _replyError,
             onSend: _send,
+            attachments: _AttachmentStrip(
+              keyPrefix: 'support-reply',
+              uploads: _uploads,
+              uploading: _uploading,
+              enabled: !_sending,
+              onAdd: _attach,
+              onRemove: (upload) => setState(() => _uploads.remove(upload)),
+            ),
           ),
         ],
       );
@@ -743,7 +850,10 @@ class _SupportTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    // Wrap: màn hẹp / chữ lớn thì tab xuống dòng thay vì tràn.
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
         _Choice(
           key: const Key('support-tab-active'),
@@ -751,7 +861,6 @@ class _SupportTabs extends StatelessWidget {
           selected: !showClosed,
           onSelected: () => onChanged(false),
         ),
-        const SizedBox(width: 8),
         _Choice(
           key: const Key('support-tab-closed'),
           label: 'Đã đóng ($closedCount)',
@@ -1009,9 +1118,10 @@ class _InfoLine extends StatelessWidget {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.onOpen});
 
   final SupportMessage message;
+  final ValueChanged<SupportAttachment> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -1049,21 +1159,34 @@ class _MessageBubble extends StatelessWidget {
                 message.body,
                 style: const TextStyle(color: _ink, height: 1.4),
               ),
-              for (final name in message.attachmentNames)
+              for (final file in message.attachments)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.attach_file, size: 15, color: _muted),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          name,
-                          style: const TextStyle(color: _muted, fontSize: 12.5),
+                  child: InkWell(
+                    key: Key('support-attachment-${file.id}'),
+                    onTap: () => onOpen(file),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.attach_file,
+                          size: 15,
+                          color: _primary,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '${file.fileName} · ${file.sizeLabel}',
+                            style: const TextStyle(
+                              color: _primary,
+                              fontSize: 12.5,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               const SizedBox(height: 6),
@@ -1086,6 +1209,7 @@ class _ReplyBar extends StatelessWidget {
     required this.sending,
     required this.error,
     required this.onSend,
+    required this.attachments,
   });
 
   final bool closed;
@@ -1093,6 +1217,7 @@ class _ReplyBar extends StatelessWidget {
   final bool sending;
   final String? error;
   final VoidCallback onSend;
+  final Widget attachments;
 
   @override
   Widget build(BuildContext context) {
@@ -1120,6 +1245,7 @@ class _ReplyBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
+                attachments,
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -1154,6 +1280,81 @@ class _ReplyBar extends StatelessWidget {
                 ),
               ],
             ),
+    );
+  }
+}
+
+/// Chọn tệp rồi tải lên lần lượt (A24). Kiểm số tệp / dung lượng như API trước khi tải; lỗi là
+/// [SupportAttachmentError] hoặc lỗi API.
+Future<List<SupportUpload>> pickAndUploadSupportFiles({
+  required int already,
+  required SupportFilePicker pick,
+  required Future<SupportUpload> Function(SupportPickedFile file) upload,
+}) async {
+  final files = await pick();
+  if (files.isEmpty) return const [];
+  if (already + files.length > supportMaxFiles) {
+    throw const SupportAttachmentError(
+      'Mỗi lần gửi tối đa $supportMaxFiles tệp.',
+    );
+  }
+  for (final file in files) {
+    if (file.bytes.length > supportMaxFileBytes) {
+      throw SupportAttachmentError('Tệp "${file.name}" lớn hơn 10 MB.');
+    }
+  }
+  return [for (final file in files) await upload(file)];
+}
+
+/// Tệp đã chọn + nút "Đính kèm" (ảnh / PDF ≤ 10 MB, tối đa 5 tệp).
+class _AttachmentStrip extends StatelessWidget {
+  const _AttachmentStrip({
+    required this.keyPrefix,
+    required this.uploads,
+    required this.uploading,
+    required this.enabled,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final String keyPrefix;
+  final List<SupportUpload> uploads;
+  final bool uploading;
+  final bool enabled;
+  final VoidCallback onAdd;
+  final ValueChanged<SupportUpload> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          for (final upload in uploads)
+            InputChip(
+              key: Key('$keyPrefix-file-${upload.fileName}'),
+              label: Text(upload.fileName),
+              visualDensity: VisualDensity.compact,
+              onDeleted: enabled ? () => onRemove(upload) : null,
+            ),
+          TextButton.icon(
+            key: Key('$keyPrefix-attach'),
+            onPressed: enabled && !uploading && uploads.length < supportMaxFiles
+                ? onAdd
+                : null,
+            icon: uploading
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.attach_file, size: 18),
+            label: Text(uploading ? 'Đang tải tệp…' : 'Đính kèm ảnh / PDF'),
+          ),
+        ],
+      ),
     );
   }
 }

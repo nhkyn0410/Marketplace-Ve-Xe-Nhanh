@@ -247,6 +247,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**sessionControllerRevoke**](doc/AuthApi.md#sessioncontrollerrevoke) | **DELETE** /v1/auth/sessions/{sessionId} | 
 [*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerCreate**](doc/BookingsApi.md#bookingcontrollercreate) | **POST** /v1/bookings | 
 [*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerGet**](doc/BookingsApi.md#bookingcontrollerget) | **GET** /v1/bookings/{bookingId} | 
+[*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerResendTickets**](doc/BookingsApi.md#bookingcontrollerresendtickets) | **POST** /v1/bookings/{bookingId}/tickets/email | 
 [*CancellationsApi*](doc/CancellationsApi.md) | [**cancellationControllerCancel**](doc/CancellationsApi.md#cancellationcontrollercancel) | **POST** /v1/bookings/{bookingId}/cancellations | 
 [*CancellationsApi*](doc/CancellationsApi.md) | [**cancellationControllerQuote**](doc/CancellationsApi.md#cancellationcontrollerquote) | **GET** /v1/bookings/{bookingId}/cancellation-quote | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListAmenities**](doc/CatalogApi.md#catalogcontrollerlistamenities) | **GET** /v1/catalog/amenities | 
@@ -1022,6 +1023,7 @@ Class | Method | HTTP request | Description
  - [TicketDetailDtoOutputMessagesInner](doc/TicketDetailDtoOutputMessagesInner.md)
  - [TicketDetailDtoOutputMessagesInnerAttachmentsInner](doc/TicketDetailDtoOutputMessagesInnerAttachmentsInner.md)
  - [TicketDetailDtoOutputPaymentsInner](doc/TicketDetailDtoOutputPaymentsInner.md)
+ - [TicketEmailResponseDtoOutput](doc/TicketEmailResponseDtoOutput.md)
  - [TicketLookupAccessDtoOutput](doc/TicketLookupAccessDtoOutput.md)
  - [TicketLookupBookingListDtoOutput](doc/TicketLookupBookingListDtoOutput.md)
  - [TicketLookupBookingListDtoOutputItemsInner](doc/TicketLookupBookingListDtoOutputItemsInner.md)
@@ -1076,6 +1078,7 @@ Class | Method | HTTP request | Description
  - [TripSearchResponseDtoOutput](doc/TripSearchResponseDtoOutput.md)
  - [TripSearchResponseDtoOutputFacets](doc/TripSearchResponseDtoOutputFacets.md)
  - [TripSearchResponseDtoOutputFacetsOperatorsInner](doc/TripSearchResponseDtoOutputFacetsOperatorsInner.md)
+ - [TripSearchResponseDtoOutputFacetsPickupPointsInner](doc/TripSearchResponseDtoOutputFacetsPickupPointsInner.md)
  - [TripSearchResponseDtoOutputItemsInner](doc/TripSearchResponseDtoOutputItemsInner.md)
  - [TripSearchResponseDtoOutputItemsInnerAmenitiesInner](doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md)
  - [TripSearchResponseDtoOutputItemsInnerOperator](doc/TripSearchResponseDtoOutputItemsInnerOperator.md)

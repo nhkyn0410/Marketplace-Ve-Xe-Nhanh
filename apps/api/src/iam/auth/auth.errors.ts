@@ -15,13 +15,12 @@ export class AuthException extends HttpException {
   }
 }
 
-/** Sai credential HOẶC account không tồn tại — cùng 1 response (chống account enumeration). */
-export function invalidCredentials(): AuthException {
-  return new AuthException(
-    HttpStatus.UNAUTHORIZED,
-    "AUTH_INVALID_CREDENTIALS",
-    "Thông tin đăng nhập không hợp lệ.",
-  );
+/**
+ * Sai credential HOẶC account không tồn tại — cùng 1 response (chống account enumeration). `detail` riêng chỉ dùng cho
+ * OTP đăng nhập (số lần thử còn lại của mã khách vừa nhận — PASSENGER-PARITY A21), mã lỗi giữ nguyên.
+ */
+export function invalidCredentials(detail = "Thông tin đăng nhập không hợp lệ."): AuthException {
+  return new AuthException(HttpStatus.UNAUTHORIZED, "AUTH_INVALID_CREDENTIALS", detail);
 }
 
 /** Account bị khóa/vô hiệu — chỉ trả khi credential ĐÚNG (không leak). */

@@ -152,7 +152,11 @@ void main() {
       expect(detail.priority, SupportPriority.high);
       expect(detail.routeName, 'Hà Nội → Hải Phòng');
       expect(detail.messages.single.fromPassenger, isTrue);
-      expect(detail.messages.single.attachmentNames, ['ve.png']);
+      final file = detail.messages.single.attachments.single;
+      expect(
+        (file.id, file.fileName, file.sizeLabel),
+        ('a1', 've.png', '2 KB'),
+      );
     },
   );
 

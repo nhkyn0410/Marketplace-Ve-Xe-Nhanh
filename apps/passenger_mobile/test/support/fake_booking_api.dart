@@ -464,6 +464,15 @@ class FakeBookingApi implements TripBookingApi {
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];
 
+  /// Số lần gửi lại email vé (SCR-PSG-22).
+  int ticketEmailResends = 0;
+
+  @override
+  Future<String> resendTicketEmail(CreatedBooking booking) async {
+    ticketEmailResends++;
+    return 'k***@example.com';
+  }
+
   /// Hồ sơ nhà xe trả về (A30: đánh giá trên trang chuyến); `null` = hồ sơ trống.
   OperatorProfile? operatorProfile;
 

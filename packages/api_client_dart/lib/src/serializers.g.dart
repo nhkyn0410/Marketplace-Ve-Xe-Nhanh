@@ -992,6 +992,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TicketDetailDtoOutputReporterPartyEnum.serializer)
       ..add(TicketDetailDtoOutputRequestedPriorityEnum.serializer)
       ..add(TicketDetailDtoOutputStatusEnum.serializer)
+      ..add(TicketEmailResponseDtoOutput.serializer)
       ..add(TicketLookupAccessDtoOutput.serializer)
       ..add(TicketLookupBookingListDtoOutput.serializer)
       ..add(TicketLookupBookingListDtoOutputItemsInner.serializer)
@@ -1071,6 +1072,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripSearchResponseDtoOutput.serializer)
       ..add(TripSearchResponseDtoOutputFacets.serializer)
       ..add(TripSearchResponseDtoOutputFacetsOperatorsInner.serializer)
+      ..add(TripSearchResponseDtoOutputFacetsPickupPointsInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInnerAmenitiesInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInnerOperator.serializer)
@@ -2274,6 +2276,18 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)
           ]),
           () => ListBuilder<TripSearchResponseDtoOutputFacetsOperatorsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)
+          ]),
+          () =>
+              ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)
+          ]),
+          () =>
+              ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripSearchResponseDtoOutputItemsInner)]),

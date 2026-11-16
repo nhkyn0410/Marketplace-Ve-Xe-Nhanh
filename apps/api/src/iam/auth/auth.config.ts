@@ -1,6 +1,7 @@
 import type { AppConfig } from "../../config/env.config";
 import type { PrismaService } from "../../database/prisma.service";
 import type { EmailNotifier } from "../../external/notification/email-notifier";
+import { OTP_ALLOWED_ATTEMPTS } from "./auth.constants";
 
 /** Chỉ dev/test (production bắt buộc `BETTER_AUTH_SECRET`). MfaService derive key dev từ cùng giá trị. */
 export const DEV_BETTER_AUTH_SECRET = "dev-insecure-better-auth-secret-change-me";
@@ -51,7 +52,7 @@ export async function createAuth(
       emailOTP({
         otpLength: 6,
         expiresIn: 300,
-        allowedAttempts: 3,
+        allowedAttempts: OTP_ALLOWED_ATTEMPTS,
         overrideDefaultEmailVerification: true,
         async sendVerificationOTP({ email, otp, type }) {
           await emailNotifier.sendOtp({ email, otp, purpose: type });

@@ -286,3 +286,28 @@ Ghi chú:
 - **Lỗi phát hiện khi làm A24:** nút "Thử lại" của FAQ (A26) gọi `setState` trả về Future — đã sửa, thêm test.
 - **Test tích hợp thanh toán** (`payment.int.spec.ts`) thêm ca `client: APP` nhưng bị bỏ qua ở máy này vì cần Postgres + Redis thật.
 - **Client Dart sinh lại bằng Docker (RB-04):** chỉ `PaymentInputDto` đổi nội dung; các tệp khác chỉ khác kiểu xuống dòng, git không tính là thay đổi.
+
+## 8. Giai đoạn 4 (cập nhật 16/11/2026)
+
+Kế hoạch chỉ có 3 giai đoạn; Khanh chọn ngày 16/11/2026 ba phần cho "giai đoạn 4": phần còn dở của giai đoạn 3, backlog chung web + app, kiểm chứng cuối. Nối tiếp commit `3bff3c21` (giai đoạn 3). **Chưa commit, chưa review.**
+
+| Việc | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| A21 (OTP đăng nhập) | API: OTP sai vẫn 401 `AUTH_INVALID_CREDENTIALS`, `detail` ghi "Còn N lần thử." (đọc bản ghi Better Auth `sign-in-otp-{email}`), hết lượt / hết hạn thì nhắc gửi lại mã; chưa có bản ghi thì giữ câu chung. Web hiện sẵn `detail`; app hiện câu của máy chủ thay câu chung | Vitest API, test app |
+| A24 đợt 2 | App: đính kèm ảnh / PDF (≤ 10 MB, tối đa 5 tệp) khi gửi khiếu nại và khi phản hồi — xin URL rồi tải thẳng lên kho; bấm tệp đã gửi để mở bằng URL có hạn. Thêm thư viện `file_picker` (chỉ là plugin chọn tệp). Hàng tab Đang xử lý / Đã đóng đổi sang `Wrap` (tràn ngang ở màn hẹp) | Widget test + test lớp API |
+| Lọc điểm đón / trả, đánh giá (FR-MKT-03) | API: `GET /trips/search` thêm `pickupPoint`, `dropoffPoint` (theo tên), `minRating` (1–5) và `facets.pickupPoints` / `facets.dropoffPoints`. Web: hai ô chọn điểm + nhóm "Đánh giá nhà xe" (Từ 3 / 4 / 4,5 ★). App: các mục tương ứng trong bảng lọc + chip gỡ từng điều kiện. 05 API v0.56 (chờ duyệt) | Vitest API + web, widget test |
+| Gửi lại email vé (SCR-PSG-22) | API: `POST /bookings/{bookingId}/tickets/email` (chủ đơn hoặc mã truy cập), xếp lại thông báo vé điện tử tới email liên hệ của đơn, 1 lần / phút và 5 lần / ngày. Web: nút ở màn thanh toán thành công; app: nút ở màn hoàn tất thanh toán | Vitest API (service + HTTP) + web, widget test |
+
+**Kiểm chứng cuối (16/11/2026):**
+
+- Bộ test: web 178 test, typecheck + lint sạch; API 1.435 test (520 bỏ qua vì cần database thật), typecheck sạch; app `flutter analyze` sạch, 457 test; sau đó sửa bảng lọc và thêm 1 test, chạy lại riêng test Kết quả + Mua vé (qua).
+- API nhánh chạy cổng 3100 trên DB nhân bản `vxn_parity_check` (từ `vxn_web_shots`, đã xoá sau khi xong): facet điểm đón / trả có trên 300 chuyến; lọc `pickupPoint` = Bến xe Miền Tây → 15 chuyến; `minRating` = 7 → 400.
+- Web (Next dev 3002 → API 3100, Playwright): chọn "Bến xe Miền Tây" + "Từ 4 ★" → URL mang đúng tham số, còn 3 chuyến.
+- Máy ảo Pixel_6 (APK debug, `APP_LINK_HOST=app-link-check.example`): App Link đăng ký cho `MainActivity`; mở link khi app đang chạy → cùng tiến trình, chỉ đưa app lên trước (màn thanh toán giữ nguyên); app đã tắt → mở bình thường, không lỗi route. Tên miền thử không xác minh được (đúng dự kiến) — xác minh thật cần tên miền web + `assetlinks.json` thật.
+- Bảng lọc app trên máy ảo: chọn điểm trả Rạch Giá → "Bộ lọc · 1", chỉ còn chuyến tới Rạch Giá. Lỗi phát hiện khi thử: chế độ xem mọi tuyến có hàng chục điểm làm bảng lọc rất dài → sửa: hiện 6 điểm nhiều chuyến nhất + "Xem thêm N điểm".
+- Chưa làm: chụp lại toàn bộ màn S01–S66 và cập nhật tài liệu so sánh; gửi lại email vé và đính kèm khiếu nại chưa thử đầu-cuối (cần đăng nhập / đơn đã thanh toán trên DB nhân bản); đăng nhập Google thật.
+
+Ghi chú:
+
+- Gửi lại email vé dùng lại loại thông báo `BOOKING_CONFIRMED` nên ngoài email, hộp thư / push của app cũng có thêm một tin "vé đã xác nhận" mỗi lần gửi lại.
+- Client TS + Dart sinh lại; `pnpm gen:api-client` lỗi ở bước `pnpm --filter @vexenhanh/types build` trên máy này nên chạy từng bước bằng tay (build types, `tsc -p tsconfig.build.json`, `generate-openapi.js`, `openapi-typescript`). `OpenApiModule` thêm stub `TicketEmailService`.

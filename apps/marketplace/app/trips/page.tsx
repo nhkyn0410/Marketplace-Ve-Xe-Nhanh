@@ -159,6 +159,8 @@ export default async function TripsPage(props: TripsPageProps) {
     operatorId: value("operatorId") || undefined, seatType: value("seatType"), vehicleType: value("vehicleType"),
     minPriceVnd: price.min, maxPriceVnd: price.max, timeRange: value("timeRange"),
     amenityIds: amenityIds.length ? amenityIds : undefined,
+    pickupPoint: value("pickupPoint") || undefined, dropoffPoint: value("dropoffPoint") || undefined,
+    minRating: value("minRating") || undefined,
     sortBy: sortBy === undefined ? undefined : tripSortBy(sortBy), page: value("page") };
   // Loại "province" là mặc định nên không ghi lên URL (giữ link cũ y nguyên).
   const query = new URLSearchParams(Object.entries(params)
@@ -232,7 +234,7 @@ export default async function TripsPage(props: TripsPageProps) {
     );
   }
 
-  const { summary, trips, pagination, widenedToProvince, operators } = tripsResult.data;
+  const { summary, trips, pagination, widenedToProvince, operators, pickupPoints, dropoffPoints } = tripsResult.data;
   const widenedSides = [widenedToProvince.from && "đón", widenedToProvince.to && "trả"].filter(Boolean).join(" / ");
   const pageHref = (page: number) => `/trips?${new URLSearchParams({ ...Object.fromEntries(query), page: String(page) })}`;
   const pagerClass = "inline-flex items-center gap-1.5 rounded-xl border border-vxn-border bg-white px-5 py-2.5 text-xs font-bold text-vxn-ink shadow-2xs transition hover:bg-vxn-bg-soft";
@@ -245,7 +247,8 @@ export default async function TripsPage(props: TripsPageProps) {
           initialDate={params.date ?? summary.departureDateText} initialPassengers={params.passengers} provinces={provinces} />
         <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
           <CollapsibleFilters>
-            <LiveTripFilters query={query.toString()} operators={operators} amenities={amenities} />
+            <LiveTripFilters query={query.toString()} operators={operators} amenities={amenities}
+              pickupPoints={pickupPoints} dropoffPoints={dropoffPoints} />
           </CollapsibleFilters>
           <div className="flex-1 min-w-0 w-full space-y-4">
             <RememberLastSearch query={new URLSearchParams([...query].filter(([key]) => (JOURNEY_KEYS as readonly string[]).includes(key))).toString()} />

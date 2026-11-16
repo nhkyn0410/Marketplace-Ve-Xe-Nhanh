@@ -10,6 +10,7 @@ Future<void> _pumpScreen(
   double width = 412,
   double height = 900,
   bool disableAnimations = false,
+  Future<String> Function()? resendTicketEmail,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -33,6 +34,7 @@ Future<void> _pumpScreen(
       home: PaymentCompletionScreen(
         selectedSeats: _seats,
         passengerNames: _passengerNames,
+        resendTicketEmail: resendTicketEmail,
       ),
     ),
   );
@@ -51,6 +53,32 @@ String _textAt(WidgetTester tester, String key) {
 }
 
 void main() {
+  // SCR-PSG-22 (PASSENGER-PARITY giai đoạn 4): gửi lại email vé.
+  testWidgets('gửi lại email vé: báo email đã che; không có hàm gửi thì không hiện nút', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpScreen(
+      tester,
+      height: 2000,
+      disableAnimations: true,
+      resendTicketEmail: () async {
+        calls++;
+        return 'k***@example.com';
+      },
+    );
+    await tester.tap(find.byKey(const Key('payment-completion-resend-email')));
+    await tester.pumpAndSettle();
+    expect(calls, 1);
+    expect(find.text('Đã gửi lại vé tới k***@example.com.'), findsOneWidget);
+
+    await _pumpScreen(tester, height: 2000, disableAnimations: true);
+    expect(
+      find.byKey(const Key('payment-completion-resend-email')),
+      findsNothing,
+    );
+  });
+
   testWidgets('hiển thị đủ dữ liệu vé mô phỏng của hành khách đầu tiên', (
     tester,
   ) async {

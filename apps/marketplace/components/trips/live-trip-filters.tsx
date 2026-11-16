@@ -1,6 +1,6 @@
 import { SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
-import { idList, type TripOperatorOption } from "../../lib/data/trip-mappers";
+import { idList, MIN_RATING_OPTIONS, type TripOperatorOption, type TripPointOption } from "../../lib/data/trip-mappers";
 import type { AmenityItem } from "../../lib/data/types";
 
 const TIME_RANGES = [
@@ -34,12 +34,17 @@ const KEPT_KEYS = [
 export function LiveTripFilters({
   query,
   operators = [],
-  amenities = []
+  amenities = [],
+  pickupPoints = [],
+  dropoffPoints = []
 }: {
   readonly query: string;
   /** Rỗng (vd tìm lỗi) thì không hiện nhóm "Nhà xe" và giữ nguyên nhà xe đang lọc. */
   readonly operators?: readonly TripOperatorOption[];
   readonly amenities?: readonly AmenityItem[];
+  /** Điểm đón / trả có trong kết quả (FR-MKT-03); rỗng thì không hiện nhóm tương ứng. */
+  readonly pickupPoints?: readonly TripPointOption[];
+  readonly dropoffPoints?: readonly TripPointOption[];
 }) {
   const params = new URLSearchParams(query);
   // Có nhóm "Nhà xe" thì nhà xe là một tiêu chí lọc: form tự gửi, "Xóa lọc" bỏ đi (như app).
@@ -94,6 +99,11 @@ export function LiveTripFilters({
           </label>
         )}
 
+        <PointSelect title="Điểm đón" name="pickupPoint" allLabel="Mọi điểm đón" points={pickupPoints} current={params.get("pickupPoint")} className={inputClass} />
+        <PointSelect title="Điểm trả" name="dropoffPoint" allLabel="Mọi điểm trả" points={dropoffPoints} current={params.get("dropoffPoint")} className={inputClass} />
+
+        <RadioGroup title="Đánh giá nhà xe" name="minRating" options={RATING_OPTIONS} current={params.get("minRating")} />
+
         <RadioGroup title="Dạng chỗ" name="seatType" options={SEAT_TYPES} current={params.get("seatType")} />
         <RadioGroup title="Hạng xe" name="vehicleType" options={VEHICLE_TYPES} current={params.get("vehicleType")} />
 
@@ -124,6 +134,39 @@ export function LiveTripFilters({
         Áp dụng
       </button>
     </form>
+  );
+}
+
+const RATING_OPTIONS = MIN_RATING_OPTIONS.map((value) => ({ value, label: `Từ ${value.replace(".", ",")} ★` }));
+
+/** Chọn một điểm đón / trả trong kết quả; điểm đang lọc không còn trong kết quả vẫn giữ để không bị bỏ lọc. */
+function PointSelect({
+  title,
+  name,
+  allLabel,
+  points,
+  current,
+  className
+}: {
+  readonly title: string;
+  readonly name: string;
+  readonly allLabel: string;
+  readonly points: readonly TripPointOption[];
+  readonly current: string | null;
+  readonly className: string;
+}) {
+  if (!points.length && !current) return null;
+  const options = current && !points.some((point) => point.name === current) ? [...points, { name: current, count: 0 }] : points;
+  return (
+    <label className="block">
+      <span className="text-[13px] font-semibold text-vxn-ink">{title}</span>
+      <select name={name} defaultValue={current ?? ""} className={`mt-2.5 bg-white ${className}`}>
+        <option value="">{allLabel}</option>
+        {options.map((point) => (
+          <option key={point.name} value={point.name}>{point.count ? `${point.name} (${point.count})` : point.name}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 

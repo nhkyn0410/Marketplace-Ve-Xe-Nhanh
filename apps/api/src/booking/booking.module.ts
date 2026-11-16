@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { NotificationDispatchModule } from "../notification/notification-dispatch.module";
+import { TicketEmailService } from "./ticket-email.service";
 import { AuditModule } from "../audit/audit.module";
 import { APP_CONFIG } from "../config/env.config";
 import { DatabaseModule } from "../database/database.module";
@@ -17,9 +19,9 @@ import { RedisModule } from "../redis/redis.module";
  * Booking/Ticket/Payment (DOMAIN-MAP `booking/`) — TASK-BTP-002: tạo + xem booking; TASK-OPR-003: màn Đặt vé của nhà xe.
  */
 @Module({
-  imports: [DatabaseModule, IamModule, SeatHoldModule, AuditModule, RedisModule],
+  imports: [DatabaseModule, IamModule, SeatHoldModule, AuditModule, RedisModule, NotificationDispatchModule],
   controllers: [BookingController, OperatorBookingController, CounterSalesController],
-  providers: [BookingService, OperatorBookingService, CounterSalesService, { provide: TICKET_QR, inject: [APP_CONFIG], useFactory: createTicketQrSigner }],
+  providers: [BookingService, OperatorBookingService, CounterSalesService, TicketEmailService, { provide: TICKET_QR, inject: [APP_CONFIG], useFactory: createTicketQrSigner }],
   exports: [BookingService, TICKET_QR],
 })
 export class BookingModule {}

@@ -14216,6 +14216,36 @@
             }
           },
           {
+            "name": "pickupPoint",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "dropoffPoint",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "minRating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "type": "number"
+            }
+          },
+          {
             "name": "sort",
             "required": false,
             "in": "query",
@@ -14653,6 +14683,86 @@
           },
           "404": {
             "description": "`BOOKING_NOT_FOUND`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "bookings"
+        ]
+      }
+    },
+    "/v1/bookings/{bookingId}/tickets/email": {
+      "post": {
+        "operationId": "BookingController_resendTickets",
+        "parameters": [
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Booking-Token",
+            "in": "header",
+            "description": "Mã truy cập trả lúc tạo booking (khách vãng lai).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Đã xếp hàng gửi lại vé điện tử.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketEmailResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`BOOKING_NOT_FOUND`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`TICKET_EMAIL_NOT_AVAILABLE` — đơn chưa có vé còn hiệu lực.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`TICKET_EMAIL_RATE_LIMITED` — 1 lần / phút, 5 lần / ngày.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -46224,6 +46334,48 @@
                   "additionalProperties": false
                 }
               },
+              "pickupPoints": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "count"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "dropoffPoints": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "count"
+                  ],
+                  "additionalProperties": false
+                }
+              },
               "priceMin": {
                 "anyOf": [
                   {
@@ -46251,6 +46403,8 @@
             },
             "required": [
               "operators",
+              "pickupPoints",
+              "dropoffPoints",
               "priceMin",
               "priceMax"
             ],
@@ -48224,6 +48378,24 @@
           "refunds",
           "tripChanges",
           "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "TicketEmailResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "sentTo": {
+            "type": "string"
+          },
+          "resendAfterSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "sentTo",
+          "resendAfterSeconds"
         ],
         "additionalProperties": false
       },
