@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
@@ -409,4 +410,123 @@ void main() {
       _expectNoFlutterException(tester);
     },
   );
+
+  // PASSENGER-PARITY A30 (SCR-PSG-16): bản đồ điểm dừng Goong như web; thiếu khóa thì không có bản đồ.
+  testWidgets(
+    'bản đồ điểm dừng: có khóa + toạ độ thì vẽ theo thứ tự lịch trình, thiếu khóa thì ẩn',
+    (tester) async {
+      final api = FakeBookingApi(trip: sampleTripDetail(withCoordinates: true));
+      List<TripStop>? drawn;
+      await _pumpApp(
+        tester,
+        height: 3000,
+        home: TripDetailScreen(
+          api: api,
+          tripId: 'trip-1',
+          mapKey: 'maptiles-key',
+          stopMapBuilder: (stops, mapKey) {
+            drawn = stops;
+            return Text('Bản đồ giả $mapKey');
+          },
+        ),
+      );
+      expect(find.text('Vị trí các điểm dừng'), findsOneWidget);
+      expect(find.text('Bản đồ giả maptiles-key'), findsOneWidget);
+      expect(drawn!.map((stop) => stop.sequence), [1, 2, 3, 4, 5]);
+
+      drawn = null;
+      await _pumpApp(
+        tester,
+        height: 3000,
+        home: TripDetailScreen(
+          key: const ValueKey('no-map-key'),
+          api: api,
+          tripId: 'trip-1',
+          mapKey: '',
+          stopMapBuilder: (stops, mapKey) {
+            drawn = stops;
+            return const SizedBox();
+          },
+        ),
+      );
+      expect(find.byKey(const Key('trip-stop-map')), findsNothing);
+      expect(drawn, isNull);
+      _expectNoFlutterException(tester);
+    },
+  );
+
+  // PASSENGER-PARITY A30: đánh giá nhà xe trên trang chuyến như web.
+  testWidgets(
+    'đánh giá nhà xe: điểm trung bình, 3 đánh giá mới nhất, Xem tất cả mở trang nhà xe',
+    (tester) async {
+      final api = FakeBookingApi()
+        ..operatorProfile = OperatorProfile(
+          operatorId: 'operator-1',
+          displayName: 'Nhà xe Sao Mai',
+          scorecard: const OperatorScorecard(
+            reviewCount: 12,
+            averageRating: 4.6,
+          ),
+          routes: const [],
+          reviews: [
+            for (var index = 1; index <= 4; index++)
+              OperatorReview(
+                id: 'r$index',
+                authorName: 'Khách $index',
+                rating: 4,
+                createdAt: DateTime.utc(2026, 10, index),
+                comment: 'Nhận xét $index',
+                operatorReply: index == 1 ? 'Cảm ơn quý khách' : null,
+              ),
+          ],
+        );
+      String? openedOperator;
+      await _pumpApp(
+        tester,
+        height: 3000,
+        home: TripDetailScreen(
+          api: api,
+          tripId: 'trip-1',
+          mapKey: '',
+          onOperatorSelected: (id) => openedOperator = id,
+        ),
+      );
+
+      expect(find.byKey(const Key('trip-operator-reviews')), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('trip-reviews-average'))).data,
+        '4.6',
+      );
+      expect(find.text('12 đánh giá nhà xe'), findsOneWidget);
+      for (final id in ['r1', 'r2', 'r3']) {
+        expect(find.byKey(Key('trip-review-$id')), findsOneWidget);
+      }
+      expect(find.byKey(const Key('trip-review-r4')), findsNothing);
+      expect(find.text('Nhà xe phản hồi: Cảm ơn quý khách'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('trip-reviews-view-all')));
+      expect(openedOperator, 'operator-1');
+      _expectNoFlutterException(tester);
+    },
+  );
+
+  testWidgets('đánh giá nhà xe lỗi tải không chặn trang chuyến, Thử lại tải lại', (
+    tester,
+  ) async {
+    final api = FakeBookingApi()..operatorProfileError = StateError('offline');
+    await _pumpApp(
+      tester,
+      height: 3000,
+      home: TripDetailScreen(api: api, tripId: 'trip-1', mapKey: ''),
+    );
+
+    expect(find.text('Chưa tải được đánh giá nhà xe.'), findsOneWidget);
+    expect(find.text('Chính sách hủy'), findsOneWidget);
+    api.operatorProfileError = null;
+    await tester.tap(find.byKey(const Key('trip-reviews-retry')));
+    await tester.pumpAndSettle();
+    expect(api.operatorProfileLoads, 2);
+    expect(find.byKey(const Key('trip-reviews-empty')), findsOneWidget);
+    _expectNoFlutterException(tester);
+  });
 }

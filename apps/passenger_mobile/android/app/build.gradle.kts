@@ -1,8 +1,22 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Biến --dart-define (gồm cả --dart-define-from-file=.env.*) Flutter chuyển cho Gradle: base64 từng cặp, ngăn bằng dấu phẩy.
+val dartDefines: Map<String, String> =
+    (project.findProperty("dart-defines") as String?)
+        ?.split(",")
+        ?.mapNotNull { encoded ->
+            val pair = String(Base64.getDecoder().decode(encoded), Charsets.UTF_8)
+            val separator = pair.indexOf('=')
+            if (separator > 0) pair.substring(0, separator) to pair.substring(separator + 1) else null
+        }
+        ?.toMap()
+        ?: emptyMap()
 
 android {
     namespace = "com.vexenhanh.passenger_mobile"
@@ -27,6 +41,11 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Host App Link cổng thanh toán quay về (PASSENGER-PARITY A25) = host của PAYMENT_RETURN_BASE_URL bên API.
+        // Chưa đặt APP_LINK_HOST thì dùng tên miền `.invalid` (RFC 2606): không khớp link thật nào, cổng quay về
+        // trình duyệt như trước.
+        manifestPlaceholders["appLinkHost"] =
+            dartDefines["APP_LINK_HOST"]?.trim()?.takeIf { it.isNotEmpty() } ?: "app-link-host.invalid"
     }
 
     buildTypes {

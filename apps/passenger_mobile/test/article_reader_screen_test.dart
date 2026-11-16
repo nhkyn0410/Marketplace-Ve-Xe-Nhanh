@@ -40,6 +40,64 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // PASSENGER-PARITY A29 (SCR-PSG-37): bài liên quan cùng chuyên mục.
+  testWidgets('bài liên quan cùng chuyên mục: bấm mở bài đó; không có bài thì ẩn', (
+    tester,
+  ) async {
+    final requested = <(String, String)>[];
+    ArticleDetail detail(String slug) => ArticleDetail(
+      slug: slug,
+      title: slug == 'di-da-lat' ? 'Đi Đà Lạt cuối tuần' : 'Ăn gì ở Đà Lạt',
+      summary: '',
+      categoryName: 'Cẩm nang',
+      categorySlug: 'cam-nang',
+      publishedAt: DateTime.utc(2026, 10, 20),
+      contentMarkdown: 'Nội dung',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ArticleReaderScreen(
+          slug: 'di-da-lat',
+          loadArticle: (slug) async => detail(slug),
+          loadRelated: (category, exclude) async {
+            requested.add((category, exclude));
+            if (exclude != 'di-da-lat') return const [];
+            return [
+              ExploreArticle(
+                slug: 'an-gi-o-da-lat',
+                title: 'Ăn gì ở Đà Lạt',
+                category: 'Cẩm nang',
+                publishedAt: DateTime.utc(2026, 10, 18),
+                fallbackAsset: articleFallbackAsset,
+              ),
+            ];
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(requested, [('cam-nang', 'di-da-lat')]);
+    final related = find.byKey(const ValueKey('article-reader-related-an-gi-o-da-lat'));
+    await tester.scrollUntilVisible(
+      related,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('article-reader-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.text('Bài viết liên quan'), findsOneWidget);
+    await tester.tap(related);
+    await tester.pumpAndSettle();
+    expect(find.text('Ăn gì ở Đà Lạt'), findsWidgets);
+    expect(requested.last, ('cam-nang', 'an-gi-o-da-lat'));
+    // Bài mới không có bài liên quan nào: ẩn hẳn khối.
+    expect(find.byKey(const Key('article-reader-related')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tải lỗi thì cho thử lại', (tester) async {
     var calls = 0;
     await tester.pumpWidget(

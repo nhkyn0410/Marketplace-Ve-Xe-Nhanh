@@ -3,16 +3,20 @@ import 'package:flutter/foundation.dart';
 /// Liên hệ hỗ trợ của sàn — một nguồn duy nhất cho mọi màn của app (web dùng
 /// `apps/marketplace/lib/support-contact.ts`).
 ///
-/// Số tổng đài lấy từ `--dart-define=SUPPORT_HOTLINE=...` lúc build (vd
-/// "1900 1234"). Để trống thì các màn không hiện số để gọi mà hướng khách sang
-/// email hỗ trợ (AS-16 cho phép email / ticket thay hotline).
+/// Số tổng đài mặc định là số chung của sàn [defaultSupportHotline] (giống web);
+/// đổi lúc build bằng `--dart-define=SUPPORT_HOTLINE=...`. Truyền rỗng thì các màn
+/// không hiện số để gọi mà hướng khách sang email hỗ trợ (AS-16 cho phép email /
+/// ticket thay hotline).
 @immutable
 class SupportContact {
   const SupportContact({this.hotline = ''});
 
   /// Cấu hình của bản build đang chạy.
   static const configured = SupportContact(
-    hotline: String.fromEnvironment('SUPPORT_HOTLINE'),
+    hotline: String.fromEnvironment(
+      'SUPPORT_HOTLINE',
+      defaultValue: defaultSupportHotline,
+    ),
   );
 
   static const email = 'support@vexenhanh.vn';
@@ -42,6 +46,11 @@ class SupportContact {
       ? 'Không thể mở ứng dụng gọi điện trên thiết bị này.'
       : 'Không mở được ứng dụng email. Vui lòng gửi thư tới $email.';
 }
+
+/// Số tổng đài chung của sàn, web và app dùng cùng một số (PASSENGER-PARITY Q1,
+/// Khanh chốt 16/11/2026; lấy từ thiết kế app). Web: `DEFAULT_SUPPORT_HOTLINE` ở
+/// `apps/marketplace/lib/support-contact.ts`.
+const defaultSupportHotline = '1900 636 707';
 
 /// Mở kênh liên hệ (ứng dụng gọi điện hoặc email); `false` = máy không mở được.
 typedef SupportLauncher = Future<bool> Function(Uri uri);

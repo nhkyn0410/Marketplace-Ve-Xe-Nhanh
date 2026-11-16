@@ -381,6 +381,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // PASSENGER-PARITY A24 (Q16): "Gửi yêu cầu" mở khiếu nại của đúng đơn thay vì chỉ gọi tổng đài.
+  testWidgets('đã đăng nhập: "Gửi yêu cầu" ở chi tiết vé mở khiếu nại của đơn đó', (
+    tester,
+  ) async {
+    final opened = <String>[];
+    var hotlineCalls = 0;
+    await _pump(
+      tester,
+      MyJourneyFlow(
+        api: _FakeJourneyApi(),
+        onTabSelected: (_) {},
+        onSupportRequested: () => hotlineCalls++,
+        onOpenSupport: (booking) => opened.add(booking.bookingCode),
+      ),
+    );
+    await _tapVisible(tester, const Key('journey-tab-all'));
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+
+    final link = find.text('Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →');
+    await tester.ensureVisible(link);
+    await tester.pumpAndSettle();
+    await tester.tap(link);
+    await tester.pump();
+
+    expect(opened, ['VXN-TEST01']);
+    expect(hotlineCalls, 0);
+  });
+
   // PASSENGER-PARITY A22 / Q17: chỉ đường Goong (cùng link web) và chia sẻ vé.
   testWidgets('chi tiết vé: mở chỉ đường Goong tới điểm đón, chia sẻ không kèm mã QR', (
     tester,

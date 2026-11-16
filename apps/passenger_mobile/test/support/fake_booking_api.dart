@@ -12,6 +12,7 @@ import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 TripDetail sampleTripDetail({
   List<String> imageUrls = const [],
   String? operatorLogoUrl,
+  bool withCoordinates = false,
 }) {
   final start = DateTime.utc(2026, 10, 30); // 07:00 giờ VN
   TripStop stop(
@@ -29,6 +30,9 @@ TripDetail sampleTripDetail({
     plannedAt: start.add(Duration(hours: hours)),
     allowPickup: pickup,
     allowDropoff: dropoff,
+    // Toạ độ giả theo thứ tự điểm (A30: bản đồ điểm dừng).
+    latitude: withCoordinates ? 10.8 + sequence * 0.3 : null,
+    longitude: withCoordinates ? 106.7 + sequence * 0.2 : null,
   );
   TripSeat seat(
     String code,
@@ -460,17 +464,30 @@ class FakeBookingApi implements TripBookingApi {
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];
 
+  /// Hồ sơ nhà xe trả về (A30: đánh giá trên trang chuyến); `null` = hồ sơ trống.
+  OperatorProfile? operatorProfile;
+
+  /// Lỗi ném ra khi tải hồ sơ nhà xe (giữ tới khi xoá).
+  Object? operatorProfileError;
+  int operatorProfileLoads = 0;
+
   @override
   Future<OperatorProfile> loadOperatorProfile(
     String operatorId, {
     String? reviewCursor,
-  }) async => OperatorProfile(
-    operatorId: operatorId,
-    displayName: trip.operatorName,
-    scorecard: const OperatorScorecard(reviewCount: 0),
-    routes: const [],
-    reviews: const [],
-  );
+  }) async {
+    operatorProfileLoads++;
+    final error = operatorProfileError;
+    if (error != null) throw error;
+    return operatorProfile ??
+        OperatorProfile(
+          operatorId: operatorId,
+          displayName: trip.operatorName,
+          scorecard: const OperatorScorecard(reviewCount: 0),
+          routes: const [],
+          reviews: const [],
+        );
+  }
 
   @override
   Future<List<HomePromotion>> loadPromotions() async => const [];

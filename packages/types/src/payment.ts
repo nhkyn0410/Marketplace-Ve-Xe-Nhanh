@@ -11,8 +11,14 @@ export const PaymentTransferSchema = z.object({
   paymentLinkId: z.string().min(1),
 });
 
-/** Phương thức khách chọn để thanh toán đơn đặt vé. */
-export const PaymentInputSchema = z.object({ provider: z.enum(["VNPAY", "MOMO", "PAYOS", "DEMO"]) });
+/**
+ * Phương thức khách chọn để thanh toán đơn đặt vé. `client` = nơi khách thanh toán (PASSENGER-PARITY P4): `APP` nhận
+ * địa chỉ quay về App Link để cổng mở lại ứng dụng; bỏ trống = `WEB` (trang kết quả của Marketplace).
+ */
+export const PaymentInputSchema = z.object({
+  provider: z.enum(["VNPAY", "MOMO", "PAYOS", "DEMO"]),
+  client: z.enum(["WEB", "APP"]).optional(),
+});
 
 /** Link thanh toán và thông tin chuyển khoản dành cho web và ứng dụng hành khách. */
 export const PaymentResponseSchema = z.object({

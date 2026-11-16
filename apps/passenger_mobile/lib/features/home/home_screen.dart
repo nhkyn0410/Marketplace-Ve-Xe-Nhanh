@@ -290,7 +290,12 @@ class _HomeScreenState extends State<HomeScreen>
       _showMessage('Trung tâm trợ giúp hiện chưa khả dụng.');
       return;
     }
-    await showHomeFaqSheet(context, loader);
+    await showHomeFaqSheet(
+      context,
+      loader,
+      support: widget.support,
+      onContactSupport: _callHotline,
+    );
   }
 
   Future<void> _callHotline() async {
@@ -2000,7 +2005,13 @@ class _ArticleCard extends StatelessWidget {
 }
 
 /// Sheet câu hỏi thường gặp (dùng chung trang chủ và tra cứu vé).
-Future<void> showHomeFaqSheet(BuildContext context, HomeFaqLoader loader) {
+/// Trung tâm trợ giúp (SCR-PSG-03): ô tìm + gợi ý nhanh, số câu hỏi, khối liên hệ CSKH như web.
+Future<void> showHomeFaqSheet(
+  BuildContext context,
+  HomeFaqLoader loader, {
+  SupportContact support = SupportContact.configured,
+  VoidCallback? onContactSupport,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
@@ -2009,21 +2020,59 @@ Future<void> showHomeFaqSheet(BuildContext context, HomeFaqLoader loader) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (context) => _FaqSheet(loader: loader),
+    builder: (context) => _FaqSheet(
+      loader: loader,
+      support: support,
+      onContactSupport: onContactSupport,
+    ),
   );
 }
 
+/// Gợi ý nhanh ở ô tìm câu hỏi, cùng bộ với web.
+const faqQuickKeywords = ['Hủy vé', 'Hoàn tiền', 'Tra cứu vé', 'Điểm VXN Plus'];
+
+/// Câu hỏi khớp [query] ở tiêu đề hoặc câu trả lời (không phân biệt hoa thường, như web).
+List<HomeFaqItem> filterFaqItems(List<HomeFaqItem> items, String query) {
+  final needle = query.trim().toLowerCase();
+  if (needle.isEmpty) return items;
+  return [
+    for (final item in items)
+      if (item.title.toLowerCase().contains(needle) ||
+          item.body.toLowerCase().contains(needle))
+        item,
+  ];
+}
+
 class _FaqSheet extends StatefulWidget {
-  const _FaqSheet({required this.loader});
+  const _FaqSheet({
+    required this.loader,
+    required this.support,
+    this.onContactSupport,
+  });
 
   final HomeFaqLoader loader;
+  final SupportContact support;
+  final VoidCallback? onContactSupport;
 
   @override
   State<_FaqSheet> createState() => _FaqSheetState();
 }
 
 class _FaqSheetState extends State<_FaqSheet> {
-  late final Future<List<HomeFaqItem>> _items = widget.loader();
+  late Future<List<HomeFaqItem>> _items = widget.loader();
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _applyKeyword(String keyword) {
+    _search.text = keyword;
+    setState(() => _query = keyword);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2069,33 +2118,68 @@ class _FaqSheetState extends State<_FaqSheet> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'Không tải được câu hỏi thường gặp. Vui lòng thử lại.',
-                        textAlign: TextAlign.center,
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Không tải được câu hỏi thường gặp. Vui lòng thử lại.',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            key: const Key('faq-retry'),
+                            onPressed: () => setState(() {
+                              _items = widget.loader();
+                            }),
+                            child: const Text('Thử lại'),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }
-                final items = snapshot.data ?? const <HomeFaqItem>[];
-                if (items.isEmpty) {
+                final all = snapshot.data ?? const <HomeFaqItem>[];
+                if (all.isEmpty) {
                   return const Center(
                     child: Text('Chưa có câu hỏi thường gặp.'),
                   );
                 }
+                final items = filterFaqItems(all, _query);
+                final searching = _query.trim().isNotEmpty;
                 return ListView.separated(
-                  padding: EdgeInsets.fromLTRB(
-                    12,
-                    0,
-                    12,
-                    24 + MediaQuery.paddingOf(context).bottom,
-                  ),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  key: const Key('faq-list'),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  // Dòng đầu: ô tìm + gợi ý + số câu (cuộn cùng danh sách để máy thấp vẫn đủ chỗ).
+                  itemCount: items.isEmpty ? 2 : items.length + 1,
+                  separatorBuilder: (_, index) => index == 0
+                      ? const SizedBox(height: 4)
+                      : const Divider(height: 1),
                   itemBuilder: (context, index) {
-                    final item = items[index];
+                    if (index == 0) {
+                      return _FaqSearchHeader(
+                        controller: _search,
+                        onChanged: (value) => setState(() => _query = value),
+                        onKeyword: _applyKeyword,
+                        countLabel: searching
+                            ? 'Tìm thấy ${items.length} câu trả lời cho "${_query.trim()}"'
+                            : 'Câu hỏi thường gặp (${all.length})',
+                      );
+                    }
+                    if (items.isEmpty) {
+                      return const Padding(
+                        key: Key('faq-no-result'),
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          'Không tìm thấy câu trả lời phù hợp. Thử từ khóa khác hoặc liên hệ CSKH bên dưới.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: _secondary),
+                        ),
+                      );
+                    }
+                    final item = items[index - 1];
                     return ExpansionTile(
                       title: Text(
                         item.title,
@@ -2118,6 +2202,127 @@ class _FaqSheetState extends State<_FaqSheet> {
                   },
                 );
               },
+            ),
+          ),
+          _FaqContactFooter(
+            support: widget.support,
+            onContact: widget.onContactSupport,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FaqSearchHeader extends StatelessWidget {
+  const _FaqSearchHeader({
+    required this.controller,
+    required this.onChanged,
+    required this.onKeyword,
+    required this.countLabel,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onKeyword;
+  final String countLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const Key('faq-search'),
+            controller: controller,
+            onChanged: onChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Tìm câu hỏi, ví dụ: hủy vé, hoàn tiền, giữ chỗ',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              isDense: true,
+              filled: true,
+              fillColor: const Color(0xFFF3F8FB),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const Text('Gợi ý:', style: TextStyle(color: _secondary)),
+              for (final keyword in faqQuickKeywords)
+                ActionChip(
+                  key: ValueKey('faq-keyword-$keyword'),
+                  label: Text(keyword),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => onKeyword(keyword),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            countLabel,
+            key: const Key('faq-count'),
+            style: const TextStyle(
+              color: _primaryDark,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Chưa tìm thấy câu trả lời?" + liên hệ CSKH (gọi tổng đài hoặc email theo cấu hình).
+class _FaqContactFooter extends StatelessWidget {
+  const _FaqContactFooter({required this.support, this.onContact});
+
+  final SupportContact support;
+  final VoidCallback? onContact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('faq-contact'),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFE6EEF3))),
+      ),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Chưa tìm thấy câu trả lời?',
+              style: TextStyle(
+                color: _primaryDark,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          FilledButton.icon(
+            key: const Key('faq-contact-support'),
+            onPressed: onContact,
+            icon: Icon(
+              support.hasHotline ? Icons.call_outlined : Icons.mail_outline,
+              size: 18,
+            ),
+            label: Text(
+              support.hasHotline ? 'Gọi ${support.label}' : 'Email CSKH',
             ),
           ),
         ],

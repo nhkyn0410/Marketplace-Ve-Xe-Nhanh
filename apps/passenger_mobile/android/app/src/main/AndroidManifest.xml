@@ -34,9 +34,24 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Link mở app do `app_links` xử lý; tắt deep link sẵn có của Flutter để nó không đẩy đường dẫn
+                 lạ vào Navigator. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Cổng thanh toán mở bằng trình duyệt quay về https://{web}/app/bookings/{id}/payment/result
+                 (PASSENGER-PARITY A25/P4) → Android mở lại app. Host = APP_LINK_HOST (build.gradle.kts); web phải
+                 phục vụ /.well-known/assetlinks.json có vân tay khóa ký của bản build. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="${appLinkHost}"
+                    android:pathPrefix="/app/bookings/"/>
             </intent-filter>
         </activity>
         <!-- Push FCM: biểu tượng đơn sắc ở thanh trạng thái, màu nhấn và kênh mặc định

@@ -18,12 +18,16 @@ class ArticleDetail {
     required this.publishedAt,
     required this.contentMarkdown,
     this.coverImageUrl,
+    this.categorySlug = '',
   });
 
   final String slug;
   final String title;
   final String summary;
   final String categoryName;
+
+  /// Slug chuyên mục, để tìm bài cùng chuyên mục.
+  final String categorySlug;
   final DateTime publishedAt;
   final String contentMarkdown;
   final String? coverImageUrl;
@@ -114,10 +118,36 @@ class ArticleApi {
       title: data.title,
       summary: data.summary,
       categoryName: data.category.name,
+      categorySlug: data.category.slug,
       publishedAt: data.publishedAt,
       contentMarkdown: data.contentMarkdown,
       coverImageUrl: data.coverImageUrl,
     );
+  }
+
+  /// Tối đa 3 bài khác cùng chuyên mục, mới nhất trước (SCR-PSG-37, như web).
+  Future<List<ExploreArticle>> loadRelated(
+    String categorySlug,
+    String excludeSlug,
+  ) async {
+    final response = await _call(
+      () => _client.getArticlesApi().articleControllerList(
+        category: categorySlug,
+        limit: 4,
+      ),
+    );
+    return [
+      for (final item in response.data!.items)
+        if (item.slug != excludeSlug)
+          ExploreArticle(
+            slug: item.slug,
+            title: item.title,
+            category: item.category.name,
+            publishedAt: item.publishedAt,
+            coverImageUrl: item.coverImageUrl,
+            fallbackAsset: articleFallbackAsset,
+          ),
+    ].take(3).toList(growable: false);
   }
 
   Future<T> _call<T>(Future<T> Function() run) async {

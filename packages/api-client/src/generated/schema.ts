@@ -8978,6 +8978,8 @@ export interface components {
         PaymentInputDto: {
             /** @enum {string} */
             provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            /** @enum {string} */
+            client?: "WEB" | "APP";
         };
         PaymentResponseDto_Output: {
             /** Format: uuid */

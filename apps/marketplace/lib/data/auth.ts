@@ -57,6 +57,26 @@ export async function verifyOtp(payload: VerifyOtpPayload, next?: (typeof AFTER_
   return ok({ authenticated: true });
 }
 
+const googleCredentialSchema = z.object({ credential: z.string().max(4096).regex(/^[\w-]+\.[\w-]+\.[\w-]+$/) });
+
+/**
+ * Đăng nhập Google (SCR-PSG-07): Google Identity Services trên trình duyệt trả ID token, Server Action đổi lấy phiên
+ * qua `POST /auth/oauth/google/id-token` — cùng endpoint app dùng — rồi lưu cookie httpOnly như OTP. Có `next` thì
+ * chuyển trang ngay trong Server Action (cùng lý do với `verifyOtp`).
+ */
+export async function loginWithGoogle(payload: { credential: string }, next?: (typeof AFTER_VERIFY_PATHS)[number]): Promise<DataResult<{ authenticated: boolean }>> {
+  const endpoint = "POST /auth/oauth/google/id-token";
+  const parsed = googleCredentialSchema.safeParse(payload);
+  if (!parsed.success) return failed(endpoint, "Không nhận được thông tin đăng nhập Google. Vui lòng thử lại.");
+  const result = await apiRequest<TokenPair>("/auth/oauth/google/id-token", { method: "POST", body: JSON.stringify({ idToken: parsed.data.credential }) });
+  if (result.status === "error" && result.httpStatus === 401) return failed(endpoint, "Không xác minh được tài khoản Google. Vui lòng thử lại.", 401);
+  if (result.status !== "ok") return result;
+  if (result.data.scope !== "passenger") return failed(endpoint, "Tài khoản không thuộc cổng hành khách.");
+  await saveSession(result.data);
+  if (next && AFTER_VERIFY_PATHS.includes(next)) redirect(next);
+  return ok({ authenticated: true });
+}
+
 /** Bootstrap phiên và xoay token hết hạn trong Server Action; RSC tải lại sau khi xoay. */
 export async function ensureMarketplaceSession(): Promise<DataResult<{ rotated: boolean; user: { fullName: string; email: string } | null }>> {
   const refreshed = await refreshSessionIfNeeded();

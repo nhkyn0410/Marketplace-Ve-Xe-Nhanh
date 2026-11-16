@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { registerAccount, requestLoginOtp, revokeAllOtherSessions, updateNotificationSettings, verifyOtp, submitTripReview } from "./auth";
+import { loginWithGoogle, registerAccount, requestLoginOtp, revokeAllOtherSessions, updateNotificationSettings, verifyOtp, submitTripReview } from "./auth";
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "./api";
 
 const mocks = vi.hoisted(() => ({ values: new Map<string, string>(), set: vi.fn(), remove: vi.fn() }));
@@ -46,6 +46,32 @@ describe("marketplace auth server actions", () => {
   it("OTP sai thì không redirect, trả lỗi để hiện trong modal", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(Response.json({ title: "Unauthorized", detail: "Mã OTP không đúng." }, { status: 401 }));
     expect(await verifyOtp({ email: "customer@example.com", otp: "000000" }, "/account")).toMatchObject({ status: "error", message: "Mã OTP không đúng." });
+    expect(mocks.set).not.toHaveBeenCalled();
+  });
+
+  it("đăng nhập Google: đổi ID token qua endpoint app dùng, lưu phiên vào cookie httpOnly, không trả token", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(pair));
+    const result = await loginWithGoogle({ credential: "header.payload.signature" });
+    expect(result).toEqual({ status: "ok", data: { authenticated: true } });
+    expect(fetch).toHaveBeenCalledWith("http://localhost:3000/v1/auth/oauth/google/id-token", expect.objectContaining({ method: "POST", body: JSON.stringify({ idToken: "header.payload.signature" }) }));
+    expect(mocks.values.get(ACCESS_COOKIE)).toBe(pair.accessToken);
+    expect(mocks.values.get(REFRESH_COOKIE)).toBe(pair.refreshToken);
+    expect(JSON.stringify(result)).not.toContain("secret-");
+  });
+
+  it("đăng nhập Google kèm trang đích thì redirect ngay trong Server Action", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(pair));
+    await expect(loginWithGoogle({ credential: "header.payload.signature" }, "/account")).rejects.toMatchObject({ digest: expect.stringContaining("/account") });
+    expect(mocks.values.get(ACCESS_COOKIE)).toBe(pair.accessToken);
+  });
+
+  it("đăng nhập Google: token sai dạng thì không gọi API; API từ chối hoặc sai cổng thì không lưu phiên", async () => {
+    expect((await loginWithGoogle({ credential: "not-a-jwt" })).status).toBe("error");
+    expect(fetch).not.toHaveBeenCalled();
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ title: "Unauthorized", detail: "Thông tin đăng nhập không hợp lệ." }, { status: 401 }));
+    expect(await loginWithGoogle({ credential: "header.payload.signature" }, "/account")).toMatchObject({ status: "error", message: "Không xác minh được tài khoản Google. Vui lòng thử lại." });
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ ...pair, scope: "operator" }));
+    expect(await loginWithGoogle({ credential: "header.payload.signature" }, "/account")).toMatchObject({ status: "error", message: "Tài khoản không thuộc cổng hành khách." });
     expect(mocks.set).not.toHaveBeenCalled();
   });
 

@@ -49152,6 +49152,13 @@
               "PAYOS",
               "DEMO"
             ]
+          },
+          "client": {
+            "type": "string",
+            "enum": [
+              "WEB",
+              "APP"
+            ]
           }
         },
         "required": [

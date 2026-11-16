@@ -48,6 +48,17 @@ const PAYMENT_SELECT = { id: true, paymentCode: true, provider: true, status: tr
  * (1) khoá booking, kiểm, ghi payment `INITIATED` (hoặc trả lại payment đang mở cùng cổng — idempotent theo booking + cổng);
  * (2) gọi cổng lấy link; (3) `INITIATED → PROCESSING` kèm link. Số tiền = tổng booking; hạn = hạn booking.
  */
+/**
+ * Nơi cổng đưa trình duyệt về sau thanh toán (PASSENGER-PARITY P4). Web: trang kết quả của Marketplace. App: đường dẫn
+ * `/app/...` cùng origin web, nơi app khai App Link (`assetlinks.json`) để Android mở lại app thay vì ở lại trình duyệt;
+ * máy không có app thì web hiện trang nhắc quay lại app. Chỉ để hiển thị — tiền chỉ ghi nhận qua IPN / đối soát.
+ * Payment đang mở được dùng lại theo đơn + cổng nên link cũ giữ địa chỉ quay về lúc tạo; app vẫn tự kiểm khi mở lại.
+ */
+export function paymentReturnUrl(baseUrl: string, bookingId: string, client: PaymentInput["client"]): string {
+  const base = baseUrl.replace(/\/+$/, "");
+  return client === "APP" ? `${base}/app/bookings/${bookingId}/payment/result` : `${base}/bookings/${bookingId}/payment/result`;
+}
+
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
@@ -82,7 +93,7 @@ export class PaymentService {
     }
 
     let checkout: Awaited<ReturnType<PaymentGateway["createCheckout"]>>;
-    const returnUrl = `${this.config.PAYMENT_RETURN_BASE_URL.replace(/\/+$/, "")}/bookings/${bookingId}/payment/result`;
+    const returnUrl = paymentReturnUrl(this.config.PAYMENT_RETURN_BASE_URL, bookingId, input.client);
     try {
       checkout = await gateway.createCheckout({
         paymentCode: payment.paymentCode,

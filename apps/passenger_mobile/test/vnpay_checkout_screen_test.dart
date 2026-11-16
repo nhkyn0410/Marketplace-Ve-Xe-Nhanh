@@ -182,6 +182,30 @@ void main() {
     expect(payment.toString(), before);
   });
 
+  // PASSENGER-PARITY P4: máy chủ cho app địa chỉ quay về App Link `/app/...`.
+  test('nhận cả địa chỉ quay về App Link của app, vẫn ràng đúng đơn', () {
+    final appReturn = Uri.parse(
+      'https://vexenhanh.id.vn/app/bookings/$_bookingId/payment/result',
+    );
+    expect(
+      vnpayReturnUrlForBooking(
+        _paymentUrl(returnUrl: appReturn.toString()),
+        _bookingId,
+      ),
+      appReturn,
+    );
+    expect(
+      () => vnpayReturnUrlForBooking(
+        _paymentUrl(
+          returnUrl:
+              'https://vexenhanh.id.vn/app/bookings/other/payment/result',
+        ),
+        _bookingId,
+      ),
+      throwsFormatException,
+    );
+  });
+
   test('từ chối callback thiếu, lặp, sai dạng, sai đơn hoặc có thông tin đăng nhập', () {
     final invalid = [
       Uri.parse('https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),

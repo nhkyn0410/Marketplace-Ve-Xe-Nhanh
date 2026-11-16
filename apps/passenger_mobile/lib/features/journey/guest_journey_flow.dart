@@ -320,6 +320,7 @@ class MyJourneyFlow extends StatefulWidget {
     required this.api,
     required this.onTabSelected,
     this.onSupportRequested,
+    this.onOpenSupport,
     this.demoPanelBuilder,
     super.key,
   });
@@ -327,6 +328,9 @@ class MyJourneyFlow extends StatefulWidget {
   final JourneyApi api;
   final ValueChanged<int> onTabSelected;
   final VoidCallback? onSupportRequested;
+
+  /// Mở khiếu nại của đơn đang xem (SCR-PSG-30); có thì thay cho [onSupportRequested].
+  final ValueChanged<JourneyBooking>? onOpenSupport;
   final Widget? Function(JourneyBooking booking)? demoPanelBuilder;
 
   @override
@@ -400,7 +404,9 @@ class _MyJourneyFlowState extends State<MyJourneyFlow>
           booking: booking,
           onBack: _closeDetail,
           onTabSelected: widget.onTabSelected,
-          onSupportRequested: widget.onSupportRequested,
+          onSupportRequested: widget.onOpenSupport == null
+              ? widget.onSupportRequested
+              : () => widget.onOpenSupport!(booking),
           journeyDemoPanel: widget.demoPanelBuilder?.call(booking),
           reviewPanel: TripReviewPanel(api: widget.api, booking: booking),
           quoteCancellation: (ticketIds) =>

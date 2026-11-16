@@ -25,9 +25,11 @@ void main() {
       }
     });
 
-    test('bản build thử không khai SUPPORT_HOTLINE thì không có số nào', () {
-      // Không còn số ghi cứng: thiếu cấu hình thì app dùng email chứ không gọi nhầm số.
-      expect(SupportContact.configured.hasHotline, isFalse);
+    test('không khai SUPPORT_HOTLINE thì dùng số chung của sàn, giống web', () {
+      // PASSENGER-PARITY Q1 (Khanh chốt 16/11/2026): một số cho cả web và app.
+      expect(SupportContact.configured.label, defaultSupportHotline);
+      expect(SupportContact.configured.label, '1900 636 707');
+      expect(SupportContact.configured.uri.toString(), 'tel:1900636707');
     });
   });
 }

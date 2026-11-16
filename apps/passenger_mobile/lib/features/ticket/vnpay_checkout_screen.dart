@@ -9,7 +9,8 @@ bool _isWebUrl(Uri uri) =>
     uri.host.isNotEmpty &&
     uri.userInfo.isEmpty;
 
-/// Lấy địa chỉ quay về đúng đơn từ URL thanh toán đã được máy chủ ký.
+/// Lấy địa chỉ quay về đúng đơn từ URL thanh toán đã được máy chủ ký: trang kết quả của web hoặc đường dẫn
+/// App Link `/app/...` mà máy chủ dùng cho app (PASSENGER-PARITY P4).
 Uri vnpayReturnUrlForBooking(Uri paymentUrl, String bookingId) {
   if (!_isWebUrl(paymentUrl) ||
       !RegExp(r'^[A-Za-z0-9-]+$').hasMatch(bookingId)) {
@@ -22,7 +23,8 @@ Uri vnpayReturnUrlForBooking(Uri paymentUrl, String bookingId) {
   if (returnUrl == null ||
       !_isWebUrl(returnUrl) ||
       returnUrl.hasFragment ||
-      returnUrl.path != '/bookings/$bookingId/payment/result') {
+      (returnUrl.path != '/bookings/$bookingId/payment/result' &&
+          returnUrl.path != '/app/bookings/$bookingId/payment/result')) {
     throw const FormatException('Liên kết quay về không khớp với đơn đặt vé.');
   }
   return returnUrl;

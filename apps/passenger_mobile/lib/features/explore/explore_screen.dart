@@ -166,6 +166,7 @@ class ExploreScreen extends StatefulWidget {
     this.loadArticle,
     this.loadPromotions,
     this.loadCategories,
+    this.loadRelatedArticles,
     super.key,
   });
 
@@ -184,6 +185,13 @@ class ExploreScreen extends StatefulWidget {
   /// Chuyên mục từ API kèm số bài (như web, PASSENGER-PARITY 4.7); không truyền thì dùng 3 chip
   /// mẫu Figma.
   final Future<List<ExploreCategory>> Function()? loadCategories;
+
+  /// Bài cùng chuyên mục ở màn đọc bài (SCR-PSG-37).
+  final Future<List<ExploreArticle>> Function(
+    String categorySlug,
+    String excludeSlug,
+  )?
+  loadRelatedArticles;
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -265,6 +273,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             slug: article.slug,
             loadArticle: loadArticle,
             onFindTrip: _findTrip,
+            loadRelated: widget.loadRelatedArticles,
           ),
         ),
       );

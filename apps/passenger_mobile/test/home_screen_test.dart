@@ -491,6 +491,76 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // PASSENGER-PARITY A26 (SCR-PSG-03): ô tìm, gợi ý nhanh, số câu, liên hệ CSKH.
+  testWidgets('trung tâm trợ giúp: tìm câu hỏi, gợi ý nhanh, không thấy thì mời liên hệ', (
+    tester,
+  ) async {
+    String? calledNumber;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadFaqs: () async => const [
+        HomeFaqItem(title: 'Làm sao đổi vé?', body: 'Mở chi tiết vé để kiểm tra.'),
+        HomeFaqItem(title: 'Bao lâu thì hoàn tiền?', body: 'Hủy vé xong hoàn trong 7 ngày.'),
+      ],
+      onCallHotline: (uri) async {
+        calledNumber = uri.toString();
+        return true;
+      },
+    );
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('support-help-center')));
+    await tester.pumpAndSettle();
+    expect(find.text('Câu hỏi thường gặp (2)'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('faq-keyword-Hoàn tiền')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bao lâu thì hoàn tiền?'), findsOneWidget);
+    expect(find.text('Làm sao đổi vé?'), findsNothing);
+    expect(find.textContaining('Tìm thấy 1 câu trả lời'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('faq-search')), 'wifi');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('faq-no-result')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('faq-contact-support')));
+    await tester.pump();
+    expect(calledNumber, 'tel:19001234');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('trung tâm trợ giúp: tải câu hỏi lỗi thì bấm Thử lại tải lại', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadFaqs: () async {
+        calls++;
+        if (calls == 1) throw StateError('offline');
+        return const [HomeFaqItem(title: 'Làm sao đổi vé?', body: 'Mở chi tiết vé.')];
+      },
+    );
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('support-help-center')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('faq-retry')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('faq-retry')));
+    await tester.pumpAndSettle();
+    expect(calls, 2);
+    expect(find.text('Câu hỏi thường gặp (1)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('chưa cấu hình số tổng đài: thẻ hỗ trợ là email, không hiện số', (
     tester,
   ) async {

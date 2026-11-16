@@ -65,6 +65,12 @@ void main() {
 
     expect(find.byKey(const Key('point-history-empty')), findsOneWidget);
     expect(find.text('Chưa có giao dịch điểm'), findsOneWidget);
+    // PASSENGER-PARITY A28 (S46): chưa có giao dịch vẫn hiện 4 ô tổng như web.
+    expect(find.byKey(const Key('point-history-overview')), findsOneWidget);
+    expect(find.text('Điểm khả dụng'), findsOneWidget);
+    expect(find.text('Đã tích'), findsOneWidget);
+    expect(find.text('Đã đổi'), findsOneWidget);
+    expect(find.text('Hết hạn'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('point-history-learn-more'))),
       const Size(364, 56),

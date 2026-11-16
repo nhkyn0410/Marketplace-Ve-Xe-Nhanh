@@ -387,6 +387,8 @@ class TripBookingApi {
             allowPickup: stop.allowPickup,
             allowDropoff: stop.allowDropoff,
             pickupOpen: stop.pickupOpen,
+            latitude: stop.latitude.toDouble(),
+            longitude: stop.longitude.toDouble(),
           ),
       ],
       seats: [
@@ -714,8 +716,10 @@ class TripBookingApi {
         bookingId: booking.bookingId,
         xBookingToken: booking.accessToken,
         paymentInputDto: PaymentInputDto(
-          (b) =>
-              b.provider = PaymentInputDtoProviderEnum.valueOf(method.apiValue),
+          (b) => b
+            ..provider = PaymentInputDtoProviderEnum.valueOf(method.apiValue)
+            // Cổng mở bằng trình duyệt quay về App Link `/app/...` để Android mở lại app (PASSENGER-PARITY P4).
+            ..client = PaymentInputDtoClientEnum.APP,
         ),
       ),
     );
