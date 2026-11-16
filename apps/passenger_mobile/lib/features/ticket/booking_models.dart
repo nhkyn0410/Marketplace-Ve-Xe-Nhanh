@@ -116,17 +116,24 @@ class BookingVoucher {
   final DateTime expiresAt;
 }
 
+/// Ghi chú cho nhà xe tối đa bấy nhiêu ký tự, như web (API nhận tới 500).
+const bookingNoteMaxLength = 300;
+
 /// Thông tin khách nhập ở bước 2, mang sang bước xác nhận.
 class BookingDraft {
   const BookingDraft({
     required this.contact,
     required this.passengers,
     this.promotion,
+    this.note,
   });
 
   final BookingContact contact;
   final List<BookingPassenger> passengers;
   final PromotionQuote? promotion;
+
+  /// Ghi chú cho nhà xe (đón dọc đường, hành lý…); `null` = không ghi (FR-MKT-08).
+  final String? note;
 }
 
 /// Hành khách trên đơn đã tạo, kèm giá chỗ.

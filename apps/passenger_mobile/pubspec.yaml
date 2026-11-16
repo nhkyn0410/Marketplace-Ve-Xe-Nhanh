@@ -31,6 +31,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Chữ của widget Material (lịch chọn ngày, nút Hủy / OK…) bằng tiếng Việt — AS-14: v1 chỉ tiếng Việt.
+  flutter_localizations:
+    sdk: flutter
   mobile_shared:
     path: ../../packages/mobile_shared
   api_client_dart:

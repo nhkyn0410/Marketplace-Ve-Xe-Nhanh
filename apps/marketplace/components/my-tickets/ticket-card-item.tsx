@@ -69,8 +69,18 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
                 )}
               </div>
             ) : (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
-                {ticket.status === "cancelled" ? "Đã hủy / hết hạn" : ticket.status === "completed" ? "Đã sử dụng" : ticket.hasIssuedTickets === false ? "Chưa phát hành vé" : "Hợp lệ"}
+              // Đơn đã đóng: nhãn cụ thể (đã hủy / hết hạn thanh toán / trạng thái hoàn tiền), màu xám; hoàn tiền lỗi màu cảnh báo.
+              <span
+                data-status={ticket.status}
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border ${
+                  ticket.status !== "cancelled"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : ticket.refundFailed
+                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                      : "bg-neutral-100 text-neutral-600 border-neutral-200"
+                }`}
+              >
+                {ticket.status === "cancelled" ? ticket.closedStatusLabel ?? "Đã hủy / hết hạn" : ticket.status === "completed" ? "Đã sử dụng" : ticket.hasIssuedTickets === false ? "Chưa phát hành vé" : "Hợp lệ"}
               </span>
             )}
           </div>

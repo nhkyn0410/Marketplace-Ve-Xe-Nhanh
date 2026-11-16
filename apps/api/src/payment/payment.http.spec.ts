@@ -17,6 +17,7 @@ import { GuestOrPassengerGuard } from "../iam/role/guest-or-passenger";
 import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import { PaymentController } from "./payment.controller";
+import { listPaymentProviders, PaymentProviderController } from "./payment-provider.controller";
 import { callbackUnavailable } from "./payment.errors";
 import { PaymentService } from "./payment.service";
 import { PaymentWebhookController } from "./payment-webhook.controller";
@@ -51,7 +52,7 @@ describe("Thanh toán — HTTP", () => {
   let tokens: TokenService;
 
   @Module({
-    controllers: [PaymentController, PaymentWebhookController, PaymentSimulatorController, DemoPaymentController],
+    controllers: [PaymentController, PaymentProviderController, PaymentWebhookController, PaymentSimulatorController, DemoPaymentController],
     providers: [
       { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
       { provide: APP_CONFIG, useValue: { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig },
@@ -111,6 +112,24 @@ describe("Thanh toán — HTTP", () => {
     });
     return { status: response.status, body: (await response.json()) as Record<string, unknown> };
   }
+
+  it("danh sách cổng: công khai, đúng thứ tự payOS → MoMo → VNPay → DEMO, chỉ cổng đã cấu hình là đang bật", async () => {
+    const response = await fetch(`${origin}/v1/payment-providers`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      items: [
+        { provider: "PAYOS", enabled: false },
+        { provider: "MOMO", enabled: false },
+        { provider: "VNPAY", enabled: false },
+        { provider: "DEMO", enabled: true },
+      ],
+    });
+    const all = new Map<PaymentGateway["provider"], PaymentGateway>([
+      ["VNPAY", demoGateway],
+      ["PAYOS", demoGateway],
+    ]);
+    expect(listPaymentProviders(all).items.filter((item) => item.enabled).map((item) => item.provider)).toEqual(["PAYOS", "VNPAY"]);
+  });
 
   it("khách vãng lai tạo payment: 201, mã truy cập + cổng + IP tới service; hành khách được; chủ nhà xe / Admin 403; cổng lạ 400", async () => {
     expect(await pay(null, { provider: "VNPAY" }, { "X-Booking-Token": "ma" })).toMatchObject({ status: 201, body: { paymentCode: "PAYABCDEFGH2345" } });

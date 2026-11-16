@@ -21,6 +21,11 @@ export function discountFor(rule: PromotionRule, subtotal: bigint): bigint {
   return capped > ceiling ? ceiling : capped;
 }
 
+/** Thông báo đơn chưa đạt mức tối thiểu của mã; tiền viết như hành khách thấy trên web / app ("300.000đ"). */
+export function minOrderMessage(minOrder: bigint): string {
+  return `Đơn chưa đạt giá trị tối thiểu ${new Intl.NumberFormat("vi-VN").format(minOrder)}đ của mã.`;
+}
+
 /** Đầu tháng (giờ VN) của một mốc — tính ngân sách tháng của nhà xe. */
 export function vnMonthStart(at: Date): Date {
   const local = new Date(at.getTime() + VN_OFFSET_MS);
@@ -73,7 +78,7 @@ export async function evaluatePromotion(tx: DbTransaction, context: Context): Pr
     throw promotionInvalid("Mã khuyến mãi không áp dụng cho tuyến / chuyến này.");
   }
   if (context.subtotal < promotion.minOrder) {
-    throw promotionInvalid(`Đơn chưa đạt giá trị tối thiểu ${new Intl.NumberFormat("vi-VN").format(promotion.minOrder)} ₫ của mã.`);
+    throw promotionInvalid(minOrderMessage(promotion.minOrder));
   }
   if (promotion.usedCount >= promotion.usageLimit) {
     throw promotionExhausted();

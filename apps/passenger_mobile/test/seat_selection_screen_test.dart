@@ -117,7 +117,7 @@ void main() {
       await tester.tap(find.byKey(const Key('seat-B01')));
       await tester.pump();
       expect(find.text('2 chỗ — A01, B01'), findsOneWidget);
-      expect(find.text('600.000 ₫'), findsOneWidget);
+      expect(find.text('600.000đ'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -141,7 +141,18 @@ void main() {
       find.byKey(const Key('passenger-information-screen')),
       findsOneWidget,
     );
-    expect(find.byKey(const Key('passenger-card-A01')), findsNothing);
+    // Mỗi chỗ một thẻ hành khách; chỗ 1 điền sẵn theo người liên hệ (PASSENGER-PARITY Q4).
+    expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('passenger-card-A03')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.byKey(const Key('passenger-card-A03')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('passenger-information-back')));

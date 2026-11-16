@@ -8,9 +8,9 @@ import { getAccountProfile } from "./auth";
 import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders, rememberBooking, rememberedBooking } from "./booking-access";
 import { publicTripPath, type TripLeg } from "./trip-mappers";
-import { apiMoney, mapPayment, mapPaymentResult, mapPoint, mapSeatSelection, moneyString, remainingSeconds, seatTypeLabel, isDoubleSeat, type ApiBooking, type ApiHold, type ApiTrip } from "./booking-mappers";
+import { apiMoney, mapPayment, mapPaymentProviders, mapPaymentResult, mapPoint, mapSeatSelection, moneyString, paymentProviderOf, remainingSeconds, seatTypeLabel, isDoubleSeat, type ApiBooking, type ApiHold, type ApiTrip } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
-import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, CheckoutVoucherItem, TripSeatSelectionData } from "./types";
+import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, CheckoutVoucherItem, PaymentProviderOption, TripSeatSelectionData } from "./types";
 import { getUserVouchers } from "./loyalty";
 
 /** Lấy điểm dừng và trạng thái chỗ từ chi tiết chuyến công khai. */
@@ -145,12 +145,20 @@ export async function getBookingPaymentData(bookingId: string): Promise<DataResu
   catch { return failed("GET /bookings/{bookingId}", "Dữ liệu thanh toán không hợp lệ."); }
 }
 
+/** Cổng thanh toán theo thứ tự hiển thị và cổng nào đang bật (`GET /payment-providers`, PASSENGER-PARITY Q5). */
+export async function getPaymentProviders(): Promise<DataResult<readonly PaymentProviderOption[]>> {
+  const result = await apiRequest<components["schemas"]["PaymentProviderListDto_Output"]>("/payment-providers");
+  if (result.status !== "ok") return result;
+  return ok(mapPaymentProviders(result.data));
+}
+
 /** Tạo giao dịch bằng nhà cung cấp được API hỗ trợ và trả liên kết cổng thanh toán. */
 export async function createPayment(bookingId: string, paymentMethod: string): Promise<DataResult<{ readonly paymentUrl: string }>> {
   const session = await refreshSessionIfNeeded();
   if (session.status !== "ok") return session;
-  if (paymentMethod !== "vnpay" && paymentMethod !== "momo") return failed("POST /bookings/{bookingId}/payments", "Phương thức thanh toán không hợp lệ.");
-  const result = await apiRequest<components["schemas"]["PaymentResponseDto_Output"]>(`/bookings/${encodeURIComponent(bookingId)}/payments`, { method: "POST", headers: await bookingHeaders(bookingId), body: JSON.stringify({ provider: paymentMethod === "momo" ? "MOMO" : "VNPAY" } satisfies components["schemas"]["PaymentInputDto"]) });
+  const provider = paymentProviderOf(paymentMethod);
+  if (!provider) return failed("POST /bookings/{bookingId}/payments", "Phương thức thanh toán không hợp lệ.");
+  const result = await apiRequest<components["schemas"]["PaymentResponseDto_Output"]>(`/bookings/${encodeURIComponent(bookingId)}/payments`, { method: "POST", headers: await bookingHeaders(bookingId), body: JSON.stringify({ provider } satisfies components["schemas"]["PaymentInputDto"]) });
   if (result.status !== "ok") return result;
   try {
     const url = new URL(result.data.paymentUrl);

@@ -103,6 +103,8 @@ Future<void> _completeBookingFlow(WidgetTester tester) async {
         )
         .first,
   );
+  // Chờ danh sách cuộn xong (kể cả hiệu ứng kéo quá đà ở cuối) rồi mới bấm: bấm khi ô còn đang trôi thì trượt.
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('booking-terms-checkbox')));
   await tester.pump();
   await tester.tap(find.byKey(const Key('booking-continue-payment')));

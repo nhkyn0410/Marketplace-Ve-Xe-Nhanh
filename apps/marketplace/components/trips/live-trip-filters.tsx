@@ -1,5 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
+import { idList, type TripOperatorOption } from "../../lib/data/trip-mappers";
+import type { AmenityItem } from "../../lib/data/types";
 
 const TIME_RANGES = [
   { value: "00-06", label: "00:00 – 06:00" },
@@ -25,15 +27,35 @@ const KEPT_KEYS = [
   "date", "passengers", "operatorId", "sortBy"
 ];
 
-/** Bộ lọc tìm chuyến thật (form GET) theo giao diện Figma 1440:11297, chỉ gồm tiêu chí API hỗ trợ. */
-export function LiveTripFilters({ query }: { readonly query: string }) {
+/**
+ * Bộ lọc tìm chuyến thật (form GET) theo giao diện Figma 1440:11297, chỉ gồm tiêu chí API hỗ trợ. "Nhà xe" lấy từ danh sách
+ * nhà xe có chuyến khớp hành trình (`operators`), "Tiện ích" từ danh mục (`amenities`) — như app (PASSENGER-PARITY Q18).
+ */
+export function LiveTripFilters({
+  query,
+  operators = [],
+  amenities = []
+}: {
+  readonly query: string;
+  /** Rỗng (vd tìm lỗi) thì không hiện nhóm "Nhà xe" và giữ nguyên nhà xe đang lọc. */
+  readonly operators?: readonly TripOperatorOption[];
+  readonly amenities?: readonly AmenityItem[];
+}) {
   const params = new URLSearchParams(query);
-  const resetHref = `/trips?${new URLSearchParams([...params].filter(([key]) => KEPT_KEYS.includes(key)))}`;
+  // Có nhóm "Nhà xe" thì nhà xe là một tiêu chí lọc: form tự gửi, "Xóa lọc" bỏ đi (như app).
+  const keptKeys = operators.length ? KEPT_KEYS.filter((key) => key !== "operatorId") : KEPT_KEYS;
+  const resetHref = `/trips?${new URLSearchParams([...params].filter(([key]) => keptKeys.includes(key)))}`;
+  const operatorId = params.get("operatorId") ?? "";
+  // Nhà xe đang lọc không còn chuyến khớp thì vẫn giữ trong danh sách, tránh bị bỏ lọc khi bấm Áp dụng.
+  const operatorOptions = operatorId && !operators.some((operator) => operator.id === operatorId)
+    ? [...operators, { id: operatorId, name: "Nhà xe đang chọn", count: 0 }]
+    : operators;
+  const selectedAmenities = idList(params.getAll("amenityIds"));
   const inputClass = "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-vxn-ink outline-none focus:border-[#00506a]";
 
   return (
     <form action="/trips" method="get" className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
-      {KEPT_KEYS.map((key) => (params.has(key) ? <input key={key} type="hidden" name={key} value={params.get(key) ?? ""} /> : null))}
+      {keptKeys.map((key) => (params.has(key) ? <input key={key} type="hidden" name={key} value={params.get(key) ?? ""} /> : null))}
 
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
@@ -60,6 +82,18 @@ export function LiveTripFilters({ query }: { readonly query: string }) {
           </div>
         </fieldset>
 
+        {operators.length > 0 && (
+          <label className="block">
+            <span className="text-[13px] font-semibold text-vxn-ink">Nhà xe</span>
+            <select name="operatorId" defaultValue={operatorId} className={`mt-2.5 bg-white ${inputClass}`}>
+              <option value="">Tất cả nhà xe</option>
+              {operatorOptions.map((operator) => (
+                <option key={operator.id} value={operator.id}>{operator.name} ({operator.count})</option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <RadioGroup title="Dạng chỗ" name="seatType" options={SEAT_TYPES} current={params.get("seatType")} />
         <RadioGroup title="Hạng xe" name="vehicleType" options={VEHICLE_TYPES} current={params.get("vehicleType")} />
 
@@ -70,6 +104,20 @@ export function LiveTripFilters({ query }: { readonly query: string }) {
             <input name="maxPriceVnd" aria-label="Giá đến" placeholder="Đến" inputMode="numeric" pattern="[0-9]*" defaultValue={params.get("maxPriceVnd") ?? ""} className={inputClass} />
           </div>
         </fieldset>
+
+        {amenities.length > 0 && (
+          <fieldset>
+            <legend className="text-[13px] font-semibold text-vxn-ink">Tiện ích</legend>
+            <div className="mt-2.5 space-y-2">
+              {amenities.map((amenity) => (
+                <label key={amenity.id} className="flex cursor-pointer items-center gap-2.5 text-[13px] text-slate-700">
+                  <input type="checkbox" name="amenityIds" value={amenity.id} defaultChecked={selectedAmenities.includes(amenity.id)} className="size-4 accent-[#00506a]" />
+                  {amenity.name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
       </div>
 
       <button className="mt-5 w-full rounded-xl bg-[#00506a] py-2.5 text-sm font-bold text-white transition hover:bg-[#00476b]">

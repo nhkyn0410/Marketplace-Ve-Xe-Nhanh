@@ -32,6 +32,52 @@ enum PassengerPaymentMethod {
     vnpay => 'assets/ticket/payment/payment_vnpay_figma.png',
     _ => null,
   };
+
+  /// "VNPAY" → [vnpay]; mã lạ → `null`.
+  static PassengerPaymentMethod? fromApi(String value) {
+    for (final method in values) {
+      if (method.apiValue == value) return method;
+    }
+    return null;
+  }
+}
+
+/// Một cổng trong `GET /payment-providers`: thứ tự hiển thị và cổng đang bật
+/// hay chưa (PASSENGER-PARITY Q5).
+class PaymentProviderOption {
+  const PaymentProviderOption(this.method, {required this.enabled});
+
+  final PassengerPaymentMethod method;
+  final bool enabled;
+}
+
+/// Dùng khi chưa đọc được danh sách từ máy chủ (máy chủ cũ / lỗi mạng): giữ
+/// cách cũ của app — hiện đủ bốn cổng, máy chủ tự từ chối cổng chưa cấu hình.
+const fallbackPaymentProviders = [
+  PaymentProviderOption(PassengerPaymentMethod.payos, enabled: true),
+  PaymentProviderOption(PassengerPaymentMethod.momo, enabled: true),
+  PaymentProviderOption(PassengerPaymentMethod.vnpay, enabled: true),
+  PaymentProviderOption(PassengerPaymentMethod.demo, enabled: true),
+];
+
+/// Cổng hiện trên màn: cổng đang bật, và cổng thật chưa bật (mờ, "Sắp hỗ
+/// trợ"). Cổng thử chưa bật thì ẩn hẳn.
+List<PaymentProviderOption> visiblePaymentProviders(
+  List<PaymentProviderOption> providers,
+) => [
+  for (final provider in providers)
+    if (provider.enabled || provider.method != PassengerPaymentMethod.demo)
+      provider,
+];
+
+/// Cổng chọn sẵn: cổng đang bật đầu tiên; không có cổng nào thì `null`.
+PassengerPaymentMethod? defaultPaymentMethod(
+  List<PaymentProviderOption> providers,
+) {
+  for (final provider in providers) {
+    if (provider.enabled) return provider.method;
+  }
+  return null;
 }
 
 /// Thông tin chuyển khoản đã được backend xác minh từ payOS.

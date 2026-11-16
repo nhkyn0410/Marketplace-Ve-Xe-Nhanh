@@ -116,6 +116,33 @@ Future<void> _fillForm(WidgetTester tester) async {
   await tester.pump();
 }
 
+/// Về đầu form: kéo tay có thể rơi vào ô đang nhập nên nhảy thẳng vị trí cuộn.
+Future<void> _scrollToTop(WidgetTester tester) async {
+  tester
+      .state<ScrollableState>(
+        find
+            .descendant(
+              of: find.byKey(const Key('passenger-information-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      )
+      .position
+      .jumpTo(0);
+  await tester.pumpAndSettle();
+}
+
+/// Điền đủ liên hệ + tên chỗ 2 rồi cuộn về đầu form (để sửa tiếp phần liên hệ).
+Future<void> _fillFormAndScrollTop(WidgetTester tester) async {
+  await _fillForm(tester);
+  await _scrollToTop(tester);
+}
+
+FilledButton _continueButton(WidgetTester tester) =>
+    tester.widget<FilledButton>(
+      find.byKey(const Key('passenger-information-continue')),
+    );
+
 void main() {
   setUpAll(() async {
     final font = FontLoader('Be Vietnam Pro')
@@ -127,7 +154,7 @@ void main() {
     tester,
   ) async {
     await _pumpApp(tester, home: _screen(FakeBookingApi()));
-    await _fillContact(tester);
+    await _fillFormAndScrollTop(tester);
     for (final email in [
       '.an@example.com',
       'an..le@example.com',
@@ -171,7 +198,7 @@ void main() {
       tester,
       home: _screen(FakeBookingApi(), doubleSeats: {'A03'}),
     );
-    await _fillContact(tester);
+    await _fillFormAndScrollTop(tester);
     for (final key in [
       'contact-name-field',
       'passenger-name-A03',
@@ -215,7 +242,7 @@ void main() {
 
       expect(find.text('A01, A03'), findsOneWidget);
       expect(find.text('2 hành khách'), findsOneWidget);
-      expect(find.text('600.000 ₫'), findsOneWidget);
+      expect(find.text('600.000đ'), findsOneWidget);
       expect(find.text('Tạm tính'), findsOneWidget);
       expect(
         (tester.getTopLeft(find.text('Tạm tính')).dy -
@@ -223,7 +250,14 @@ void main() {
             .abs(),
         lessThan(3),
       );
-      expect(find.byKey(const Key('passenger-name-A01')), findsNothing);
+      // Chỗ 1 điền sẵn theo người liên hệ (đang trống) — PASSENGER-PARITY Q4.
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('passenger-name-A01')))
+            .controller!
+            .text,
+        isEmpty,
+      );
       expect(find.byKey(const Key('saved-passenger-A01')), findsNothing);
       final continueButton = tester.widget<FilledButton>(
         find.byKey(const Key('passenger-information-continue')),
@@ -237,7 +271,7 @@ void main() {
     <String>{},
     {'A01'},
   ]) {
-    testWidgets('một vé $doubleSeats dùng liên hệ, không có form hành khách', (
+    testWidgets('một vé $doubleSeats: chỗ 1 điền sẵn tên và số người liên hệ', (
       tester,
     ) async {
       final api = FakeBookingApi()
@@ -254,8 +288,16 @@ void main() {
         home: _screen(api, seats: ['A01'], doubleSeats: doubleSeats),
       );
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('passenger-card-A01')), findsNothing);
-      expect(find.text('Hành khách bổ sung (tùy chọn)'), findsNothing);
+      expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
+      expect(find.text('Hành khách'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('passenger-name-A01')))
+            .controller!
+            .text,
+        'Tên đã lưu',
+        reason: 'điền sẵn theo liên hệ đã lưu của tài khoản',
+      );
       expect(
         find.descendant(
           of: find.byKey(const Key('passenger-information-header')),
@@ -279,19 +321,16 @@ void main() {
     });
   }
 
-  testWidgets('nhiều vé để trống hành khách bổ sung vẫn tiếp tục được', (
+  // PASSENGER-PARITY A14 / Q4: mỗi chỗ phải có họ tên, không tự lấy tên người liên hệ.
+  testWidgets('nhiều vé: chỗ 2 chưa có họ tên thì khóa Tiếp tục', (
     tester,
   ) async {
     await _pumpApp(tester, home: _screen(FakeBookingApi()));
     await _fillContact(tester);
-    expect(
-      tester
-          .widget<FilledButton>(
-            find.byKey(const Key('passenger-information-continue')),
-          )
-          .onPressed,
-      isNotNull,
-    );
+    expect(_continueButton(tester).onPressed, isNull);
+
+    await _fillForm(tester);
+    expect(_continueButton(tester).onPressed, isNotNull);
     await tester.tap(find.byKey(const Key('passenger-information-continue')));
     await tester.pumpAndSettle();
     final draft = tester
@@ -305,45 +344,33 @@ void main() {
     ]);
     expect(draft.passengers.map((passenger) => passenger.fullName), [
       'Lê Văn An',
-      'Lê Văn An',
+      'Trần Thị Bình',
     ]);
+    expect(draft.passengers.first.phone, '0901234567');
     expect(draft.passengers.last.phone, isNull);
   });
 
   testWidgets(
-    'hành khách bổ sung chỉ nhập điện thoại: kiểm tra và giữ đúng chỗ',
+    'chỗ 1 sửa thành người khác thì thôi theo tên / số người liên hệ',
     (tester) async {
       await _pumpApp(tester, home: _screen(FakeBookingApi()));
-      await _fillContact(tester);
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('passenger-phone-A03')),
-        200,
-        scrollable: find
-            .descendant(
-              of: find.byKey(const Key('passenger-information-scroll')),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
+      await _fillFormAndScrollTop(tester);
+      final first = find.byKey(const Key('passenger-name-A01'));
+      await tester.ensureVisible(first);
+      await tester.pumpAndSettle();
+      await tester.enterText(first, 'Phạm Minh Châu');
+      await tester.pump();
+      await _scrollToTop(tester);
       await tester.enterText(
-        find.byKey(const Key('passenger-phone-A03')),
-        '123',
+        find.byKey(const Key('contact-name-field')),
+        'Lê Văn Bảo',
       );
       await tester.pump();
-      expect(find.textContaining('Số điện thoại gồm 10 số'), findsOneWidget);
       expect(
-        tester
-            .widget<FilledButton>(
-              find.byKey(const Key('passenger-information-continue')),
-            )
-            .onPressed,
-        isNull,
+        tester.widget<TextField>(first).controller!.text,
+        'Phạm Minh Châu',
       );
-      await tester.enterText(
-        find.byKey(const Key('passenger-phone-A03')),
-        '+84 901.222-333',
-      );
-      await tester.pump();
+
       await tester.tap(find.byKey(const Key('passenger-information-continue')));
       await tester.pumpAndSettle();
       final draft = tester
@@ -351,22 +378,95 @@ void main() {
             find.byType(BookingConfirmationScreen),
           )
           .draft;
-      expect(draft.passengers.last.fullName, 'Lê Văn An');
-      expect(draft.passengers.last.phone, '+84901222333');
-      expect(draft.passengers.last.seatCode, 'A03');
+      expect(draft.contact.fullName, 'Lê Văn Bảo');
+      expect(draft.passengers.first.fullName, 'Phạm Minh Châu');
+      expect(draft.passengers.first.phone, isNull);
     },
   );
+
+  // PASSENGER-PARITY A16 / Q19: ghi chú cho nhà xe như web.
+  testWidgets('ghi chú cho nhà xe: tối đa 300 ký tự, mang sang bước xác nhận', (
+    tester,
+  ) async {
+    await _pumpApp(tester, home: _screen(FakeBookingApi()));
+    await _fillForm(tester);
+    final note = find.byKey(const Key('booking-note-field'));
+    await tester.scrollUntilVisible(
+      note,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.text('Ghi chú cho nhà xe (không bắt buộc)'), findsOneWidget);
+    await tester.enterText(note, 'x' * 320);
+    await tester.pump();
+    expect(tester.widget<TextField>(note).controller!.text.length, 300);
+
+    await tester.enterText(note, '  Đón ở cổng sau bến xe  ');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('passenger-information-continue')));
+    await tester.pumpAndSettle();
+    final draft = tester
+        .widget<BookingConfirmationScreen>(
+          find.byType(BookingConfirmationScreen),
+        )
+        .draft;
+    expect(draft.note, 'Đón ở cổng sau bến xe');
+  });
+
+  testWidgets('số điện thoại hành khách chỗ 2: kiểm tra và giữ đúng chỗ', (
+    tester,
+  ) async {
+    await _pumpApp(tester, home: _screen(FakeBookingApi()));
+    await _fillForm(tester);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('passenger-phone-A03')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.enterText(find.byKey(const Key('passenger-phone-A03')), '123');
+    await tester.pump();
+    expect(find.textContaining('Số điện thoại gồm 10 số'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('passenger-information-continue')),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.enterText(
+      find.byKey(const Key('passenger-phone-A03')),
+      '+84 901.222-333',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('passenger-information-continue')));
+    await tester.pumpAndSettle();
+    final draft = tester
+        .widget<BookingConfirmationScreen>(
+          find.byType(BookingConfirmationScreen),
+        )
+        .draft;
+    expect(draft.passengers.last.fullName, 'Trần Thị Bình');
+    expect(draft.passengers.last.phone, '+84901222333');
+    expect(draft.passengers.last.seatCode, 'A03');
+  });
 
   testWidgets(
     'số điện thoại / email sai thì báo lỗi và khóa Tiếp tục; đúng thì mở',
     (tester) async {
       await _pumpApp(tester, home: _screen(FakeBookingApi()));
       await _fillForm(tester);
-      await tester.drag(
-        find.byKey(const Key('passenger-information-scroll')),
-        const Offset(0, 1000),
-      );
-      await tester.pump();
+      await _scrollToTop(tester);
       await tester.enterText(
         find.byKey(const Key('contact-phone-field')),
         '12345',
@@ -454,15 +554,16 @@ void main() {
   });
 
   group('ghế đầu khi có hành khách đã lưu', () {
-    FakeBookingApi signedIn(List<SavedTraveller> travellers) => FakeBookingApi()
-      ..prefill = BookingPrefill(
-        contact: const BookingContact(
-          fullName: 'Nguyễn Khanh',
-          phone: '0909000111',
-          email: 'khanh@vidu.com',
-        ),
-        travellers: travellers,
-      );
+    FakeBookingApi signedIn(List<SavedTraveller> travellers) =>
+        FakeBookingApi()
+          ..prefill = BookingPrefill(
+            contact: const BookingContact(
+              fullName: 'Nguyễn Khanh',
+              phone: '0909000111',
+              email: 'khanh@vidu.com',
+            ),
+            travellers: travellers,
+          );
 
     Future<void> pickSaved(
       WidgetTester tester,
@@ -488,6 +589,24 @@ void main() {
           .draft;
     }
 
+    /// Chỗ 2 phải có họ tên mới tiếp tục được (Q4).
+    Future<void> fillSecondSeat(WidgetTester tester) async {
+      final field = find.byKey(const Key('passenger-name-A03'));
+      await tester.scrollUntilVisible(
+        field,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('passenger-information-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(field, 'Lê Văn Bình');
+      await tester.pump();
+    }
+
     testWidgets('nhiều vé: chọn người khác cho ghế đầu, liên hệ giữ nguyên', (
       tester,
     ) async {
@@ -497,14 +616,11 @@ void main() {
       await _pumpApp(tester, home: _screen(api));
       await tester.pumpAndSettle();
 
-      expect(find.text('Hành khách (tùy chọn)'), findsOneWidget);
-      expect(find.text('Hành khách bổ sung (tùy chọn)'), findsNothing);
-      expect(
-        find.text('Để trống nếu người liên hệ đi chỗ này'),
-        findsOneWidget,
-      );
+      expect(find.text('Hành khách'), findsOneWidget);
+      expect(find.text('Điền sẵn theo người liên hệ'), findsOneWidget);
 
       await pickSaved(tester, 'A01', 'Trần Thị Lan');
+      await fillSecondSeat(tester);
       final draft = await continueToDraft(tester);
 
       expect(draft.contact.fullName, 'Nguyễn Khanh');
@@ -513,7 +629,7 @@ void main() {
       expect(draft.passengers.first.fullName, 'Trần Thị Lan');
       expect(draft.passengers.first.phone, '0909000222');
       expect(draft.passengers.last.seatCode, 'A03');
-      expect(draft.passengers.last.fullName, 'Nguyễn Khanh');
+      expect(draft.passengers.last.fullName, 'Lê Văn Bình');
       expect(draft.passengers.last.phone, isNull);
       expect(tester.takeException(), isNull);
     });
@@ -534,13 +650,14 @@ void main() {
       expect(draft.contact.fullName, 'Nguyễn Khanh');
     });
 
-    testWidgets('để trống ghế đầu thì người liên hệ đi chỗ đó như trước', (
+    testWidgets('ghế đầu điền sẵn người liên hệ và dùng số của họ', (
       tester,
     ) async {
       final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
       await _pumpApp(tester, home: _screen(api));
       await tester.pumpAndSettle();
 
+      await fillSecondSeat(tester);
       final draft = await continueToDraft(tester);
 
       expect(draft.passengers.first.fullName, 'Nguyễn Khanh');
@@ -555,6 +672,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await pickSaved(tester, 'A01', 'Trần Thị Lan');
+      await fillSecondSeat(tester);
       final draft = await continueToDraft(tester);
 
       expect(draft.passengers.first.fullName, 'Trần Thị Lan');
@@ -584,7 +702,9 @@ void main() {
       );
     });
 
-    testWidgets('ghế đầu là chỗ đôi thì thẻ có ô người đi cùng', (tester) async {
+    testWidgets('ghế đầu là chỗ đôi thì thẻ có ô người đi cùng', (
+      tester,
+    ) async {
       final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
       await _pumpApp(
         tester,
@@ -628,12 +748,12 @@ void main() {
     await tester.tap(find.byKey(const Key('voucher-apply')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('voucher-applied')), findsOneWidget);
-    expect(find.text('550.000 ₫'), findsOneWidget);
+    expect(find.text('550.000đ'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('voucher-remove')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('voucher-applied')), findsNothing);
-    expect(find.text('600.000 ₫'), findsOneWidget);
+    expect(find.text('600.000đ'), findsOneWidget);
   });
 
   testWidgets('đồng hồ bước 2 đếm theo hạn giữ chỗ server trả', (tester) async {
@@ -726,7 +846,7 @@ void main() {
       expect(api.voucherWalletLoads, 0);
 
       await _pumpApp(tester, home: _screen(api, isSignedIn: true));
-      await _fillContact(tester);
+      await _fillForm(tester);
       await _openWallet(tester);
       expect(find.byKey(const Key('booking-voucher-picker')), findsOneWidget);
       await tester.tap(find.byKey(const Key('booking-voucher-wallet-1')));
@@ -736,7 +856,7 @@ void main() {
         userVoucherId: 'wallet-1',
         subtotal: 600000,
       ));
-      expect(find.text('550.000 ₫'), findsOneWidget);
+      expect(find.text('550.000đ'), findsOneWidget);
       await tester.tap(find.byKey(const Key('passenger-information-continue')));
       await tester.pumpAndSettle();
       final draft = tester
@@ -792,7 +912,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Voucher không áp dụng cho tuyến này.'), findsOneWidget);
       expect(find.byKey(const Key('booking-voucher-picker')), findsOneWidget);
-      expect(find.text('600.000 ₫'), findsWidgets);
+      expect(find.text('600.000đ'), findsWidgets);
       expect(api.bookings, isEmpty);
     },
   );
@@ -802,13 +922,13 @@ void main() {
   ) async {
     final api = FakeBookingApi()..walletVouchers = [_walletVoucher('wallet-1')];
     await _pumpApp(tester, home: _screen(api, isSignedIn: true));
-    await _fillContact(tester);
+    await _fillForm(tester);
     await _openWallet(tester);
     await tester.tap(find.byKey(const Key('booking-voucher-wallet-1')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('voucher-remove')));
     await tester.pumpAndSettle();
-    expect(find.text('600.000 ₫'), findsOneWidget);
+    expect(find.text('600.000đ'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('voucher-field')), 'GIAM50');
     await tester.tap(find.byKey(const Key('voucher-apply')));
     await tester.pumpAndSettle();
@@ -853,7 +973,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('voucher-applied')), findsNothing);
-      expect(find.text('600.000 ₫'), findsOneWidget);
+      expect(find.text('600.000đ'), findsOneWidget);
       expect(
         tester
             .widget<FilledButton>(

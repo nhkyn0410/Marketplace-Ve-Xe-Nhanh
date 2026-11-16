@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:journey_notification/journey_notification.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
@@ -19,6 +20,7 @@ import 'package:passenger_mobile/features/account/login_sessions_screen.dart';
 import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/journey_activity/journey_activity_service.dart';
@@ -89,6 +91,9 @@ String describePassengerAuthFailure(ApiFailure failure) {
   return failure.detail;
 }
 
+/// Ngôn ngữ duy nhất của app ở v1 (AS-14).
+const appLocale = Locale('vi');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -103,6 +108,10 @@ class PassengerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vé xe nhanh',
       debugShowCheckedModeBanner: false,
+      // v1 chỉ tiếng Việt (AS-14): lịch chọn ngày, nút Hủy / OK và nhãn trợ năng của Material hiện tiếng Việt.
+      locale: appLocale,
+      supportedLocales: const [appLocale],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) => PassengerSystemNavigation(child: child!),
       theme: ThemeData(
         useMaterial3: true,
@@ -1261,8 +1270,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           isSignedIn: _step == _AuthStep.signedIn,
           onBookingFinished: _finishBooking,
           onOperatorSelected: _openOperatorProfile,
-          fromLabel: query?.from.name,
-          toLabel: query?.to.name,
+          fromLabel: query?.from?.name,
+          toLabel: query?.to?.name,
           pickupSequence: trip.pickup.sequence,
           dropoffSequence: trip.dropoff.sequence,
         ),
@@ -1344,23 +1353,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         .toList(growable: false);
   }
 
+  /// Mở kênh liên hệ của sàn: gọi tổng đài nếu bản build có cấu hình số, không thì soạn email hỗ trợ.
   Future<void> _callSupport() async {
-    if (await _launchSupportHotline('1900 636 707') || !mounted) return;
+    const support = SupportContact.configured;
+    if (await _launchSupport(support.uri) || !mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Không thể mở ứng dụng gọi điện trên thiết bị này.'),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(support.launchFailureMessage)));
   }
 
-  Future<bool> _launchSupportHotline(String hotline) {
-    final digits = hotline.replaceAll(RegExp(r'\D'), '');
-    return launchUrl(
-      Uri(scheme: 'tel', path: digits),
-      mode: LaunchMode.externalApplication,
-    );
+  /// `tel:` / `mailto:` do [SupportContact] dựng; `false` = máy không có ứng dụng mở được.
+  Future<bool> _launchSupport(Uri uri) async {
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on Exception {
+      return false;
+    }
   }
 
   @override
@@ -1407,6 +1415,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         loadFeed: _articleApi.loadFeed,
         loadArticle: _articleApi.loadArticle,
         loadPromotions: _bookingApi.loadPromotions,
+        loadCategories: _articleApi.loadCategories,
       );
     }
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
@@ -1453,7 +1462,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       return GuestAccountScreen(
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
-        onCallHotline: _launchSupportHotline,
+        onCallHotline: _launchSupport,
       );
     }
     if (_step == _AuthStep.signedIn) {
@@ -1630,7 +1639,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       loadArticles: _articleApi.loadLatest,
       onArticleSelected: _openArticle,
       onSearch: _openTripResults,
-      onCallHotline: _launchSupportHotline,
+      onCallHotline: _launchSupport,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
       onTabSelected: _selectMainTab,
       unreadNotifications: isLoggedIn ? _unreadNotifications : 0,

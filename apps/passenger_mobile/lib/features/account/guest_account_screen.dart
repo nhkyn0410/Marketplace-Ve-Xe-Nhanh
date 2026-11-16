@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
-
-const _supportHotline = '1900 636 707';
 
 /// Tab Tài khoản khi chưa đăng nhập: nêu lợi ích của tài khoản rồi mới mở màn đăng nhập.
 class GuestAccountScreen extends StatelessWidget {
@@ -10,26 +9,26 @@ class GuestAccountScreen extends StatelessWidget {
     required this.onLoginRequested,
     required this.onTabSelected,
     this.onCallHotline,
+    this.support = SupportContact.configured,
     super.key,
   });
 
   final VoidCallback onLoginRequested;
   final ValueChanged<int> onTabSelected;
 
-  /// Mở ứng dụng gọi điện; `false` = máy không gọi được.
-  final Future<bool> Function(String hotline)? onCallHotline;
+  /// Mở kênh liên hệ (gọi điện hoặc email); `false` = máy không mở được.
+  final SupportLauncher? onCallHotline;
+
+  /// Kênh liên hệ hỗ trợ của sàn (số tổng đài nếu đã cấu hình, không thì email).
+  final SupportContact support;
 
   Future<void> _callHotline(BuildContext context) async {
     final launched =
-        onCallHotline != null && await onCallHotline!(_supportHotline);
+        onCallHotline != null && await onCallHotline!(support.uri);
     if (launched || !context.mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Không thể mở ứng dụng gọi điện trên thiết bị này.'),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(support.launchFailureMessage)));
   }
 
   @override
@@ -114,7 +113,7 @@ class GuestAccountScreen extends StatelessWidget {
                         key: const Key('guest-account-lookup'),
                         icon: Icons.confirmation_number_outlined,
                         title: 'Tra cứu vé đã đặt',
-                        body: 'Không cần đăng nhập: dùng mã đặt vé và email.',
+                        body: 'Không cần đăng nhập: dùng email đặt vé, thêm mã đặt vé nếu có.',
                         onTap: () => onTabSelected(3),
                       ),
                       const Divider(
@@ -125,9 +124,13 @@ class GuestAccountScreen extends StatelessWidget {
                       ),
                       _Action(
                         key: const Key('guest-account-hotline'),
-                        icon: Icons.support_agent_outlined,
-                        title: 'Tổng đài hỗ trợ',
-                        body: _supportHotline,
+                        icon: support.hasHotline
+                            ? Icons.support_agent_outlined
+                            : Icons.mail_outline,
+                        title: support.hasHotline
+                            ? 'Tổng đài hỗ trợ'
+                            : 'Email hỗ trợ',
+                        body: support.label,
                         onTap: () => _callHotline(context),
                       ),
                     ],

@@ -75,7 +75,7 @@ export default async function PlusPage(props: PlusPageProps) {
   }
 
   if (result.status === "error") {
-    if (result.httpStatus === 401) return <AccountSignInRequired />;
+    if (result.httpStatus === 401) return <AccountSignInRequired description="Đăng nhập bằng email để xem điểm và hạng thành viên VXN Plus." />;
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}

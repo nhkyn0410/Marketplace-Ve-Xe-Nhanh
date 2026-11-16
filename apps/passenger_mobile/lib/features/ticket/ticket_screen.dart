@@ -366,8 +366,8 @@ class _TicketScreenState extends State<TicketScreen>
             return _TripCard(
               key: ValueKey('ticket-trip-${trip.tripId}'),
               trip: trip,
-              fromLabel: query?.from.name ?? trip.pickup.name,
-              toLabel: query?.to.name ?? trip.dropoff.name,
+              fromLabel: query?.from?.name ?? trip.pickup.name,
+              toLabel: query?.to?.name ?? trip.dropoff.name,
               // Danh sách sắp chạy gồm nhiều ngày: ghi ngày đi trên thẻ.
               dateLabel: _browsing ? formatVnDate(trip.pickup.plannedAt) : null,
               onOpenDetail: () => widget.onTripSelected?.call(trip, query),
@@ -893,8 +893,9 @@ Future<(HomeLocation?,)?> _pickArea(
       areas.putIfAbsent(route.to.id, () => route.to);
     }
   }
+  // Thứ tự bảng chữ cái tiếng Việt (Đắk Lắk đứng sau Cà Mau, không dồn xuống cuối như so mã ký tự).
   final options = areas.values.toList()
-    ..sort((a, b) => a.name.compareTo(b.name));
+    ..sort((a, b) => compareVietnamese(a.name, b.name));
   return showModalBottomSheet<(HomeLocation?,)>(
     context: context,
     isScrollControlled: true,
@@ -927,7 +928,7 @@ Future<(HomeOperatorRoute?,)?> _pickServedRoute(
     }
   }
   final options = routes.values.toList()
-    ..sort((a, b) => _routeLabel(a).compareTo(_routeLabel(b)));
+    ..sort((a, b) => compareVietnamese(_routeLabel(a), _routeLabel(b)));
   return showModalBottomSheet<(HomeOperatorRoute?,)>(
     context: context,
     isScrollControlled: true,

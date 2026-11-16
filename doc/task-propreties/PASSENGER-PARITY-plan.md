@@ -202,3 +202,60 @@ AI chốt theo yêu cầu của Khanh ngày 14/11/2026. Khanh đổi được b�
 | 4.17 | A11 | 4.34 | A9 |
 
 Tổng: giai đoạn 1 có 25 việc (11 web, 12 app, 2 API) + R1; giai đoạn 2 có 18 việc; giai đoạn 3 có 8 việc.
+
+## 5. Tiến độ giai đoạn 1 (cập nhật 16/11/2026)
+
+Làm trên nhánh `fix/passenger-parity`, tách từ `develop` (không phải `master` như Q24: Khanh đã commit và merge 13 sửa web, tài liệu và ảnh vào `develop` ngày 14/11). **Chưa commit, chưa review.**
+
+| Nhóm | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| Web W1–W11 | Xong | 142 test đạt, typecheck và lint sạch. Trên trình duyệt mới xem được trang chủ (không còn nút "VI", không còn 1900 6067, hiện email hỗ trợ); các trang cần API chưa xem vì Docker tắt |
+| API P1 | Xong | Vitest |
+| API P2 | Xong phần ghi mã lỗi; nguyên nhân nằm ở sandbox | 1.422 test đơn vị đạt; test tích hợp bị bỏ qua vì không có database |
+| App A1–A7, A9–A12 | Xong | 404 test đạt, `flutter analyze` sạch. Chưa chạy trên máy ảo |
+| App A8 | **Chưa làm, chờ Khanh quyết** | — |
+| R1 | **Bỏ** | — |
+
+Ghi chú:
+
+- **A8 (ẩn nút Facebook, Apple):** màn đăng nhập của app làm theo chuyển động Figma với đúng 35 thành phần và có 3 test kiểm tra con số này; còn một test ghi rõ "Apple chưa hỗ trợ vẫn báo rõ". Ẩn hai nút sẽ phá các test đó, nên Q15 cần Khanh xác nhận lại trước khi làm.
+- **R1 (nén ảnh):** 372 ảnh PNG đã nằm trong lịch sử git từ commit ngày 14/11, nén lúc này không làm repo nhẹ đi.
+- **P2 (VNPay):** sandbox trả `99 Unexpected error` cho mọi yêu cầu `querydr` và `refund` đủ tham số, kể cả khi cố tình ký sai hoặc dùng mã merchant sai (đáng lẽ phải ra 97 / 02). Yêu cầu thiếu tham số thì được báo đúng ("Parameter required", "Command not support"). Vậy lỗi không nằm ở tham số mình gửi. Đã sửa để hồ sơ hoàn tiền và nhật ký đối soát ghi mã lỗi (`errorCodes`, vd `VNPAY:99`). Chưa kiểm tra trên production.
+- **A12 (ký hiệu tiền):** đổi sang "đ" làm dòng tổng tiền ở thanh dưới màn Xác nhận đặt vé không còn xuống dòng, thanh thấp đi 27px. Bốn test luồng đặt vé bấm ô đồng ý khi danh sách chưa cuộn xong nên bị trượt; đã sửa test để chờ cuộn xong.
+- **Còn dùng "₫":** email và hộp thư thông báo do máy chủ sinh ra (`notification-templates.ts`) vì mẫu này dùng chung cho cả nhà xe.
+- **Cấu hình mới:** `NEXT_PUBLIC_SUPPORT_HOTLINE` (web) và `SUPPORT_HOTLINE` (app, `--dart-define`). Để trống thì giao diện hiện email hỗ trợ.
+
+## 6. Tiến độ giai đoạn 2 (cập nhật 16/11/2026)
+
+Cùng nhánh `fix/passenger-parity`, nối tiếp giai đoạn 1. **Chưa commit, chưa review.**
+
+| Việc | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| P3 | Xong: `GET /v1/payment-providers` công khai; sinh lại client TS + Dart; 05 API v0.52 (chờ duyệt) | HTTP spec; 54 test thanh toán; typecheck, lint |
+| W12 | Xong: ngày đi mặc định là ngày mai (giờ VN) | Vitest |
+| W13 | Xong: nhãn đơn đã đóng + trạng thái hoàn tiền ở danh sách; khối hoàn tiền từng lần ở chi tiết vé | Vitest |
+| W14 | Xong: lọc Nhà xe (nhà xe có chuyến, kèm số chuyến) và Tiện ích; sắp xếp "Đánh giá cao nhất" | Vitest |
+| W15 | Xong: khối đánh giá dưới thẻ vé (chỉ tài khoản, máy chủ quyết định được đánh giá không); form chấm sao tách thành component dùng chung với "Đánh giá của tôi" | Vitest |
+| W16 | Xong: đếm ngược hiệu lực OTP 5 phút | Vitest |
+| W17 | Xong: danh sách cổng theo P3; cổng chưa bật hiện mờ "Sắp hỗ trợ"; DEMO ẩn khi chưa bật | Vitest |
+| A13 | Xong: ô mã đặt vé tùy chọn, có mã thì mở thẳng đơn; đơn tài khoản hỏi đăng nhập một lần rồi xem chỉ đọc (ẩn hủy vé, gửi yêu cầu); nhãn "Đặt bằng tài khoản"; mời đăng nhập khi email có tài khoản; dòng "Không còn dùng email đặt vé?" | Widget test |
+| A14 | Xong: mỗi chỗ một thẻ họ tên bắt buộc; chỗ 1 điền sẵn theo người liên hệ cho tới khi khách sửa | Widget test |
+| A15 | Xong: "Tất cả tuyến" khi tìm theo nhà xe | Widget test |
+| A16 | Xong: ô ghi chú cho nhà xe tối đa 300 ký tự, gửi kèm khi tạo đơn | Widget test |
+| A17 | Xong: tab Sắp tới / Đã đi / Đã hủy / Tất cả có đếm + ô tìm (mã, tuyến, nhà xe); trống thì có nút "Đặt vé mới" | Widget test |
+| A18 | Đã có trên `develop` (PR #78), không làm thêm | — |
+| A19 | Xong: chuyên mục Khám phá lấy từ `GET /v1/article-categories` kèm số bài | Widget test |
+| A20 | Xong: voucher chưa đạt đơn tối thiểu bị khóa và ghi lý do ngay trong bảng chọn | Widget test |
+| A21 | Xong phần tra cứu vé: hiện "Còn N lần thử" và câu báo của máy chủ. OTP đăng nhập chỉ báo sai mã (API không trả số lần còn lại) | Widget test |
+| A22 | Xong: "Mở chỉ đường Goong" (cùng link web) và "Chia sẻ vé" (không kèm mã QR) | Widget test |
+| A23 | Xong: cổng theo P3; đang tải thì khóa "Tiếp tục"; tải lỗi thì giữ bốn cổng như trước | Widget test |
+
+Tổng: web 165 test, app 422 test, `flutter analyze` sạch; lint + typecheck web và API sạch. Chưa xem trên trình duyệt / máy ảo; chưa chạy test tích hợp cần database.
+
+Ghi chú:
+
+- **A2 (giai đoạn 1) thu hồi:** snackbar đơn tài khoản nay là hộp thoại (A13), phần chỉnh snackbar thành thừa nên trả về như cũ.
+- **A14 đổi hành vi:** trước đây chỗ để trống lấy tên người liên hệ; nay phải nhập, nên nhiều test cũ của màn Thông tin được sửa theo.
+- **A15:** `HomeSearchQuery.from/to` được phép rỗng khi chọn "Tất cả tuyến"; màn kết quả ghi "Tất cả tuyến" ở ô điểm đi / đến.
+- **A21 – OTP đăng nhập:** muốn hiện "Còn N lần thử" cần API trả số lần còn lại (Better Auth tự đếm). Để thành việc riêng nếu Khanh cần.
+- **A8** vẫn chờ Khanh quyết (xem mục 5).

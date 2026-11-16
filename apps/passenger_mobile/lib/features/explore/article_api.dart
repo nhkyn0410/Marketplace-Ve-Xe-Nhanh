@@ -44,6 +44,21 @@ class ArticleApi {
 
   final ApiClientDart _client;
 
+  /// Chuyên mục đang có bài kèm số bài, cùng nguồn với web (`GET /v1/article-categories`).
+  Future<List<ExploreCategory>> loadCategories() async {
+    final response = await _call(
+      () => _client.getArticlesApi().articleControllerListCategories(),
+    );
+    return [
+      for (final item in response.data!.items)
+        ExploreCategory(
+          slug: item.slug,
+          name: item.name,
+          count: item.articleCount,
+        ),
+    ];
+  }
+
   /// Bài nổi bật và các bài mới nhất của chuyên mục [category] (`null` = tất cả), khớp từ khóa [query].
   ///
   /// Trang "Tất cả" còn khối ưu đãi phía dưới nên chỉ lấy 3 bài mới nhất, trang chuyên mục lấy 4.

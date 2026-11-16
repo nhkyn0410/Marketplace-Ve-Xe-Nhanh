@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { components } from "@vexenhanh/api-client";
 import {
-  addDays, apiMoney, initialPlace, mapTripDetail, mapTripSearchItem, placeSearchParams, placeType, priceRange, readTripLeg, samePlace,
-  searchQuery, stripDates, tripLegQuery, vnToday
+  addDays, apiMoney, idList, initialPlace, mapTripDetail, mapTripSearchItem, placeSearchParams, placeType, priceRange, readTripLeg, samePlace,
+  searchQuery, stripDates, tripLegQuery, tripSortBy, vnToday
 } from "./trip-mappers";
 
 describe("API trip boundary", () => {
@@ -19,6 +19,21 @@ describe("API trip boundary", () => {
       priceMax: "9007199254740991", vehicleForm: "SLEEPER", vehicleClass: "LIMOUSINE", sort: "price",
       departureFrom: "18:00", departureTo: "23:59"
     });
+  });
+
+  it("tiện ích nối dấu phẩy, sắp xếp đánh giá → sort=rating; không chọn tiện ích thì không gửi", () => {
+    const query = searchQuery({ origin: "a", destination: "b", date: "2026-10-22", amenityIds: ["wifi", "usb"], sortBy: "rating" });
+    expect(query.get("amenityIds")).toBe("wifi,usb");
+    expect(query.get("sort")).toBe("rating");
+    expect(searchQuery({ origin: "a", destination: "b", amenityIds: [] }).has("amenityIds")).toBe(false);
+  });
+
+  it("đọc danh sách id từ URL (lặp khóa hoặc nối dấu phẩy) và sortBy lạ", () => {
+    expect(idList(["wifi", "usb,wifi", " "])).toEqual(["wifi", "usb"]);
+    expect(idList("a,b")).toEqual(["a", "b"]);
+    expect(idList(undefined)).toEqual([]);
+    expect(tripSortBy("rating")).toBe("rating");
+    expect(tripSortBy("x")).toBe("earliest");
   });
 
   it("khung giờ không chồng nhau ở mốc tròn giờ: 06-12 kết thúc 11:59, 00-06 kết thúc 05:59", () => {

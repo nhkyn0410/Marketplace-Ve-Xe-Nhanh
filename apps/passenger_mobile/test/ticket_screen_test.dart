@@ -233,7 +233,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('explore-date-chip')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(find.text('Hủy'));
     await tester.pumpAndSettle();
     expect(calls, 1);
     expect(find.text('Ngày đi'), findsOneWidget);
@@ -265,8 +265,8 @@ void main() {
       );
 
       expect(calls, hasLength(1));
-      expect(calls.single.query.from.id, 'hcm');
-      expect(calls.single.query.to.id, 'lam-dong');
+      expect(calls.single.query.from!.id, 'hcm');
+      expect(calls.single.query.to!.id, 'lam-dong');
       expect(calls.single.filters.sort, TripSearchSort.departure);
       expect(find.byKey(const Key('ticket-journey-planner')), findsNothing);
       for (final (chip, label) in [
@@ -290,7 +290,7 @@ void main() {
       final first = find.byKey(const ValueKey('ticket-trip-t1'));
       expect(first, findsOneWidget);
       expect(
-        find.descendant(of: first, matching: find.text('280.000 ₫')),
+        find.descendant(of: first, matching: find.text('280.000đ')),
         findsOneWidget,
       );
       expect(
@@ -312,7 +312,7 @@ void main() {
       loadDefaultQuery: () async => sampleQuery,
       searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
     );
-    expect(calls.single.query.from.id, 'hcm');
+    expect(calls.single.query.from!.id, 'hcm');
     expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
   });
 
@@ -349,8 +349,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(calls, hasLength(2));
-    expect(calls.last.query.to.id, 'khanh-hoa');
-    expect(reported!.to.id, 'khanh-hoa');
+    expect(calls.last.query.to!.id, 'khanh-hoa');
+    expect(reported!.to!.id, 'khanh-hoa');
     expect(
       find.descendant(
         of: find.byKey(const Key('explore-destination-chip')),
@@ -514,7 +514,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(of: dienLinhCard, matching: find.text('250.000 ₫')),
+        find.descendant(of: dienLinhCard, matching: find.text('250.000đ')),
         findsOneWidget,
       );
       expect(
@@ -538,6 +538,55 @@ void main() {
         findsNothing,
       );
       expect(find.text('Bộ lọc · 1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Nhà xe: danh sách Khu vực xếp theo bảng chữ cái tiếng Việt',
+    (tester) async {
+      const dakLak = HomeLocation(id: 'dak-lak', name: 'Đắk Lắk');
+      const tayNinh = HomeLocation(id: 'tay-ninh', name: 'Tây Ninh');
+      const tuyenQuang = HomeLocation(id: 'tuyen-quang', name: 'Tuyên Quang');
+      await _pumpTicket(
+        tester,
+        width: 412,
+        height: 1400,
+        initialQuery: sampleQuery,
+        searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+        loadOperatorFare: _fares,
+        operators: const [
+          HomeOperator(
+            id: 'op-x',
+            name: 'Nhà xe X',
+            averageRating: 4.5,
+            reviewCount: 3,
+            routes: [
+              HomeOperatorRoute(from: tuyenQuang, to: tayNinh),
+              HomeOperatorRoute(from: hcm, to: dakLak),
+              HomeOperatorRoute(from: hcm, to: khanhHoa),
+            ],
+          ),
+        ],
+      );
+      await tester.tap(find.byKey(const Key('ticket-mode-operator')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('explore-area-chip')));
+      await tester.pumpAndSettle();
+
+      // So mã ký tự thì "Đắk Lắk" rơi xuống cuối và "Tuyên Quang" đứng trước "Tây Ninh".
+      final tops = [
+        for (final name in [
+          'Đắk Lắk',
+          'Khánh Hòa',
+          'Tây Ninh',
+          'TP. Hồ Chí Minh',
+          'Tuyên Quang',
+        ])
+          tester.getTopLeft(find.text(name).last).dy,
+      ];
+      expect(tops, orderedEquals([...tops]..sort()));
+      expect(tops.toSet(), hasLength(5));
       expect(tester.takeException(), isNull);
     },
   );
@@ -567,7 +616,7 @@ void main() {
 
       expect(find.byKey(const Key('trip-results-screen')), findsOneWidget);
       expect(calls.last.filters.operatorId, 'op-pt');
-      expect(calls.last.query.from.id, 'hcm');
+      expect(calls.last.query.from!.id, 'hcm');
       expect(
         find.descendant(
           of: find.byKey(const ValueKey('results-chip-0')),

@@ -159,7 +159,7 @@ export function LoyaltyView({
           </div>
           <h3 className="mt-3.5 text-sm font-semibold text-vxn-ink">Đổi điểm lấy voucher</h3>
           <p className="mt-1.5 text-[13px]/[19.5px] text-vxn-fg-3">
-            {profile.rules ? <>Đổi từ {profile.rules.minRedeemPoints.toLocaleString("vi-VN")} điểm lấy voucher giảm giá cố định. Voucher được lưu trong ví; áp dụng khi đặt vé trên web hiện chưa khả dụng.</> : "Chưa có chính sách quy đổi đang áp dụng."}
+            {profile.rules ? <>Đổi từ {profile.rules.minRedeemPoints.toLocaleString("vi-VN")} điểm lấy voucher giảm giá cố định. Voucher được lưu trong ví; khi đặt vé, chọn voucher ở bước Thông tin hành khách.</> : "Chưa có chính sách quy đổi đang áp dụng."}
           </p>
         </div>
 

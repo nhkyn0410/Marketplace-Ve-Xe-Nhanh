@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 
@@ -11,8 +12,23 @@ const _body = Color(0xFF607A8E);
 const _label = Color(0xFF486983);
 const _pageBackground = Color(0xFFE3F6FE);
 
-/// Tra cứu chỉ bằng email liên hệ (như bản web): API trả các đơn của email sau khi xác minh OTP.
-typedef GuestTicketLookupCallback = Future<void> Function(String email);
+/// Tra cứu theo `UC-35` (như bản web): email liên hệ bắt buộc, mã đặt vé tùy chọn (`null` = không nhập).
+/// Có mã thì sau OTP mở đúng đơn đó; không có thì thấy các đơn của email trong 12 tháng.
+typedef GuestTicketLookupCallback = Future<void> Function(
+  String email,
+  String? bookingCode,
+);
+
+/// Mã đặt vé (hoặc mã vé "…-01") quy về dạng API nhận, giống `BookingCodeField` của API:
+/// "vxn-4h9p6c-01" → "VXN4H9P6C"; sai dạng → `null`.
+String? normalizeLookupBookingCode(String value) {
+  final code = value
+      .trim()
+      .toUpperCase()
+      .replaceFirst(RegExp(r'-\d{2,3}$'), '')
+      .replaceAll('-', '');
+  return RegExp(r'^VXN[A-Z0-9]{6}$').hasMatch(code) ? code : null;
+}
 
 class GuestTicketLookupScreen extends StatefulWidget {
   const GuestTicketLookupScreen({
@@ -38,11 +54,13 @@ class GuestTicketLookupScreen extends StatefulWidget {
 class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
   bool _submitting = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
@@ -100,9 +118,20 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
               hintText: 'Nhập email dùng khi đặt vé',
               iconAsset: '$_assetRoot/email_input.svg',
               keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.done,
+              textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.email],
               validator: _validateEmail,
+            ),
+            const SizedBox(height: 12),
+            _LookupField(
+              fieldKey: const Key('guest-booking-code-field'),
+              controller: _codeController,
+              label: 'Mã đặt vé (không bắt buộc)',
+              hintText: 'Ví dụ: VXN-4H9P6C',
+              iconAsset: '$_assetRoot/ticket_input.svg',
+              textInputAction: TextInputAction.done,
+              textCapitalization: TextCapitalization.characters,
+              validator: _validateBookingCode,
               onFieldSubmitted: (_) => _requestOtp(),
             ),
             const SizedBox(height: 14),
@@ -162,10 +191,21 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
                       ),
               ),
             ),
+            const SizedBox(height: 10),
+            _LostEmailHint(
+              onSupportRequested:
+                  widget.onSupportRequested ?? _showSupportPlaceholder,
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String? _validateBookingCode(String? value) {
+    final code = value?.trim() ?? '';
+    if (code.isEmpty || normalizeLookupBookingCode(code) != null) return null;
+    return 'Mã đặt vé chưa đúng (ví dụ VXN-4H9P6C).';
   }
 
   String? _validateEmail(String? value) {
@@ -189,7 +229,11 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
 
     setState(() => _submitting = true);
     try {
-      await callback(_emailController.text.trim());
+      final code = _codeController.text.trim();
+      await callback(
+        _emailController.text.trim(),
+        code.isEmpty ? null : normalizeLookupBookingCode(code),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -348,7 +392,7 @@ class _LookupIntroduction extends StatelessWidget {
               ),
               SizedBox(height: 3),
               Text(
-                'Nhập email liên hệ đã dùng khi đặt vé để tra cứu thông tin hành trình của bạn.',
+                'Nhập email liên hệ đã dùng khi đặt vé; có mã đặt vé thì nhập thêm để xem đúng đơn đó.',
                 style: TextStyle(
                   color: _body,
                   fontSize: 12.5,
@@ -374,6 +418,7 @@ class _LookupField extends StatelessWidget {
     required this.validator,
     this.keyboardType,
     this.textInputAction,
+    this.textCapitalization = TextCapitalization.none,
     this.autofillHints,
     this.onFieldSubmitted,
   });
@@ -386,6 +431,7 @@ class _LookupField extends StatelessWidget {
   final FormFieldValidator<String> validator;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
+  final TextCapitalization textCapitalization;
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onFieldSubmitted;
 
@@ -409,6 +455,7 @@ class _LookupField extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
           autofillHints: autofillHints,
           autocorrect: false,
           enableSuggestions: keyboardType != TextInputType.emailAddress,
@@ -516,6 +563,47 @@ class _OtpHelper extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// UC-35 A1c: không còn dùng được email đặt vé → liên hệ CSKH để xác minh thủ công (như web).
+class _LostEmailHint extends StatelessWidget {
+  const _LostEmailHint({required this.onSupportRequested});
+
+  final VoidCallback onSupportRequested;
+
+  @override
+  Widget build(BuildContext context) {
+    const support = SupportContact.configured;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        const Text(
+          'Không còn dùng email đặt vé? ',
+          style: TextStyle(color: _body, fontSize: 11.5, height: 17 / 11.5),
+        ),
+        InkWell(
+          key: const Key('guest-lost-email-support'),
+          borderRadius: BorderRadius.circular(6),
+          onTap: onSupportRequested,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(
+              support.hasHotline
+                  ? 'Gọi CSKH ${support.label}'
+                  : 'Gửi email tới ${support.label}',
+              style: const TextStyle(
+                color: _primary,
+                fontSize: 11.5,
+                height: 17 / 11.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

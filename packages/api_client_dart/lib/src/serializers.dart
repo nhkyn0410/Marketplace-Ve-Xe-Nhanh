@@ -423,6 +423,8 @@ import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output_items
 import 'package:api_client_dart/src/model/password_change_challenge_response.dart';
 import 'package:api_client_dart/src/model/password_change_required_dto.dart';
 import 'package:api_client_dart/src/model/payment_input_dto.dart';
+import 'package:api_client_dart/src/model/payment_provider_list_dto_output.dart';
+import 'package:api_client_dart/src/model/payment_provider_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/payment_response_dto_output.dart';
 import 'package:api_client_dart/src/model/payment_response_dto_output_transfer.dart';
 import 'package:api_client_dart/src/model/payout_bank_account_dto_output.dart';
@@ -1071,6 +1073,8 @@ part 'serializers.g.dart';
   PasswordChangeChallengeResponse,
   PasswordChangeRequiredDto,
   PaymentInputDto,
+  PaymentProviderListDtoOutput,
+  PaymentProviderListDtoOutputItemsInner,
   PaymentResponseDtoOutput,
   PaymentResponseDtoOutputTransfer,
   PayoutBankAccountDtoOutput,
@@ -2059,6 +2063,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FareRevisionListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PaymentProviderListDtoOutputItemsInner)]),
+        () => ListBuilder<PaymentProviderListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PayoutPageDtoOutputItemsInner)]),

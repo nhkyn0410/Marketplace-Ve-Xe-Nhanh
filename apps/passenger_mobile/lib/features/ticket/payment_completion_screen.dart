@@ -135,18 +135,6 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
     _selectTicket(selected);
   }
 
-  void _showDownloadNotice() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Chưa hỗ trợ tải PDF. Bạn có thể xuất trình mã QR trên màn hình.',
-          ),
-        ),
-      );
-  }
-
   void _finishBooking() {
     final onFinished = widget.onBookingFinished;
     if (onFinished != null) {
@@ -246,33 +234,8 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
                           ? () => _selectTicket(_selectedIndex + 1)
                           : null,
                     ),
-                    const SizedBox(height: 17),
-                    SizedBox(
-                      height: 52,
-                      child: FilledButton.icon(
-                        key: const Key('download-ticket'),
-                        onPressed: _showDownloadNotice,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                        ),
-                        icon: SvgPicture.asset(
-                          '$_completionAssets/download.svg',
-                          width: 20,
-                          height: 20,
-                        ),
-                        label: const Text(
-                          'Tải vé này (PDF)',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // v1 chưa có tải vé PDF nên không đặt nút "Tải vé này (PDF)" ở đây (bấm vào chỉ báo "chưa hỗ
+                    // trợ"); vé lên xe là mã QR trong app.
                     const SizedBox(height: 18),
                   ],
                 ),

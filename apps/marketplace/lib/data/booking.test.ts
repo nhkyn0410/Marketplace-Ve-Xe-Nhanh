@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, ticketPassengerName, withSelectedLeg } from "./booking-mappers";
+import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapMyTicket, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, seatTypeLabel, ticketPassengerName, withSelectedLeg } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
 const { request, profile, wallet, jar, values } = vi.hoisted(() => {
@@ -54,6 +54,34 @@ describe("booking API integration", () => {
     expect(detail.payment).toMatchObject({ statusLabel: "Đang đối soát", paidTotalVnd: "0" });
     expect(mapLookupResult({ ...booking, status: "CANCELLED" }, 30).statusLabel).toBe("Đã hủy");
     expect(mapPaymentResult({ ...booking, status: "CANCELLED", payment: null, tickets: [] })).toMatchObject({ status: "failed", canRetryPayment: false });
+  });
+
+  it("danh sách hành trình ghi rõ đơn hết hạn và trạng thái hoàn tiền thay cho 'Đã hủy / hết hạn' (FR-MKT-11)", () => {
+    expect(mapMyTicket(bookingFixture())).not.toHaveProperty("closedStatusLabel");
+    expect(mapMyTicket(bookingFixture({ status: "EXPIRED" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hết hạn thanh toán", refundFailed: false });
+    expect(mapMyTicket(bookingFixture({ status: "PENDING_PAYMENT", expiresAt: "2020-01-01T00:00:00Z" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hết hạn thanh toán" });
+    expect(mapMyTicket(bookingFixture({ status: "REFUND_FAILED" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hoàn tiền chưa thành công", refundFailed: true });
+    expect(mapMyTicket(bookingFixture({ status: "REFUNDED" }))).toMatchObject({ closedStatusLabel: "Đã hoàn tiền", refundFailed: false });
+  });
+
+  it("chi tiết vé đã hủy có số tiền hoàn, mã hoàn và trạng thái từng lần hoàn", () => {
+    const detail = mapTicketDetail(bookingFixture({
+      status: "REFUND_FAILED",
+      refunds: [{ refundCode: "RFDSAGLES8PS93X", amount: 221850, status: "FAILED", createdAt: "2029-12-02T00:00:00Z" }]
+    }));
+    expect(detail.payment.refunds).toEqual([{ refundCode: "RFDSAGLES8PS93X", amountVnd: "221850", statusLabel: "Hoàn tiền chưa thành công — đang hỗ trợ", failed: true }]);
+    expect(detail.payment.methodLabel).toBe("VNPay");
+    expect(mapTicketDetail(bookingFixture()).payment.refunds).toEqual([]);
+  });
+
+  it("tên loại chỗ ghi rõ chỗ đơn / chỗ đôi theo GLOSSARY", () => {
+    expect(["SEAT", "BED", "BED_DOUBLE", "CABIN", "CABIN_DOUBLE"].map(seatTypeLabel)).toEqual(["Ghế ngồi", "Giường đơn", "Giường đôi", "Cabin đơn", "Cabin đôi"]);
+  });
+
+  it("kết quả tra cứu giữ dòng ưu đãi để giá vé + phí − ưu đãi khớp số đã thanh toán", () => {
+    const { payment } = mapLookupResult(bookingFixture(), 30);
+    expect(payment).toMatchObject({ ticketPriceTotalVnd: "100001", serviceFeeVnd: "0", discountVnd: "1", paidTotalVnd: "100000" });
+    expect(BigInt(payment.ticketPriceTotalVnd) + BigInt(payment.serviceFeeVnd) - BigInt(payment.discountVnd)).toBe(BigInt(payment.paidTotalVnd));
   });
 
   it("giữ tọa độ ghế thật và không cho chọn ghế chưa có giá hoặc không còn bán; đã bán / đang giữ hiện Đã đặt, chưa có giá hiện Không bán", () => {

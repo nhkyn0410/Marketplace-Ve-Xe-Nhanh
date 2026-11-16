@@ -26,6 +26,15 @@ export const PaymentResponseSchema = z.object({
   transfer: PaymentTransferSchema.optional(),
 });
 
+/**
+ * Các cổng thanh toán theo thứ tự hiển thị (SCR-PSG-20: payOS, MoMo, VNPay, DEMO) và cổng nào máy chủ đang bật.
+ * Web và ứng dụng hành khách dựng danh sách phương thức từ đây thay vì ghi cứng.
+ */
+export const PaymentProviderListSchema = z.object({
+  items: z.array(z.object({ provider: PaymentInputSchema.shape.provider, enabled: z.boolean() })),
+});
+
 export type PaymentTransfer = z.infer<typeof PaymentTransferSchema>;
+export type PaymentProviderList = z.infer<typeof PaymentProviderListSchema>;
 export type PaymentInput = z.infer<typeof PaymentInputSchema>;
 export type PaymentResponse = z.infer<typeof PaymentResponseSchema>;

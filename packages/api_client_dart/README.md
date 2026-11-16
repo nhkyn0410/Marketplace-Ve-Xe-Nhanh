@@ -429,6 +429,7 @@ Class | Method | HTTP request | Description
 [*PassengerProfileApi*](doc/PassengerProfileApi.md) | [**passengerProfileControllerUpdate**](doc/PassengerProfileApi.md#passengerprofilecontrollerupdate) | **PUT** /v1/me/profile | 
 [*PassengerProfileApi*](doc/PassengerProfileApi.md) | [**passengerProfileControllerUpdateSaved**](doc/PassengerProfileApi.md#passengerprofilecontrollerupdatesaved) | **PUT** /v1/me/saved-passengers/{passengerId} | 
 [*PaymentsApi*](doc/PaymentsApi.md) | [**paymentControllerCreate**](doc/PaymentsApi.md#paymentcontrollercreate) | **POST** /v1/bookings/{bookingId}/payments | 
+[*PaymentsApi*](doc/PaymentsApi.md) | [**paymentProviderControllerList**](doc/PaymentsApi.md#paymentprovidercontrollerlist) | **GET** /v1/payment-providers | 
 [*PromotionsApi*](doc/PromotionsApi.md) | [**publicPromotionControllerCheck**](doc/PromotionsApi.md#publicpromotioncontrollercheck) | **POST** /v1/promotions/check | 
 [*PromotionsApi*](doc/PromotionsApi.md) | [**publicPromotionControllerList**](doc/PromotionsApi.md#publicpromotioncontrollerlist) | **GET** /v1/promotions | 
 [*PublicOperatorsApi*](doc/PublicOperatorsApi.md) | [**publicOperatorProfileControllerGet**](doc/PublicOperatorsApi.md#publicoperatorprofilecontrollerget) | **GET** /v1/operators/{operatorId}/public-profile | 
@@ -865,6 +866,8 @@ Class | Method | HTTP request | Description
  - [PasswordChangeChallengeResponse](doc/PasswordChangeChallengeResponse.md)
  - [PasswordChangeRequiredDto](doc/PasswordChangeRequiredDto.md)
  - [PaymentInputDto](doc/PaymentInputDto.md)
+ - [PaymentProviderListDtoOutput](doc/PaymentProviderListDtoOutput.md)
+ - [PaymentProviderListDtoOutputItemsInner](doc/PaymentProviderListDtoOutputItemsInner.md)
  - [PaymentResponseDtoOutput](doc/PaymentResponseDtoOutput.md)
  - [PaymentResponseDtoOutputTransfer](doc/PaymentResponseDtoOutputTransfer.md)
  - [PayoutBankAccountDtoOutput](doc/PayoutBankAccountDtoOutput.md)

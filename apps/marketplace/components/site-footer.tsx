@@ -13,6 +13,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import Link from "next/link";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, SUPPORT_HOTLINE } from "../lib/support-contact";
 
 // Operator OS / Admin là app riêng (domain riêng khi deploy); màn đăng nhập của hai app nằm ngay ở "/".
 const OPERATOR_OS_URL = (process.env.NEXT_PUBLIC_OPERATOR_OS_URL ?? "http://localhost:3002").replace(/\/$/, "");
@@ -37,11 +38,12 @@ const SUPPORT_LINKS: readonly FooterLink[] = [
   { href: "/legal/refund-policy", label: "Hủy vé và hoàn tiền", icon: ShieldCheck }
 ];
 
-const CONTACTS = [
-  { label: "Hotline", value: "1900 6067", icon: Phone },
-  { label: "Email hỗ trợ", value: "support@vexenhanh.vn", icon: Mail },
+// Dòng Hotline chỉ hiện khi đã cấu hình số tổng đài (lib/support-contact).
+const CONTACTS: readonly { readonly label: string; readonly value: string; readonly icon: LucideIcon }[] = [
+  ...(SUPPORT_HOTLINE ? [{ label: "Hotline", value: SUPPORT_HOTLINE.label, icon: Phone }] : []),
+  { label: "Email hỗ trợ", value: SUPPORT_EMAIL, icon: Mail },
   { label: "Văn phòng", value: "TP. Hồ Chí Minh, Việt Nam", icon: MapPin }
-] as const;
+];
 
 const CARD_RING = "shadow-[0_0_0_1px_#d7e7ee,0_1px_2px_0_rgb(0_0_0/0.05)]";
 const CARD_DROP = "shadow-[0_1px_1px_0_rgb(0_0_0/0.05)]";
@@ -99,19 +101,21 @@ export function SiteFooter() {
                   <img src="/icons/facebook.svg" alt="" width={16} height={16} />
                 </a>
                 <a
-                  href="mailto:support@vexenhanh.vn"
+                  href={SUPPORT_EMAIL_HREF}
                   aria-label="Email hỗ trợ"
                   className={`flex size-10 items-center justify-center rounded-lg bg-white text-vxn-teal-800 transition hover:bg-slate-50 ${CARD_DROP}`}
                 >
                   <Mail className="size-4" />
                 </a>
-                <a
-                  href="tel:19006067"
-                  aria-label="Gọi tổng đài"
-                  className={`flex size-10 items-center justify-center rounded-lg bg-white text-vxn-teal-800 transition hover:bg-slate-50 ${CARD_DROP}`}
-                >
-                  <Phone className="size-4" />
-                </a>
+                {SUPPORT_HOTLINE && (
+                  <a
+                    href={SUPPORT_HOTLINE.telHref}
+                    aria-label="Gọi tổng đài"
+                    className={`flex size-10 items-center justify-center rounded-lg bg-white text-vxn-teal-800 transition hover:bg-slate-50 ${CARD_DROP}`}
+                  >
+                    <Phone className="size-4" />
+                  </a>
+                )}
               </div>
             </div>
           </section>

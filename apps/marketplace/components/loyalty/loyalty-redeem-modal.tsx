@@ -258,7 +258,7 @@ export function LoyaltyRedemptionModal({
 
         {/* Chú thích điều khoản */}
         <p className="mt-4 text-xs leading-relaxed text-vxn-fg-4">
-          Điểm đã đổi không hoàn lại. Voucher được lưu vào ví của bạn. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.
+          Điểm đã đổi không hoàn lại. Voucher được lưu vào ví của bạn. Khi đặt vé, chọn voucher ở bước Thông tin hành khách.
         </p>
 
         {/* Nút hành động */}

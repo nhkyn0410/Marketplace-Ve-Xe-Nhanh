@@ -3,7 +3,9 @@
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest } from "./api";
 import { ok, failed, type DataResult } from "./result";
-import { mapTripDetail, mapTripSearchItem, publicTripPath, searchQuery, type SearchTripsParams, type TripLeg } from "./trip-mappers";
+import {
+  mapTripDetail, mapTripSearchItem, publicTripPath, searchQuery, type SearchTripsParams, type TripLeg, type TripOperatorOption
+} from "./trip-mappers";
 import type { TripDetailData, TripSearchResultItem, TripSearchSummary } from "./types";
 
 export type { SearchTripsParams } from "./trip-mappers";
@@ -15,6 +17,8 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
   readonly pagination: { readonly page: number; readonly limit: number };
   /** Phía tìm theo phường không có chuyến → API đã nới ra cả tỉnh. */
   readonly widenedToProvince: { readonly from: boolean; readonly to: boolean };
+  /** Nhà xe có chuyến khớp hành trình (chưa áp bộ lọc) — lựa chọn của bộ lọc "Nhà xe". */
+  readonly operators: readonly TripOperatorOption[];
 }>> {
   const query = searchQuery(params);
   const result = await apiRequest<components["schemas"]["TripSearchResponseDto_Output"]>(`/trips/search?${query}`);
@@ -28,7 +32,7 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
       passengerCount: params.passengers ?? 1,
       totalTrips: result.data.total
     }, trips: result.data.items.map(mapTripSearchItem), pagination: { page: result.data.page, limit: result.data.limit },
-      widenedToProvince: result.data.widenedToProvince });
+      widenedToProvince: result.data.widenedToProvince, operators: result.data.facets.operators });
   } catch {
     return failed("GET /trips/search", "Giá vé từ hệ thống không hợp lệ.");
   }

@@ -724,6 +724,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PasswordChangeRequiredDto.serializer)
       ..add(PaymentInputDto.serializer)
       ..add(PaymentInputDtoProviderEnum.serializer)
+      ..add(PaymentProviderListDtoOutput.serializer)
+      ..add(PaymentProviderListDtoOutputItemsInner.serializer)
+      ..add(PaymentProviderListDtoOutputItemsInnerProviderEnum.serializer)
       ..add(PaymentResponseDtoOutput.serializer)
       ..add(PaymentResponseDtoOutputProviderEnum.serializer)
       ..add(PaymentResponseDtoOutputStatusEnum.serializer)
@@ -1817,6 +1820,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(PassengerTicketPageDtoOutputItemsInner)]),
           () => ListBuilder<PassengerTicketPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(PaymentProviderListDtoOutputItemsInner)]),
+          () => ListBuilder<PaymentProviderListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(PayoutDetailDtoOutputTripsInner)]),

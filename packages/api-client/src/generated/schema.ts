@@ -2628,6 +2628,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/payment-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentProviderController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/payments": {
         parameters: {
             query?: never;
@@ -8984,6 +9000,13 @@ export interface components {
                 description: string;
                 paymentLinkId: string;
             };
+        };
+        PaymentProviderListDto_Output: {
+            items: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                enabled: boolean;
+            }[];
         };
         AdminPaymentPageDto_Output: {
             items: {
@@ -22340,6 +22363,26 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PaymentProviderController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Các cổng theo thứ tự hiển thị, kèm cờ đang bật. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentProviderListDto_Output"];
                 };
             };
         };

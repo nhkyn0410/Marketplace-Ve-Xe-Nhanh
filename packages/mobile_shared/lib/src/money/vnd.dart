@@ -6,16 +6,21 @@
 library;
 
 const _groupSeparator = '.';
-const _symbol = '₫';
 
-/// `1234567` → `1.234.567 ₫`
+/// Màn của hành khách viết tiền kiểu `290.000đ` — chữ "đ" liền sau số, giống web.
+const _symbol = 'đ';
+
+/// Ký hiệu được nhận khi đọc ngược: "đ" hiện dùng và "₫" của các bản trước.
+final _anySymbol = RegExp('[đ₫]');
+
+/// `1234567` → `1.234.567đ`
 String formatVnd(int amount, {bool withSymbol = true}) {
   // Thao tác trên chuỗi thay vì `amount.abs()`: abs() của giá trị nhỏ nhất
   // int64 tràn về chính nó (vẫn âm).
   final digits = amount.toString().replaceFirst('-', '');
   final sign = amount < 0 ? '-' : '';
   final grouped = _group(digits);
-  return withSymbol ? '$sign$grouped $_symbol' : '$sign$grouped';
+  return withSymbol ? '$sign$grouped$_symbol' : '$sign$grouped';
 }
 
 /// Chèn dấu ngăn nghìn: `'1234567'` → `'1.234.567'`.
@@ -35,11 +40,12 @@ String _group(String digits) {
 /// (`1234567`), **hoặc** dãy đã nhóm đúng ba (`1.234.567`). Không gì khác.
 final _vndPattern = RegExp(r'^-?(?:\d{1,3}(?:\.\d{3})+|\d+)$');
 
-/// Chiều ngược của [formatVnd]: `'1.234.567 ₫'` → `1234567`.
+/// Chiều ngược của [formatVnd]: `'1.234.567đ'` → `1234567` (vẫn nhận dạng cũ
+/// `'1.234.567 ₫'`).
 ///
 /// Ném [FormatException] nếu chuỗi không phải số tiền hợp lệ.
 int parseVnd(String input) {
-  final trimmed = input.replaceAll(_symbol, '').replaceAll(RegExp(r'\s'), '');
+  final trimmed = input.replaceAll(_anySymbol, '').replaceAll(RegExp(r'\s'), '');
 
   // Xác thực TRƯỚC khi bỏ dấu nhóm. Làm ngược lại thì `'1.5'` bị biến thành
   // `'15'` rồi parse trót lọt — nhận một chuỗi sai thành số tiền khác hẳn,

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPayment } from "../../lib/data/booking";
-import { BookingPaymentData, SupportedPaymentMethod } from "../../lib/data/types";
+import type { BookingPaymentData, PaymentProviderOption, SupportedPaymentMethod } from "../../lib/data/types";
 import { CheckoutStepper } from "../booking/checkout-stepper";
-import { PaymentMethodSelector } from "./payment-method-selector";
+import { defaultPaymentMethod, FALLBACK_PAYMENT_PROVIDERS, PaymentMethodSelector } from "./payment-method-selector";
 import { PaymentOrderSummaryCard } from "./payment-order-summary-card";
 import { PaymentTermsCheckbox } from "./payment-terms-checkbox";
 import { PaymentSummarySidebar } from "./payment-summary-sidebar";
@@ -17,12 +17,14 @@ import { AlertCircle } from "lucide-react";
 export interface PaymentPageViewProps {
   readonly paymentData: BookingPaymentData;
   readonly isExpired?: boolean;
+  /** Cổng theo `GET /payment-providers`; không có (máy chủ cũ / lỗi tải) thì dùng VNPay + MoMo như trước. */
+  readonly providers?: readonly PaymentProviderOption[];
 }
 
 /**
  * Client component quản lý luồng tương tác màn hình thanh toán B3 (Figma 1444:13055 & 1450:23099).
  */
-export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageViewProps) {
+export function PaymentPageView({ paymentData, isExpired = false, providers = FALLBACK_PAYMENT_PROVIDERS }: PaymentPageViewProps) {
   const submitting = useRef(false);
   const [expired, setExpired] = useState(isExpired || Boolean(paymentData.isExpired));
   useEffect(() => {
@@ -30,10 +32,12 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
     const timer = setTimeout(() => setExpired(true), paymentData.holdCountdownSeconds * 1000);
     return () => clearTimeout(timer);
   }, [isExpired, paymentData.isExpired, paymentData.holdCountdownSeconds]);
-  const [selectedMethod, setSelectedMethod] = useState<SupportedPaymentMethod>(
-    paymentData.selectedPaymentMethod ?? "vnpay"
+  // Mặc định: cổng của lần trước nếu còn bật, không thì cổng đang bật đầu tiên (Q5).
+  const [selectedMethod, setSelectedMethod] = useState<SupportedPaymentMethod | undefined>(() =>
+    defaultPaymentMethod(providers, paymentData.selectedPaymentMethod)
   );
-  const [isTermsAccepted, setIsTermsAccepted] = useState(true);
+  // Mặc định chưa đồng ý: khách phải tự tick thì nút thanh toán mới mở (SCR-PSG-20, trạng thái Empty).
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
@@ -49,6 +53,7 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
 
     if (submitting.current) return;
     if (expired) { setErrorMessage("Đơn đã hết hạn thanh toán. Vui lòng chọn lại chuyến."); return; }
+    if (!selectedMethod) { setErrorMessage("Hiện chưa có cổng thanh toán nào hoạt động. Vui lòng quay lại sau."); return; }
     submitting.current = true;
     try {
       const result = await createPayment(paymentData.bookingId, selectedMethod);
@@ -84,6 +89,7 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
         <div className="lg:col-span-7 space-y-6">
           {/* Lựa chọn phương thức thanh toán */}
           <PaymentMethodSelector
+            providers={providers}
             selectedMethod={selectedMethod}
             onSelectMethod={setSelectedMethod}
           />

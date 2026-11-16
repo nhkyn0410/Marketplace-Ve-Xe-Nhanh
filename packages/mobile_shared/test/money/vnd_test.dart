@@ -4,14 +4,14 @@ import 'package:mobile_shared/mobile_shared.dart';
 void main() {
   group('formatVnd', () {
     test('nhóm nghìn bằng dấu chấm', () {
-      expect(formatVnd(1234567), '1.234.567 ₫');
-      expect(formatVnd(1000), '1.000 ₫');
-      expect(formatVnd(999), '999 ₫');
-      expect(formatVnd(0), '0 ₫');
+      expect(formatVnd(1234567), '1.234.567đ');
+      expect(formatVnd(1000), '1.000đ');
+      expect(formatVnd(999), '999đ');
+      expect(formatVnd(0), '0đ');
     });
 
     test('giữ dấu âm ở ngoài cùng', () {
-      expect(formatVnd(-50000), '-50.000 ₫');
+      expect(formatVnd(-50000), '-50.000đ');
     });
 
     test('bỏ ký hiệu khi withSymbol = false', () {
@@ -22,7 +22,7 @@ void main() {
       // Đây là lý do cấm `double`: 9007199254740993 không biểu diễn được bằng
       // double, đổi qua lại sẽ ra 9007199254740992.
       const beyondDouble = 9007199254740993;
-      expect(formatVnd(beyondDouble), '9.007.199.254.740.993 ₫');
+      expect(formatVnd(beyondDouble), '9.007.199.254.740.993đ');
       expect(parseVnd(formatVnd(beyondDouble)), beyondDouble);
     });
   });
@@ -55,6 +55,8 @@ void main() {
     });
 
     test('vẫn nhận đúng các dạng hợp lệ', () {
+      expect(parseVnd('1.234.567đ'), 1234567);
+      // Dạng của các bản trước ("₫" có dấu cách) vẫn đọc được.
       expect(parseVnd('1.234.567 ₫'), 1234567);
       expect(parseVnd('1234567'), 1234567);
       expect(parseVnd('-50.000'), -50000);

@@ -9,6 +9,15 @@ import { requestLoginOtp, verifyOtp } from "../../lib/data/auth";
 import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
 import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
+/** Mã OTP email có hiệu lực 5 phút (07 Security, cùng hằng số với app). */
+export const OTP_LIFETIME_SECONDS = 300;
+
+/** 272 → "04:32". */
+export function formatCountdown(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+}
+
 /**
  * Dữ liệu cấu hình cho VerifyEmailView (SCR-PSG-09)
  */
@@ -53,6 +62,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   });
 
   const [resendCooldown, setResendCooldown] = useState<number>(initialData.resendCountdownSeconds ?? 60);
+  // Hiệu lực mã đếm ngược 5 phút, gửi mã mới thì đếm lại (SCR-PSG-09: "đếm ngược hiệu lực").
+  const [expiresIn, setExpiresIn] = useState<number>(initialData.expiresInSeconds ?? OTP_LIFETIME_SECONDS);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -66,6 +77,15 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
+
+  // Đếm ngược hiệu lực mã
+  useEffect(() => {
+    if (expiresIn <= 0) return;
+    const timer = setInterval(() => {
+      setExpiresIn((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [expiresIn]);
 
   const handleDigitChange = (index: number, val: string) => {
     // Chỉ nhận chữ số
@@ -147,6 +167,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     if (resendCooldown > 0 || isSubmitting) return;
     if (isPreview) {
       setResendCooldown(60);
+      setExpiresIn(OTP_LIFETIME_SECONDS);
       return;
     }
     setIsSubmitting(true);
@@ -155,6 +176,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       const result = await requestLoginOtp({ email });
       if (result.status === "ok") {
         setResendCooldown(60);
+        setExpiresIn(OTP_LIFETIME_SECONDS);
         setDigits(["", "", "", "", "", ""]);
       } else {
         setErrorMessage(result.status === "error" ? result.message ?? "Không thể gửi lại mã OTP." : "Chức năng gửi mã chưa khả dụng.");
@@ -207,9 +229,11 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
           ))}
         </div>
 
-        <p className="flex items-center gap-1.5 text-xs/[18px] text-vxn-fg-5">
+        <p className={`flex items-center gap-1.5 text-xs/[18px] ${expiresIn > 0 ? "text-vxn-fg-5" : "text-destructive"}`} aria-live="polite">
           <Clock className="size-3.5 shrink-0" />
-          Mã có hiệu lực trong 5 phút kể từ khi được gửi. Vui lòng dùng mã mới nhất.
+          {expiresIn > 0
+            ? `Mã hết hạn sau ${formatCountdown(expiresIn)}. Vui lòng dùng mã mới nhất.`
+            : "Mã đã hết hạn. Hãy gửi lại mã mới."}
         </p>
 
         {errorMessage && (

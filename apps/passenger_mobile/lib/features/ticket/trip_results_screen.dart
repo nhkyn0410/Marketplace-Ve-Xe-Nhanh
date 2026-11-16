@@ -226,8 +226,8 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
             return _TripCard(
               key: ValueKey('results-trip-${trip.tripId}'),
               trip: trip,
-              fromLabel: query.from.name,
-              toLabel: query.to.name,
+              fromLabel: query.from?.name ?? trip.pickup.name,
+              toLabel: query.to?.name ?? trip.dropoff.name,
               onOpenDetail: () => widget.onTripSelected?.call(trip, query),
             );
           },
@@ -667,17 +667,21 @@ class _SearchSummaryCard extends StatelessWidget {
 class _SummaryPlace extends StatelessWidget {
   const _SummaryPlace({required this.location});
 
-  final HomeLocation location;
+  /// `null` = tìm theo nhà xe trên mọi tuyến.
+  final HomeLocation? location;
 
   @override
   Widget build(BuildContext context) {
-    final detail = location.detail;
+    final location = this.location;
+    final detail = location?.detail;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          _compactPlace(location.name),
+          location == null
+              ? allOperatorRoutesLabel
+              : _compactPlace(location.name),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(

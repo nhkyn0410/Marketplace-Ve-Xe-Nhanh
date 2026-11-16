@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/common/app_toast.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
@@ -36,7 +37,9 @@ typedef HomeFaqLoader = Future<List<HomeFaqItem>> Function();
 typedef HomePromotionsLoader = Future<List<HomePromotion>> Function();
 typedef HomeOperatorsLoader = Future<List<HomeOperator>> Function();
 typedef HomeArticlesLoader = Future<List<ExploreArticle>> Function();
-typedef HomeHotlineLauncher = Future<bool> Function(String hotline);
+
+/// Mở kênh liên hệ hỗ trợ: `tel:` khi đã cấu hình số tổng đài, `mailto:` khi chưa.
+typedef HomeHotlineLauncher = SupportLauncher;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -54,6 +57,7 @@ class HomeScreen extends StatefulWidget {
     this.onOperatorSelected,
     this.onSearch,
     this.onCallHotline,
+    this.support = SupportContact.configured,
     this.onFeedbackRequested,
     this.onLoginRequested,
     this.onTabSelected,
@@ -61,6 +65,9 @@ class HomeScreen extends StatefulWidget {
     this.onNotificationsTap,
     super.key,
   });
+
+  /// Kênh liên hệ hỗ trợ của sàn (số tổng đài nếu đã cấu hình, không thì email).
+  final SupportContact support;
 
   /// Số tin chưa đọc trong hộp thư; lớn hơn 0 thì chuông có chấm đỏ.
   final int unreadNotifications;
@@ -99,8 +106,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with TripSearchFormState<HomeScreen> {
-  static const _supportHotline = '1900 636 707';
-
   final _scrollController = ScrollController();
   bool _dockVisible = true;
   Future<List<HomePopularRoute>>? _popularRoutesFuture;
@@ -170,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen>
                     fromLabel: searchFrom?.name,
                     toLabel: searchTo?.name,
                     operatorLabel: searchOperator?.name,
-                    routeLabel: searchOperatorRoute?.label,
+                    routeLabel: searchOperatorRouteLabel,
                     date: searchDate,
                     passengers: searchPassengers,
                     onModeChanged: (mode) => setState(() => searchMode = mode),
@@ -220,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                       _SupportSection(
+                        support: widget.support,
                         onHelpCenter: _openHelpCenter,
                         onCallHotline: _callHotline,
                         onFeedback: _requestFeedback,
@@ -289,9 +295,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _callHotline() async {
     final launcher = widget.onCallHotline;
-    final launched = launcher != null && await launcher(_supportHotline);
+    final launched = launcher != null && await launcher(widget.support.uri);
     if (!launched) {
-      _showMessage('Không thể mở ứng dụng gọi điện trên thiết bị này.');
+      _showMessage(widget.support.launchFailureMessage);
     }
   }
 
@@ -768,19 +774,24 @@ class _JourneyPlanner extends StatelessWidget {
                                 ),
                                 elevation: 4,
                                 shadowColor: const Color(0x1A14527D),
-                                child: InkResponse(
-                                  key: const Key('swap-locations'),
-                                  onTap: onSwap,
-                                  radius: 22,
-                                  child: SizedBox(
-                                    width: 44,
-                                    height: 44,
-                                    child: Center(
-                                      child: SvgPicture.asset(
-                                        '$_assetRoot/icons/swap.svg',
-                                        width: 24,
-                                        height: 24,
-                                        excludeFromSemantics: true,
+                                // Nút chỉ có biểu tượng: thêm nhãn để trình đọc màn hình đọc được (web dùng cùng câu).
+                                child: Semantics(
+                                  button: true,
+                                  label: 'Đảo chiều điểm đi - điểm đến',
+                                  child: InkResponse(
+                                    key: const Key('swap-locations'),
+                                    onTap: onSwap,
+                                    radius: 22,
+                                    child: SizedBox(
+                                      width: 44,
+                                      height: 44,
+                                      child: Center(
+                                        child: SvgPicture.asset(
+                                          '$_assetRoot/icons/swap.svg',
+                                          width: 24,
+                                          height: 24,
+                                          excludeFromSemantics: true,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -2117,11 +2128,13 @@ class _FaqSheetState extends State<_FaqSheet> {
 
 class _SupportSection extends StatelessWidget {
   const _SupportSection({
+    required this.support,
     required this.onHelpCenter,
     required this.onCallHotline,
     required this.onFeedback,
   });
 
+  final SupportContact support;
   final VoidCallback onHelpCenter;
   final VoidCallback onCallHotline;
   final VoidCallback onFeedback;
@@ -2163,6 +2176,7 @@ class _SupportSection extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _SupportActions(
+          support: support,
           onHelpCenter: onHelpCenter,
           onCallHotline: onCallHotline,
           onFeedback: onFeedback,
@@ -2234,7 +2248,7 @@ class _SupportHero extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Flexible(
                     child: Text(
-                      'Support Station — Trạm hỗ trợ hành trình',
+                      'Trạm hỗ trợ hành trình',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -2342,11 +2356,13 @@ class _SupportHero extends StatelessWidget {
 
 class _SupportActions extends StatelessWidget {
   const _SupportActions({
+    required this.support,
     required this.onHelpCenter,
     required this.onCallHotline,
     required this.onFeedback,
   });
 
+  final SupportContact support;
   final VoidCallback onHelpCenter;
   final VoidCallback onCallHotline;
   final VoidCallback onFeedback;
@@ -2370,13 +2386,16 @@ class _SupportActions extends StatelessWidget {
               subtitle: 'Câu hỏi thường gặp',
               onTap: onHelpCenter,
             ),
+            // Có số tổng đài thì thẻ này để gọi; chưa có thì là thẻ gửi email hỗ trợ.
             _SupportActionCard(
               key: const Key('support-call-hotline'),
               width: width,
               circleAsset: '$_assetRoot/icons/support_feedback_circle.svg',
-              iconAsset: '$_assetRoot/icons/phone.svg',
-              title: 'Gọi tổng đài',
-              subtitle: '1900 636 707',
+              iconAsset: support.hasHotline
+                  ? '$_assetRoot/icons/phone.svg'
+                  : '$_assetRoot/icons/support_headset.svg',
+              title: support.hasHotline ? 'Gọi tổng đài' : 'Email hỗ trợ',
+              subtitle: support.label,
               subtitleColor: const Color(0xFFEB932B),
               subtitleFontSize: 12,
               onTap: onCallHotline,

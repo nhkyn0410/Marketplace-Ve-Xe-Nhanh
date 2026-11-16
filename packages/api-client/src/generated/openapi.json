@@ -15225,6 +15225,27 @@
         ]
       }
     },
+    "/v1/payment-providers": {
+      "get": {
+        "operationId": "PaymentProviderController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Các cổng theo thứ tự hiển thị, kèm cờ đang bật.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProviderListDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "payments"
+        ]
+      }
+    },
     "/v1/admin/payments": {
       "get": {
         "operationId": "AdminPaymentController_list",
@@ -49234,6 +49255,40 @@
           "amount",
           "paymentUrl",
           "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "PaymentProviderListDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "VNPAY",
+                    "MOMO",
+                    "PAYOS",
+                    "DEMO"
+                  ]
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "provider",
+                "enabled"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
         ],
         "additionalProperties": false
       },

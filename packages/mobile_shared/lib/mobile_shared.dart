@@ -9,3 +9,4 @@ export 'src/api/api_failure.dart';
 export 'src/api/auth_interceptor.dart';
 export 'src/money/vnd.dart';
 export 'src/storage/token_storage.dart';
+export 'src/text/vietnamese_collation.dart';

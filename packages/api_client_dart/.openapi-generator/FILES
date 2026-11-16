@@ -473,6 +473,8 @@ doc/PassengerTicketPageDtoOutputItemsInner.md
 doc/PasswordChangeChallengeResponse.md
 doc/PasswordChangeRequiredDto.md
 doc/PaymentInputDto.md
+doc/PaymentProviderListDtoOutput.md
+doc/PaymentProviderListDtoOutputItemsInner.md
 doc/PaymentResponseDtoOutput.md
 doc/PaymentResponseDtoOutputTransfer.md
 doc/PaymentsApi.md
@@ -1206,6 +1208,8 @@ lib/src/model/passenger_ticket_page_dto_output_items_inner.dart
 lib/src/model/password_change_challenge_response.dart
 lib/src/model/password_change_required_dto.dart
 lib/src/model/payment_input_dto.dart
+lib/src/model/payment_provider_list_dto_output.dart
+lib/src/model/payment_provider_list_dto_output_items_inner.dart
 lib/src/model/payment_response_dto_output.dart
 lib/src/model/payment_response_dto_output_transfer.dart
 lib/src/model/payout_bank_account_dto_output.dart
@@ -1443,8 +1447,5 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/passenger_reviews_dto_output_pending_items_inner_test.dart
-test/passenger_reviews_dto_output_pending_test.dart
-test/passenger_reviews_dto_output_reviewed_items_inner_test.dart
-test/passenger_reviews_dto_output_reviewed_test.dart
-test/passenger_reviews_dto_output_test.dart
+test/payment_provider_list_dto_output_items_inner_test.dart
+test/payment_provider_list_dto_output_test.dart

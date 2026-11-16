@@ -58,7 +58,9 @@ import { BookingController } from "../booking/booking.controller";
 import { BookingService } from "../booking/booking.service";
 import { OperatorBookingController } from "../booking/operator-booking.controller";
 import { OperatorBookingService } from "../booking/operator-booking.service";
+import { PAYMENT_GATEWAYS } from "../external/payment/payment-gateway";
 import { PaymentController } from "../payment/payment.controller";
+import { PaymentProviderController } from "../payment/payment-provider.controller";
 import { PaymentService } from "../payment/payment.service";
 import { AdminPaymentController } from "../payment/admin-payment.controller";
 import { AdminPaymentService } from "../payment/admin-payment.service";
@@ -208,6 +210,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     BookingController,
     OperatorBookingController,
     PaymentController,
+    PaymentProviderController,
     AdminPaymentController,
     TicketController,
     CancellationController,
@@ -302,6 +305,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: BookingService, useValue: {} },
     { provide: OperatorBookingService, useValue: {} },
     { provide: PaymentService, useValue: {} },
+    { provide: PAYMENT_GATEWAYS, useValue: new Map() },
     { provide: AdminPaymentService, useValue: {} },
     { provide: TicketService, useValue: {} },
     { provide: CancellationService, useValue: {} },

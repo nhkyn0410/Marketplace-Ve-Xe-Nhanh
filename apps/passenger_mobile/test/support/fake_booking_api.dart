@@ -87,7 +87,7 @@ TripDetail sampleTripDetail({
   );
 }
 
-/// Phiên giữ chỗ mẫu: [seats] ở chuyến mẫu, đón 1 / trả 5, 300.000 ₫ mỗi chỗ.
+/// Phiên giữ chỗ mẫu: [seats] ở chuyến mẫu, đón 1 / trả 5, 300.000đ mỗi chỗ.
 SeatHold sampleHold({
   List<String> seats = const ['A01', 'A03'],
   Set<String> doubleSeats = const {},
@@ -121,7 +121,7 @@ SeatHold sampleHold({
   );
 }
 
-/// Đơn mẫu chờ thanh toán: 2 chỗ, giảm 50.000 ₫, hạn sau 8 phút.
+/// Đơn mẫu chờ thanh toán: 2 chỗ, giảm 50.000đ, hạn sau 8 phút.
 CreatedBooking sampleBooking() {
   final trip = sampleTripDetail();
   return CreatedBooking(
@@ -240,7 +240,7 @@ class FakeBookingApi implements TripBookingApi {
   /// Dữ liệu điền sẵn (khách đã đăng nhập); `null` = khách vãng lai.
   BookingPrefill? prefill;
 
-  /// Mã khuyến mãi hợp lệ: giảm 50.000 ₫.
+  /// Mã khuyến mãi hợp lệ: giảm 50.000đ.
   String validPromotion = 'GIAM50';
 
   List<BookingVoucher> walletVouchers = [];
@@ -270,6 +270,16 @@ class FakeBookingApi implements TripBookingApi {
   )?
   paymentStarter;
   Future<BookingPaymentState> Function()? paymentStateLoader;
+
+  /// Danh sách cổng `GET /payment-providers`; mặc định bật đủ bốn cổng.
+  List<PaymentProviderOption> paymentProviders = fallbackPaymentProviders;
+  Future<List<PaymentProviderOption>> Function()? paymentProvidersLoader;
+
+  @override
+  Future<List<PaymentProviderOption>> loadPaymentProviders() async =>
+      paymentProvidersLoader == null
+      ? paymentProviders
+      : paymentProvidersLoader!();
 
   @override
   Future<BookingPaymentSession> startPayment(

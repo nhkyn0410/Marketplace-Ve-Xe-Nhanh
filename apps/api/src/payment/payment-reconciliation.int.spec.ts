@@ -218,6 +218,8 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
     const now = new Date();
     const run = await reconcilePayments(prisma, gateways, qr, refunds, now);
     expect(run).toMatchObject({ confirmed: 1, reconciling: 1, failed: 1, errors: 1 });
+    // Lỗi cổng không có mã → nhật ký đối soát vẫn ghi cổng nào hỏng.
+    expect(run.errorCodes).toEqual(["VNPAY:NO_CODE"]);
     expect(run.confirmedKeys).toEqual([`BOOKING_CONFIRMED:${pending.paymentCode}`]);
     expect(await stateOf(pending.paymentCode)).toMatchObject({ status: "SUCCESS", booking: { status: "CONFIRMED", tickets: [{ status: "VALID" }] } });
     expect(await stateOf(expired.paymentCode)).toMatchObject({ status: "RECONCILING", reconcileReason: "BOOKING_EXPIRED", booking: { status: "EXPIRED" } });

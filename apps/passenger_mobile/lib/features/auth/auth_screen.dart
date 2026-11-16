@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/auth/auth_motion_timeline.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 
 const _canvasWidth = 412.0;
@@ -1322,9 +1323,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text(
-                    'Vui lòng gọi tổng đài 1900 6868 để được hỗ trợ.',
+                    'Vui lòng ${SupportContact.configured.instruction} để được hỗ trợ.',
                   ),
                 ),
               );
@@ -1337,8 +1338,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
           ),
           child: Text.rich(
             TextSpan(
-              children: const [
-                TextSpan(
+              children: [
+                const TextSpan(
                   text: 'Cần hỗ trợ? ',
                   style: TextStyle(
                     color: _otpMuted,
@@ -1346,8 +1347,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                   ),
                 ),
                 TextSpan(
-                  text: 'Liên hệ tổng đài 1900 6868',
-                  style: TextStyle(
+                  // Số tổng đài lấy từ cấu hình chung; chưa có số thì hướng sang email hỗ trợ
+                  // (câu ngắn để vẫn nằm trên một dòng khi máy tăng cỡ chữ).
+                  text: SupportContact.configured.hasHotline
+                      ? 'Liên hệ tổng đài ${SupportContact.configured.label}'
+                      : 'Email ${SupportContact.configured.label}',
+                  style: const TextStyle(
                     color: _otpFocus,
                     fontWeight: FontWeight.w600,
                     decoration: TextDecoration.underline,

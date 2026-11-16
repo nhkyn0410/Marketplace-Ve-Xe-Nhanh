@@ -42,7 +42,10 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen>
     with WidgetsBindingObserver {
   final _vnpaySession = VnpayCheckoutSession();
-  PassengerPaymentMethod _method = PassengerPaymentMethod.payos;
+
+  /// Cổng theo máy chủ; trong lúc tải thì chưa chọn cổng nào (PASSENGER-PARITY Q5).
+  List<PaymentProviderOption>? _providers;
+  PassengerPaymentMethod? _method;
   BookingPaymentState? _state;
   Timer? _timer;
   Duration _remaining = Duration.zero;
@@ -73,6 +76,22 @@ class _PaymentScreenState extends State<PaymentScreen>
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(_checkState());
+    });
+    unawaited(_loadProviders());
+  }
+
+  /// Danh sách cổng đang bật; lỗi tải thì giữ cách cũ (đủ bốn cổng) để khách vẫn thanh toán được.
+  Future<void> _loadProviders() async {
+    List<PaymentProviderOption> providers;
+    try {
+      providers = await widget.api.loadPaymentProviders();
+    } catch (_) {
+      providers = fallbackPaymentProviders;
+    }
+    if (!mounted) return;
+    setState(() {
+      _providers = providers;
+      _method = defaultPaymentMethod(providers);
     });
   }
 
@@ -157,7 +176,12 @@ class _PaymentScreenState extends State<PaymentScreen>
   }
 
   Future<void> _openCheckout() async {
-    if (_navigating || _completed || _closed || _remaining == Duration.zero) {
+    final method = _method;
+    if (method == null ||
+        _navigating ||
+        _completed ||
+        _closed ||
+        _remaining == Duration.zero) {
       return;
     }
     setState(() => _navigating = true);
@@ -166,7 +190,7 @@ class _PaymentScreenState extends State<PaymentScreen>
         builder: (_) => PaymentCheckoutScreen(
           api: widget.api,
           booking: widget.booking,
-          method: _method,
+          method: method,
           now: widget.now,
           isSignedIn: widget.isSignedIn,
           onBookingFinished: widget.onBookingFinished,
@@ -195,7 +219,12 @@ class _PaymentScreenState extends State<PaymentScreen>
         key: const Key('payment-screen'),
         backgroundColor: _page,
         bottomNavigationBar: PaymentBottomBar(
-          disabled: expired || _closed || _completed || _navigating,
+          disabled:
+              expired ||
+              _closed ||
+              _completed ||
+              _navigating ||
+              _method == null,
           label: 'Tiếp tục',
           onPay: _openCheckout,
         ),
@@ -246,17 +275,41 @@ class _PaymentScreenState extends State<PaymentScreen>
                         ),
                       ),
                       const SizedBox(height: 10),
-                      for (final method in PassengerPaymentMethod.values)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _MethodCard(
-                            method: method,
-                            selected: _method == method,
-                            onTap: _navigating
-                                ? null
-                                : () => setState(() => _method = method),
+                      if (_providers == null)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              key: Key('payment-methods-loading'),
+                            ),
                           ),
-                        ),
+                        )
+                      else ...[
+                        if (defaultPaymentMethod(_providers!) == null)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              'Hiện chưa có cổng thanh toán nào hoạt động. Vui lòng quay lại sau.',
+                              key: Key('payment-methods-none'),
+                              style: TextStyle(color: Color(0xFFB42318)),
+                            ),
+                          ),
+                        for (final option in visiblePaymentProviders(
+                          _providers!,
+                        ))
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _MethodCard(
+                              method: option.method,
+                              enabled: option.enabled,
+                              selected: _method == option.method,
+                              onTap: _navigating || !option.enabled
+                                  ? null
+                                  : () =>
+                                        setState(() => _method = option.method),
+                            ),
+                          ),
+                      ],
                     ],
                     if (_error != null)
                       Text(
@@ -286,11 +339,15 @@ class _MethodCard extends StatelessWidget {
     required this.method,
     required this.selected,
     required this.onTap,
+    this.enabled = true,
   });
 
   final PassengerPaymentMethod method;
   final bool selected;
   final VoidCallback? onTap;
+
+  /// Cổng thật máy chủ chưa bật: hiện mờ, ghi "Sắp hỗ trợ", không chọn được.
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -298,87 +355,112 @@ class _MethodCard extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      child: Material(
-        color: selected ? const Color(0xFFEAF6FC) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(
-            color: selected ? _blue : const Color(0xFFE0EBF0),
-            width: selected ? 1.5 : 1,
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.55,
+        child: Material(
+          color: selected ? const Color(0xFFEAF6FC) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: selected ? _blue : const Color(0xFFE0EBF0),
+              width: selected ? 1.5 : 1,
+            ),
           ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          key: Key('payment-method-${method.apiValue}'),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                if (logoAsset != null)
-                  Image.asset(
-                    logoAsset,
-                    key: Key('payment-logo-${method.apiValue}'),
-                    width: 48,
-                    height: 48,
-                    cacheWidth: 160,
-                    fit: BoxFit.contain,
-                    excludeFromSemantics: true,
-                  )
-                else
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: method == PassengerPaymentMethod.payos
-                          ? const Color(0xFFE3F5E9)
-                          : const Color(0xFFFFF1D8),
-                      borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: Key('payment-method-${method.apiValue}'),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  if (logoAsset != null)
+                    Image.asset(
+                      logoAsset,
+                      key: Key('payment-logo-${method.apiValue}'),
+                      width: 48,
+                      height: 48,
+                      cacheWidth: 160,
+                      fit: BoxFit.contain,
+                      excludeFromSemantics: true,
+                    )
+                  else
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: method == PassengerPaymentMethod.payos
+                            ? const Color(0xFFE3F5E9)
+                            : const Color(0xFFFFF1D8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        method == PassengerPaymentMethod.payos
+                            ? Icons.qr_code_2_rounded
+                            : Icons.science_outlined,
+                        color: method == PassengerPaymentMethod.payos
+                            ? const Color(0xFF23864D)
+                            : const Color(0xFFA66B16),
+                        size: 30,
+                      ),
                     ),
-                    child: Icon(
-                      method == PassengerPaymentMethod.payos
-                          ? Icons.qr_code_2_rounded
-                          : Icons.science_outlined,
-                      color: method == PassengerPaymentMethod.payos
-                          ? const Color(0xFF23864D)
-                          : const Color(0xFFA66B16),
-                      size: 30,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          method.label,
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          method.description,
+                          style: const TextStyle(
+                            color: _muted,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        method.label,
-                        style: const TextStyle(
-                          color: _ink,
-                          fontSize: 15,
+                  const SizedBox(width: 8),
+                  if (enabled)
+                    Icon(
+                      selected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: selected ? _blue : _muted,
+                      size: 22,
+                    )
+                  else
+                    Container(
+                      key: Key('payment-method-soon-${method.apiValue}'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F4F6),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'Sắp hỗ trợ',
+                        style: TextStyle(
+                          color: _muted,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        method.description,
-                        style: const TextStyle(
-                          color: _muted,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  selected
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                  color: selected ? _blue : _muted,
-                  size: 22,
-                ),
-              ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),

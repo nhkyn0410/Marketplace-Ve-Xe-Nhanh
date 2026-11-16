@@ -146,13 +146,16 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.scrollUntilVisible(
-      find.byKey(const Key('download-ticket')),
+      find.text('Vé sau'),
       420,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pump();
 
-    expect(find.byKey(const Key('download-ticket')), findsOneWidget);
+    expect(find.text('Vé sau'), findsOneWidget);
+    // v1 chưa có tải vé PDF: không còn nút bấm vào chỉ báo "chưa hỗ trợ".
+    expect(find.byKey(const Key('download-ticket')), findsNothing);
+    expect(find.textContaining('PDF'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

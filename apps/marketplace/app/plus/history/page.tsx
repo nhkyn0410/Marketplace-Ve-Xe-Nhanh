@@ -67,7 +67,7 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   }
 
   if (result.status === "error") {
-    if (result.httpStatus === 401) return <AccountSignInRequired />;
+    if (result.httpStatus === 401) return <AccountSignInRequired description="Đăng nhập bằng email để xem lịch sử điểm VXN Plus." />;
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}

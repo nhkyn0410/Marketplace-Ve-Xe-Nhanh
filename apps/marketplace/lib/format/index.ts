@@ -68,6 +68,15 @@ export function formatTripDateVi(isoDate: string): string {
 }
 
 /**
+ * Ngày mai theo giờ Việt Nam, dạng `YYYY-MM-DD` — ngày đi mặc định của form tìm chuyến, giống app hành khách
+ * (PASSENGER-PARITY Q9).
+ */
+export function tomorrowVnIsoDate(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date(now.getTime() + 86_400_000));
+}
+
+/**
  * Số ngày lịch (giờ Việt Nam) từ `fromIso` tới `toIso`, vd đón 22:30 hôm nay, trả 05:30 hôm sau → 1.
  * Thiếu hoặc sai định dạng thì trả 0 để giao diện không hiện "+N ngày".
  */

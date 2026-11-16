@@ -6,6 +6,27 @@ import { formatDateVi, formatTimeVi } from "../format";
 /** Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places` (`area` = khu vực: đơn vị hành chính cũ). */
 export type PlaceType = "province" | "ward" | "area" | "stopPoint";
 
+/** Cách sắp xếp trên URL `/trips?sortBy=` (`rating` = nhà xe đánh giá cao nhất trước, như app). */
+export type TripSortBy = "earliest" | "price_asc" | "fastest" | "rating";
+
+/** Đọc `sortBy` từ URL; giá trị lạ coi như "Giờ đi sớm". */
+export function tripSortBy(value: string | undefined): TripSortBy {
+  return value === "price_asc" || value === "fastest" || value === "rating" ? value : "earliest";
+}
+
+/** Nhà xe có chuyến khớp hành trình (trước khi lọc) và số chuyến — lựa chọn của bộ lọc "Nhà xe". */
+export interface TripOperatorOption {
+  readonly id: string;
+  readonly name: string;
+  readonly count: number;
+}
+
+/** Danh sách id trên URL: lặp khóa (`a=1&a=2`, form GET) hoặc nối dấu phẩy (`a=1,2`, link); bỏ rỗng, bỏ trùng. */
+export function idList(value: string | readonly string[] | undefined): string[] {
+  const raw = typeof value === "string" ? [value] : (value ?? []);
+  return [...new Set(raw.flatMap((item) => item.split(",")).map((item) => item.trim()).filter(Boolean))];
+}
+
 export interface SearchTripsParams {
   readonly origin?: string;
   /** Thiếu = tỉnh / thành (link cũ: tuyến phổ biến, nhà xe chỉ mang id tỉnh). */
@@ -20,7 +41,9 @@ export interface SearchTripsParams {
   readonly seatType?: string;
   readonly vehicleType?: string;
   readonly operatorId?: string;
-  readonly sortBy?: "earliest" | "price_asc" | "fastest";
+  /** Tiện ích chuyến phải có đủ (id từ `GET /catalog/amenities`). */
+  readonly amenityIds?: readonly string[];
+  readonly sortBy?: TripSortBy;
   readonly page?: string;
   /** Xem vé không cần nhập ngày (không gửi `date`): API trả chuyến sắp chạy trong vài ngày tới. */
   readonly anyDate?: boolean;
@@ -119,8 +142,8 @@ export function searchQuery(params: SearchTripsParams): URLSearchParams {
     [`to${keys[params.destinationType ?? "province"]}`]: params.destination,
     operatorId: params.operatorId, priceMin: params.minPriceVnd, priceMax: params.maxPriceVnd,
     vehicleForm: params.seatType ? forms[params.seatType] : undefined,
-    vehicleClass: params.vehicleType?.toUpperCase(), page: params.page,
-    sort: params.sortBy === "price_asc" ? "price" : params.sortBy === "fastest" ? "duration" : "departure"
+    vehicleClass: params.vehicleType?.toUpperCase(), amenityIds: params.amenityIds?.join(","), page: params.page,
+    sort: params.sortBy === "price_asc" ? "price" : params.sortBy === "fastest" ? "duration" : params.sortBy === "rating" ? "rating" : "departure"
   };
   for (const [key, value] of Object.entries(values)) if (value) query.set(key, value);
   if (params.timeRange) {

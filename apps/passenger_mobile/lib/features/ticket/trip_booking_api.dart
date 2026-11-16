@@ -185,8 +185,8 @@ class TripBookingApi {
     TripSearchFilters filters,
     int page,
   ) async {
-    String? idOf(HomeLocation place, HomeLocationKind kind) =>
-        place.kind == kind ? place.id : null;
+    String? idOf(HomeLocation? place, HomeLocationKind kind) =>
+        place != null && place.kind == kind ? place.id : null;
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
@@ -643,7 +643,7 @@ class TripBookingApi {
                 ..companionName = passenger.companionName,
             ),
         ])
-        ..note = null
+        ..note = draft.note
         ..expectedTotal = expectedTotal
         ..promotionCode = draft.promotion?.userVoucherId == null
             ? draft.promotion?.code
@@ -688,6 +688,20 @@ class TripBookingApi {
       expiresAt: data.expiresAt,
       accessToken: data.accessToken,
     );
+  }
+
+  /// Cổng thanh toán theo thứ tự hiển thị và cổng nào máy chủ đang bật
+  /// (`GET /payment-providers`, PASSENGER-PARITY Q5); bỏ mã cổng lạ.
+  Future<List<PaymentProviderOption>> loadPaymentProviders() async {
+    final response = await _call(
+      () => _client.getPaymentsApi().paymentProviderControllerList(),
+    );
+    return [
+      for (final item in response.data!.items)
+        if (PassengerPaymentMethod.fromApi(item.provider.name)
+            case final method?)
+          PaymentProviderOption(method, enabled: item.enabled),
+    ];
   }
 
   /// Tạo hoặc lấy lại link thanh toán; khách vãng lai dùng mã truy cập của đơn.
