@@ -89,6 +89,18 @@ describe("API trip boundary", () => {
     });
     expect(item(4.6, 12)).toMatchObject({ operatorRating: 4.6, operatorRatingCountText: "12 đánh giá" });
     expect(item(null, 0)).toMatchObject({ operatorRating: 0, operatorRatingCountText: "Chưa có đánh giá" });
+    // Logo nhà xe từ API; thiếu logo thì thẻ dùng chữ viết tắt.
+    expect(item(null, 0)).toMatchObject({ operatorCode: "NH", operatorLogoUrl: undefined });
+    const withLogo = mapTripSearchItem({
+      tripId: "trip", operator: { id: "op", name: "Nhà xe A", slug: "a", logoUrl: "https://cdn.test/logo.png", averageRating: null, reviewCount: 0 },
+      routeName: "A → B", segmentTitle: "A → B", vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" },
+      departureAt: "2026-10-30T01:00:00Z", arrivalAt: "2026-10-30T07:00:00Z",
+      pickup: { sequence: 1, name: "Bến A", address: "x", plannedAt: "2026-10-30T01:00:00Z" },
+      dropoff: { sequence: 3, name: "Bến B", address: "y", plannedAt: "2026-10-30T07:00:00Z" },
+      durationMinutes: 360, availableSeats: 4, minPrice: 300000, vehicleCoverImageUrl: null, amenities: [],
+      onlineSaleClosesAt: "2026-10-30T00:00:00Z"
+    });
+    expect(withLogo.operatorLogoUrl).toBe("https://cdn.test/logo.png");
   });
 
   it("điểm đi / đến theo loại: phường → fromWardId / toWardId, địa danh → StopPointId; thiếu hoặc lạ → tỉnh", () => {
@@ -139,6 +151,8 @@ describe("API trip boundary", () => {
     expect(mapped.departureTime).toBe("01:00");
     expect(mapped.timeline[0]).toMatchObject({ lat: 10.8, lng: 106.7, isRestStop: false, badges: ["Đón khách"] });
     expect(mapTripDetail({ ...trip, seats: [] }).priceSingleVnd).toBe("");
+    expect(mapped.operatorLogoUrl).toBeUndefined();
+    expect(mapTripDetail({ ...trip, operator: { ...trip.operator, logoUrl: "https://cdn.test/logo.png" } }).operatorLogoUrl).toBe("https://cdn.test/logo.png");
 
     // Chặng khách đi (3.3): tiêu đề theo chặng, tên tuyến thành dòng phụ, giờ + điểm theo điểm lên / xuống, đánh dấu hai điểm.
     const stop = trip.stops[0]!;

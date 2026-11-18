@@ -9720,6 +9720,12 @@ export interface components {
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 checkedInAt: string | null;
             }[];
+            seats?: {
+                code: string;
+                deck: number;
+                row: number;
+                column: number;
+            }[];
         };
         TicketVerifyInputDto: {
             /** Format: uuid */

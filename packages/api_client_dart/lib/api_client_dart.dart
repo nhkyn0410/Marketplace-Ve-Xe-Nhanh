@@ -679,6 +679,7 @@ export 'package:api_client_dart/src/model/trip_list_response_dto_output_items_in
 export 'package:api_client_dart/src/model/trip_manifest_dto_output.dart';
 export 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner.dart';
 export 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart';
+export 'package:api_client_dart/src/model/trip_manifest_dto_output_seats_inner.dart';
 export 'package:api_client_dart/src/model/trip_operation_input_dto.dart';
 export 'package:api_client_dart/src/model/trip_passenger_list_dto_output.dart';
 export 'package:api_client_dart/src/model/trip_passenger_list_dto_output_items_inner.dart';

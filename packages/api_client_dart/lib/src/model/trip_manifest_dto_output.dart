@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner.dart';
+import 'package:api_client_dart/src/model/trip_manifest_dto_output_seats_inner.dart';
 import 'package:api_client_dart/src/model/employee_assignment_list_dto_output_items_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -16,6 +17,7 @@ part 'trip_manifest_dto_output.g.dart';
 /// Properties:
 /// * [trip] 
 /// * [passengers] 
+/// * [seats] 
 @BuiltValue()
 abstract class TripManifestDtoOutput implements Built<TripManifestDtoOutput, TripManifestDtoOutputBuilder> {
   @BuiltValueField(wireName: r'trip')
@@ -23,6 +25,9 @@ abstract class TripManifestDtoOutput implements Built<TripManifestDtoOutput, Tri
 
   @BuiltValueField(wireName: r'passengers')
   BuiltList<TripManifestDtoOutputPassengersInner> get passengers;
+
+  @BuiltValueField(wireName: r'seats')
+  BuiltList<TripManifestDtoOutputSeatsInner>? get seats;
 
   TripManifestDtoOutput._();
 
@@ -57,6 +62,13 @@ class _$TripManifestDtoOutputSerializer implements PrimitiveSerializer<TripManif
       object.passengers,
       specifiedType: const FullType(BuiltList, [FullType(TripManifestDtoOutputPassengersInner)]),
     );
+    if (object.seats != null) {
+      yield r'seats';
+      yield serializers.serialize(
+        object.seats,
+        specifiedType: const FullType(BuiltList, [FullType(TripManifestDtoOutputSeatsInner)]),
+      );
+    }
   }
 
   @override
@@ -93,6 +105,14 @@ class _$TripManifestDtoOutputSerializer implements PrimitiveSerializer<TripManif
             specifiedType: const FullType(BuiltList, [FullType(TripManifestDtoOutputPassengersInner)]),
           ) as BuiltList<TripManifestDtoOutputPassengersInner>;
           result.passengers.replace(valueDes);
+          break;
+        case r'seats':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(TripManifestDtoOutputSeatsInner)]),
+          ) as BuiltList<TripManifestDtoOutputSeatsInner>?;
+          if (valueDes == null) continue;
+          result.seats.replace(valueDes);
           break;
         default:
           unhandled.add(key);

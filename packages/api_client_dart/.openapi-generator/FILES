@@ -668,6 +668,7 @@ doc/TripListResponseDtoOutputItemsInner.md
 doc/TripManifestDtoOutput.md
 doc/TripManifestDtoOutputPassengersInner.md
 doc/TripManifestDtoOutputPassengersInnerPickup.md
+doc/TripManifestDtoOutputSeatsInner.md
 doc/TripOperationInputDto.md
 doc/TripPassengerListDtoOutput.md
 doc/TripPassengerListDtoOutputItemsInner.md
@@ -1398,6 +1399,7 @@ lib/src/model/trip_list_response_dto_output_items_inner.dart
 lib/src/model/trip_manifest_dto_output.dart
 lib/src/model/trip_manifest_dto_output_passengers_inner.dart
 lib/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart
+lib/src/model/trip_manifest_dto_output_seats_inner.dart
 lib/src/model/trip_operation_input_dto.dart
 lib/src/model/trip_passenger_list_dto_output.dart
 lib/src/model/trip_passenger_list_dto_output_items_inner.dart

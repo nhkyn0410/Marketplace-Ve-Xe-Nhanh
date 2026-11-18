@@ -1055,6 +1055,7 @@ Class | Method | HTTP request | Description
  - [TripManifestDtoOutput](doc/TripManifestDtoOutput.md)
  - [TripManifestDtoOutputPassengersInner](doc/TripManifestDtoOutputPassengersInner.md)
  - [TripManifestDtoOutputPassengersInnerPickup](doc/TripManifestDtoOutputPassengersInnerPickup.md)
+ - [TripManifestDtoOutputSeatsInner](doc/TripManifestDtoOutputSeatsInner.md)
  - [TripOperationInputDto](doc/TripOperationInputDto.md)
  - [TripPassengerListDtoOutput](doc/TripPassengerListDtoOutput.md)
  - [TripPassengerListDtoOutputItemsInner](doc/TripPassengerListDtoOutputItemsInner.md)

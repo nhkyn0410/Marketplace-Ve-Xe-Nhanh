@@ -157,7 +157,6 @@ class TicketResultScreen extends StatelessWidget {
                             right: 24,
                             top: 24,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   'KIỂM TRA VÉ',
@@ -167,12 +166,18 @@ class TicketResultScreen extends StatelessWidget {
                                     DriverColors.secondary,
                                   ),
                                 ),
-                                Text(
-                                  trip.id,
-                                  style: driverText(
-                                    12,
-                                    FontWeight.w400,
-                                    DriverColors.teal,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    trip.id,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                    style: driverText(
+                                      12,
+                                      FontWeight.w400,
+                                      DriverColors.teal,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -212,7 +217,6 @@ class TicketResultScreen extends StatelessWidget {
                             right: 24,
                             top: 142,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   _tripDate(trip),
@@ -222,12 +226,18 @@ class TicketResultScreen extends StatelessWidget {
                                     DriverColors.secondary,
                                   ),
                                 ),
-                                Text(
-                                  'Chuyến ${trip.id}',
-                                  style: driverText(
-                                    12,
-                                    FontWeight.w400,
-                                    DriverColors.secondary,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Chuyến ${trip.id}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                    style: driverText(
+                                      12,
+                                      FontWeight.w400,
+                                      DriverColors.secondary,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1358,6 +1368,8 @@ class SeatMapScreen extends StatelessWidget {
     final passengers = {
       for (final passenger in trip.passengers) passenger.seat: passenger,
     };
+    // API cũ chỉ trả ghế có vé: chưa biết ghế trống nên không có chú thích "Trống".
+    final ticketedOnly = trip.isLive && trip.seatLayout.isEmpty;
     return DriverPage(
       statusAsset: 'seat-map-imgTinHiuWiFiPin',
       bottom: Padding(
@@ -1436,7 +1448,7 @@ class SeatMapScreen extends StatelessWidget {
                   children: [
                     _seatLegend('Đã lên', const Color(0xff157a48)),
                     _seatLegend('Đã đặt\nChưa lên', DriverColors.warning),
-                    if (!trip.isLive)
+                    if (!ticketedOnly)
                       _seatLegend('Trống', DriverColors.secondary),
                   ],
                 ),
@@ -1461,7 +1473,7 @@ class SeatMapScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${trip.seats.length} ${trip.isLive ? 'ghế có vé' : 'ghế'}',
+                            '${trip.seats.length} ${ticketedOnly ? 'ghế có vé' : 'ghế'}',
                             style: driverText(
                               12,
                               FontWeight.w400,
@@ -1471,37 +1483,40 @@ class SeatMapScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      for (
-                        var row = 0;
-                        row < (trip.seats.length / 4).ceil();
-                        row++
-                      )
-                        Padding(
-                          padding: EdgeInsets.only(
-                            bottom: row < (trip.seats.length / 4).ceil() - 1
-                                ? 6
-                                : 0,
-                          ),
-                          child: Row(
-                            children: [
-                              for (var column = 0; column < 4; column++) ...[
-                                if (column == 2)
-                                  const SizedBox(width: 52)
-                                else if (column > 0)
-                                  const SizedBox(width: 8),
-                                Expanded(
-                                  child: row * 4 + column < trip.seats.length
-                                      ? _seat(
-                                          trip.seats[row * 4 + column],
-                                          passengers[trip.seats[row * 4 +
-                                              column]],
-                                        )
-                                      : const SizedBox(),
-                                ),
+                      if (trip.seatLayout.isNotEmpty)
+                        ..._layoutDecks(passengers)
+                      else
+                        for (
+                          var row = 0;
+                          row < (trip.seats.length / 4).ceil();
+                          row++
+                        )
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: row < (trip.seats.length / 4).ceil() - 1
+                                  ? 6
+                                  : 0,
+                            ),
+                            child: Row(
+                              children: [
+                                for (var column = 0; column < 4; column++) ...[
+                                  if (column == 2)
+                                    const SizedBox(width: 52)
+                                  else if (column > 0)
+                                    const SizedBox(width: 8),
+                                  Expanded(
+                                    child: row * 4 + column < trip.seats.length
+                                        ? _seat(
+                                            trip.seats[row * 4 + column],
+                                            passengers[trip.seats[row * 4 +
+                                                column]],
+                                          )
+                                        : const SizedBox(),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
                     ],
                   ),
                 ),
@@ -1570,6 +1585,74 @@ class SeatMapScreen extends StatelessWidget {
       ),
     ),
   );
+
+  /// Sơ đồ thật của chuyến: mỗi tầng một lưới theo hàng / cột máy chủ trả; ô không có chỗ để trống.
+  List<Widget> _layoutDecks(Map<String, DemoPassenger> passengers) {
+    final decks = {for (final seat in trip.seatLayout) seat.deck}.toList()
+      ..sort();
+    return [
+      for (final deck in decks) ...[
+        if (decks.length > 1)
+          Padding(
+            padding: EdgeInsets.only(
+              top: deck == decks.first ? 0 : 16,
+              bottom: 8,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                deck == 1 ? 'Tầng dưới' : 'Tầng trên',
+                style: driverText(12, FontWeight.w600, DriverColors.navy),
+              ),
+            ),
+          ),
+        _deckGrid([
+          for (final seat in trip.seatLayout)
+            if (seat.deck == deck) seat,
+        ], passengers),
+      ],
+    ];
+  }
+
+  Widget _deckGrid(
+    List<SeatSlot> seats,
+    Map<String, DemoPassenger> passengers,
+  ) {
+    final rows = seats.fold(0, (max, seat) => seat.row > max ? seat.row : max);
+    final columns = seats.fold(
+      0,
+      (max, seat) => seat.column > max ? seat.column : max,
+    );
+    final codes = {
+      for (final seat in seats) (seat.row, seat.column): seat.code,
+    };
+    final used = {for (final seat in seats) seat.column};
+    return Column(
+      children: [
+        for (var row = 1; row <= rows; row++)
+          Padding(
+            padding: EdgeInsets.only(bottom: row < rows ? 6 : 0),
+            child: Row(
+              children: [
+                for (var column = 1; column <= columns; column++) ...[
+                  if (column > 1) const SizedBox(width: 8),
+                  // Cột không có chỗ nào là lối đi: hẹp, không kéo giãn.
+                  if (used.contains(column))
+                    Expanded(
+                      child: switch (codes[(row, column)]) {
+                        final code? => _seat(code, passengers[code]),
+                        null => const SizedBox(),
+                      },
+                    )
+                  else
+                    const SizedBox(width: 20),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 
   Widget _seat(String code, DemoPassenger? passenger) {
     final boarded = passenger?.boarded ?? false;
@@ -1686,22 +1769,26 @@ class _PhysicalTicket extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: Text(
-                          'VÉ HÀNH KHÁCH',
-                          style: driverText(
-                            12,
-                            FontWeight.w400,
-                            DriverColors.secondary,
-                          ),
-                        ),
-                      ),
                       Text(
-                        trip.id,
+                        'VÉ HÀNH KHÁCH',
                         style: driverText(
                           12,
                           FontWeight.w400,
-                          DriverColors.teal,
+                          DriverColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          trip.id,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: driverText(
+                            12,
+                            FontWeight.w400,
+                            DriverColors.teal,
+                          ),
                         ),
                       ),
                     ],
@@ -1730,8 +1817,12 @@ class _PhysicalTicket extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Tấm vé cao cố định: tên bến thật dài rút gọn
+                            // để không đè xuống nửa dưới (ghế, mã vé).
                             Text(
                               trip.origin,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: driverText(
                                 20,
                                 FontWeight.w600,
@@ -1750,6 +1841,8 @@ class _PhysicalTicket extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               trip.pickup,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: driverText(
                                 12,
                                 FontWeight.w400,
@@ -1770,6 +1863,9 @@ class _PhysicalTicket extends StatelessWidget {
                           children: [
                             Text(
                               trip.destination,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
                               style: driverText(
                                 20,
                                 FontWeight.w600,
@@ -1788,6 +1884,8 @@ class _PhysicalTicket extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               trip.dropoff,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.right,
                               style: driverText(
                                 12,

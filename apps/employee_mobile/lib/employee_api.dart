@@ -333,6 +333,7 @@ class EmployeeApi {
               ),
             )
             .toList();
+        final layout = _layout(manifest);
         final trip = DemoTrip(
           id: item.routeName,
           serverId: item.tripId,
@@ -347,9 +348,9 @@ class EmployeeApi {
           vehiclePlate: item.vehiclePlateNumber ?? 'Chưa phân xe',
           pickupName: item.origin,
           dropoffName: item.destination,
-          // Manifest lists ticketed seats, not the full vehicle layout.
-          seats: passengers.map((p) => p.seat).toSet().toList(),
+          seats: _seatCodes(layout, passengers),
         );
+        trip.seatLayout.addAll(layout);
         trip.serverBoardedCount = manifest.trip.checkedInCount;
         trip.serverTicketCount = manifest.trip.ticketCount;
         trip.checkInTicket = (code) => board(trip, code);
@@ -391,9 +392,13 @@ class EmployeeApi {
             ),
           ),
         );
+      final layout = _layout(manifest);
+      trip.seatLayout
+        ..clear()
+        ..addAll(layout);
       trip.seats
         ..clear()
-        ..addAll(trip.passengers.map((p) => p.seat).toSet());
+        ..addAll(_seatCodes(layout, trip.passengers));
       trip.serverBoardedCount = manifest.trip.checkedInCount;
       trip.serverTicketCount = manifest.trip.ticketCount;
       trip.status = _tripStatus(manifest.trip.status.name);
@@ -531,6 +536,21 @@ class EmployeeApi {
     });
   }
 
+  /// Sơ đồ đủ ghế của chuyến; API cũ chưa trả `seats` thì rỗng.
+  static List<SeatSlot> _layout(TripManifestDtoOutput manifest) => [
+    for (final seat
+        in manifest.seats?.toList() ?? <TripManifestDtoOutputSeatsInner>[])
+      (code: seat.code, deck: seat.deck, row: seat.row, column: seat.column),
+  ];
+
+  /// Mã mọi ghế theo sơ đồ; thiếu sơ đồ thì chỉ còn các ghế đã có vé.
+  static List<String> _seatCodes(
+    List<SeatSlot> layout,
+    List<DemoPassenger> passengers,
+  ) => layout.isEmpty
+      ? passengers.map((p) => p.seat).toSet().toList()
+      : [for (final seat in layout) seat.code];
+
   static DemoPassenger _passenger(
     String name,
     String seat,
@@ -541,7 +561,8 @@ class EmployeeApi {
   ) => DemoPassenger(name, seat, ticket, phone)
     ..boarded = status == 'CHECKED_IN' || status == 'USED'
     ..absent = status == 'NO_SHOW'
-    ..checkedInAt = checkedInAt;
+    // Máy chủ trả giờ UTC; đổi sang giờ Việt Nam như giờ khởi hành.
+    ..checkedInAt = checkedInAt?.toUtc().add(const Duration(hours: 7));
 
   static String _tripStatus(String status) => switch (status) {
     'BOARDING' => 'Đón khách',

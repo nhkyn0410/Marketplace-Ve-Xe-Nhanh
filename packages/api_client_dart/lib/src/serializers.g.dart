@@ -1037,6 +1037,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripManifestDtoOutputPassengersInner.serializer)
       ..add(TripManifestDtoOutputPassengersInnerPickup.serializer)
       ..add(TripManifestDtoOutputPassengersInnerStatusEnum.serializer)
+      ..add(TripManifestDtoOutputSeatsInner.serializer)
       ..add(TripOperationInputDto.serializer)
       ..add(TripOperationInputDtoStatusEnum.serializer)
       ..add(TripPassengerListDtoOutput.serializer)
@@ -2232,6 +2233,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(TripManifestDtoOutputPassengersInner)]),
           () => ListBuilder<TripManifestDtoOutputPassengersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripManifestDtoOutputSeatsInner)]),
+          () => ListBuilder<TripManifestDtoOutputSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripSalesDtoOutputChangesInner)]),

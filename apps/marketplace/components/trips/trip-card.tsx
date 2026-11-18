@@ -43,12 +43,16 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
           {/* Hàng 1: Nhà xe & Badges */}
           <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold text-white shadow-xs"
-                style={{ backgroundColor: trip.operatorAccentColor ?? "#00506a" }}
-              >
-                {trip.operatorCode}
-              </div>
+              {trip.operatorLogoUrl ? (
+                <img src={trip.operatorLogoUrl} alt="" className="h-9 w-9 shrink-0 rounded-xl border border-slate-100 bg-white object-contain shadow-xs" />
+              ) : (
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold text-white shadow-xs"
+                  style={{ backgroundColor: trip.operatorAccentColor ?? "#00506a" }}
+                >
+                  {trip.operatorCode}
+                </div>
+              )}
               <div className="min-w-0">
                 <Link href={`/operators/${encodeURIComponent(trip.operatorId)}`} className="block text-sm font-bold text-slate-900 truncate hover:text-vxn-teal-700">
                   {trip.operatorName}
@@ -75,15 +79,15 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
           </div>
 
           {/* Hàng 2: Lộ trình & Giá vé */}
-          <div className="mt-3.5 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          {/* Thiếu chỗ (khung hẹp) thì giá xuống dòng thay vì đè lên giờ */}
+          <div className="mt-3.5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             {/* Cột thời gian di chuyển */}
-            <div className="flex min-w-0 items-center justify-between sm:justify-start gap-3 sm:gap-4">
-              {/* Giờ đi */}
+            <div className="flex min-w-0 items-start justify-between sm:justify-start gap-3 sm:gap-4">
+              {/* Giờ đi — tên điểm đón / trả chỉ ở dòng "Đón • Trả" bên dưới */}
               <div className="min-w-0">
                 <div className="text-2xl font-extrabold text-slate-900">
                   {trip.departureTime}
                 </div>
-                <div className="truncate text-xs font-medium text-slate-500">{trip.departureCity}</div>
                 {showDate && trip.departureDateText && (
                   <div className="text-[11px] font-semibold text-[#00506a]">{trip.departureDateText}</div>
                 )}
@@ -100,24 +104,21 @@ export function TripCard({ trip, passengers, showDate }: TripCardProps) {
                 <span className="text-[10px] text-slate-400 whitespace-nowrap">{trip.stopCountText}</span>
               </div>
 
-              {/* Giờ đến */}
+              {/* Giờ đến — "Ngày sau" nằm dưới giờ để không tràn sang cột giá */}
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-2xl font-extrabold text-slate-900">
-                    {trip.arrivalTime}
-                  </span>
-                  {trip.isNextDay && (
-                    <span className="rounded bg-amber-100 px-1 py-0.5 text-[10px] font-bold text-amber-800 whitespace-nowrap">
-                      Ngày sau
-                    </span>
-                  )}
+                <div className="text-2xl font-extrabold text-slate-900">
+                  {trip.arrivalTime}
                 </div>
-                <div className="truncate text-xs font-medium text-slate-500">{trip.arrivalCity}</div>
+                {trip.isNextDay && (
+                  <span className="inline-block rounded bg-amber-100 px-1 py-0.5 text-[10px] font-bold text-amber-800 whitespace-nowrap">
+                    Ngày sau
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Cột Giá vé */}
-            <div className="flex items-baseline justify-between sm:block sm:text-right shrink-0 pt-2 sm:pt-0 border-t border-dashed border-slate-100 sm:border-0">
+            <div className="flex items-baseline justify-between sm:ml-auto sm:block sm:text-right shrink-0 pt-2 sm:pt-0 border-t border-dashed border-slate-100 sm:border-0">
               <span className="text-xs text-slate-500 sm:hidden">Giá vé từ</span>
               <div className="text-right">
                 <div className="text-2xl font-extrabold text-[#00506a] sm:text-3xl whitespace-nowrap leading-tight">

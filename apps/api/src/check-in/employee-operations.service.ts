@@ -103,9 +103,15 @@ export class EmployeeOperationsService {
     return this.prisma.withScope(db, async (tx) => {
       const assignment = await requireAssignment(tx, operatorId, actor, tripId);
       const tickets = await loadTickets(tx, operatorId, { tripId, status: { in: ON_TRIP } }, assignment.trip);
+      const seats = await tx.tripSeat.findMany({
+        where: { tripId, operatorId },
+        select: { seatCode: true, deck: true, row: true, column: true },
+        orderBy: [{ deck: "asc" }, { row: "asc" }, { column: "asc" }],
+      });
       return {
         trip: await summarize(tx, operatorId, assignment.trip, assignment.role),
         passengers: tickets.sort((a, b) => a.pickup.sequence - b.pickup.sequence || a.seatCode.localeCompare(b.seatCode)),
+        seats: seats.map(({ seatCode, ...position }) => ({ code: seatCode, ...position })),
       };
     });
   }

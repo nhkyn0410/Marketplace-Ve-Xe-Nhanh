@@ -1,3 +1,6 @@
+/// Một chỗ trên sơ đồ ghế của chuyến thật: tầng / hàng / cột đánh số từ 1.
+typedef SeatSlot = ({String code, int deck, int row, int column});
+
 /// Dữ liệu minh họa chuyến xe; không thay thế dữ liệu nhiệm vụ từ máy chủ.
 class DemoTrip {
   DemoTrip({
@@ -35,6 +38,9 @@ class DemoTrip {
   final String operatingNote;
   final List<DemoPassenger> passengers;
   final List<String> seats;
+
+  /// Sơ đồ đủ ghế của chuyến thật; rỗng ở bản minh họa hoặc khi API cũ chỉ trả ghế có vé.
+  final List<SeatSlot> seatLayout = [];
   String status;
   bool assigned = true;
   final List<({String title, DateTime occurredAt})> operationHistory = [];

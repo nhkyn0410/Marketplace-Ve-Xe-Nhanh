@@ -114,16 +114,16 @@ export interface TripSearchResultItem {
   readonly operatorId: string;
   readonly operatorName: string;
   readonly operatorCode: string;
+  /** Logo nhà xe từ API; không có thì thẻ dùng `operatorCode`. */
+  readonly operatorLogoUrl?: string;
   readonly operatorAccentColor?: string;
   readonly operatorRating: number;
   readonly operatorRatingCountText: string;
   readonly vehicleType: string;
   readonly seatType: string;
   readonly departureTime: string;
-  readonly departureCity: string;
   readonly departureStation: string;
   readonly arrivalTime: string;
-  readonly arrivalCity: string;
   readonly arrivalStation: string;
   readonly durationText: string;
   readonly stopCountText: string;
@@ -235,6 +235,8 @@ export interface TripDetailData {
   readonly operatorId: string;
   readonly operatorName: string;
   readonly operatorCode: string;
+  /** Logo nhà xe từ API; không có thì dùng `operatorCode`. */
+  readonly operatorLogoUrl?: string;
   readonly operatorRating: number;
   readonly operatorRatingCountText: string;
   readonly operatorPhone: string;

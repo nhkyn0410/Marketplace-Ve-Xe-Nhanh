@@ -611,6 +611,7 @@ import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_in
 import 'package:api_client_dart/src/model/trip_manifest_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart';
+import 'package:api_client_dart/src/model/trip_manifest_dto_output_seats_inner.dart';
 import 'package:api_client_dart/src/model/trip_operation_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_items_inner.dart';
@@ -1263,6 +1264,7 @@ part 'serializers.g.dart';
   TripManifestDtoOutput,
   TripManifestDtoOutputPassengersInner,
   TripManifestDtoOutputPassengersInnerPickup,
+  TripManifestDtoOutputSeatsInner,
   TripOperationInputDto,
   TripPassengerListDtoOutput,
   TripPassengerListDtoOutputItemsInner,
@@ -1443,6 +1445,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripManifestDtoOutputSeatsInner)]),
+        () => ListBuilder<TripManifestDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CampaignOptionsDtoOutputPromotionsInner)]),

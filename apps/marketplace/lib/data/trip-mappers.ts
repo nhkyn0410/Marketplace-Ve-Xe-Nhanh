@@ -179,13 +179,14 @@ const nextDay = (start: string, end: string) => formatDateVi(start) !== formatDa
 export function mapTripSearchItem(item: components["schemas"]["TripSearchResponseDto_Output"]["items"][number]): TripSearchResultItem {
   return {
     id: item.tripId, operatorId: item.operator.id, operatorName: item.operator.name,
-    operatorCode: item.operator.name.slice(0, 2).toUpperCase(), operatorRating: item.operator.averageRating ?? 0,
+    operatorCode: item.operator.name.slice(0, 2).toUpperCase(), operatorLogoUrl: item.operator.logoUrl ?? undefined,
+    operatorRating: item.operator.averageRating ?? 0,
     operatorRatingCountText: item.operator.reviewCount > 0 ? `${item.operator.reviewCount} đánh giá` : "Chưa có đánh giá",
     vehicleType: item.vehicleType.name,
     seatType: formNames[item.vehicleType.form], departureTime: formatTimeVi(item.pickup.plannedAt),
     departureDateText: formatDateVi(item.pickup.plannedAt),
-    departureCity: item.pickup.name, departureStation: item.pickup.name,
-    arrivalTime: formatTimeVi(item.dropoff.plannedAt), arrivalCity: item.dropoff.name,
+    departureStation: item.pickup.name,
+    arrivalTime: formatTimeVi(item.dropoff.plannedAt),
     arrivalStation: item.dropoff.name, durationText: duration(item.durationMinutes), stopCountText: "",
     isNextDay: nextDay(item.pickup.plannedAt, item.dropoff.plannedAt), priceVnd: apiMoney(item.minPrice),
     availableSeats: item.availableSeats, amenities: item.amenities.map((a) => a.name),
@@ -207,7 +208,7 @@ export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"
   const min = (values: bigint[]) => values.length ? values.reduce((a, b) => a < b ? a : b).toString() : "";
   return {
     id: trip.tripId, operatorId: trip.operator.id, operatorName: trip.operator.name,
-    operatorCode: trip.operator.name.slice(0, 2).toUpperCase(), operatorRating: 0,
+    operatorCode: trip.operator.name.slice(0, 2).toUpperCase(), operatorLogoUrl: trip.operator.logoUrl ?? undefined, operatorRating: 0,
     operatorRatingCountText: "Chưa có dữ liệu đánh giá", operatorPhone: trip.operator.hotline ?? "",
     operatorEmail: "", operatorDescription: "", vehicleTypeName: trip.vehicleType.name,
     seatTypeName: formNames[trip.vehicleType.form], vehicleClass: trip.vehicleType.class === "LIMOUSINE" ? "Limousine" : "Tiêu chuẩn",
