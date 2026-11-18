@@ -10,10 +10,17 @@ export function mapArticle(article: components["schemas"]["ArticlePageDto_Output
     coverImageUrl: article.coverImageUrl ?? "", isFeatured: article.featured };
 }
 
-/** Chuyển nội dung Markdown thật sang phần nội dung bài viết an toàn. */
-export function mapArticleDetail(article: components["schemas"]["ArticleDto_Output"]): ArticleDetail {
+/** Chuyển nội dung Markdown thật sang phần nội dung bài viết an toàn; kèm tối đa 3 bài cùng chuyên mục (SCR-PSG-37). */
+export function mapArticleDetail(
+  article: components["schemas"]["ArticleDto_Output"],
+  related: readonly components["schemas"]["ArticlePageDto_Output"]["items"][number][] = []
+): ArticleDetail {
   return { ...mapArticle(article), authorName: "", leadParagraph: article.summary,
-    sections: [{ heading: "", content: article.contentMarkdown }], relatedArticles: [] };
+    sections: [{ heading: "", content: article.contentMarkdown }],
+    relatedArticles: related.filter((item) => item.slug !== article.slug).slice(0, 3).map((item) => ({
+      id: item.slug, slug: item.slug, title: item.title, publishedDateText: formatDateVi(item.publishedAt),
+      ...(item.coverImageUrl ? { coverImageUrl: item.coverImageUrl } : {})
+    })) };
 }
 
 /** Chuyển trang tĩnh, chỉ hiển thị ngày cập nhật có trong API. */

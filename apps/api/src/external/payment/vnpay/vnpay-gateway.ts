@@ -137,9 +137,10 @@ export class VnpayGateway implements PaymentGateway {
     } catch {
       throw new PaymentGatewayError("Không kết nối được VNPay.");
     }
-    const parsed = RefundResponseSchema.safeParse(await response.json().catch(() => null));
+    const raw: unknown = await response.json().catch(() => null);
+    const parsed = RefundResponseSchema.safeParse(raw);
     if (!response.ok || !parsed.success) {
-      throw new PaymentGatewayError(`VNPay trả phản hồi hoàn tiền không hợp lệ (HTTP ${response.status}).`);
+      throw invalidResponse("hoàn tiền", response.status, raw);
     }
     const body = parsed.data;
     if (!safeEqualHex(sign(refundResponseSignData(body), this.config.hashSecret), body.vnp_SecureHash)) {
@@ -179,9 +180,10 @@ export class VnpayGateway implements PaymentGateway {
     } catch {
       throw new PaymentGatewayError("Không kết nối được VNPay.");
     }
-    const parsed = RefundResponseSchema.safeParse(await response.json().catch(() => null));
+    const raw: unknown = await response.json().catch(() => null);
+    const parsed = RefundResponseSchema.safeParse(raw);
     if (!response.ok || !parsed.success) {
-      throw new PaymentGatewayError(`VNPay trả phản hồi tra cứu không hợp lệ (HTTP ${response.status}).`);
+      throw invalidResponse("tra cứu", response.status, raw);
     }
     const body = parsed.data;
     if (!safeEqualHex(sign(queryDrResponseSignData(body), this.config.hashSecret), body.vnp_SecureHash)) {
@@ -202,6 +204,28 @@ export class VnpayGateway implements PaymentGateway {
       resultCode: state,
     };
   }
+}
+
+/** Phản hồi lỗi của `merchant_webapi` có thể không kèm chữ ký (sandbox trả `99 Unexpected error` theo cách này). */
+const UnsignedRejectionSchema = z.object({ vnp_ResponseCode: z.string().regex(/^\d{2}$/), vnp_Message: z.string().optional() });
+
+/**
+ * Phản hồi không qua được kiểm tra đầy đủ. Nếu VNPay có nêu mã lỗi thì đưa mã + thông điệp vào lỗi để nhật ký đối soát và hồ
+ * sơ hoàn tiền chỉ ra nguyên nhân. Phản hồi này KHÔNG có chữ ký nên chỉ dùng để báo lỗi (luôn cho thử lại) — không bao giờ
+ * dùng để đổi trạng thái giao dịch.
+ */
+function invalidResponse(action: "hoàn tiền" | "tra cứu", httpStatus: number, raw: unknown): PaymentGatewayError {
+  const rejected = UnsignedRejectionSchema.safeParse(raw);
+  if (rejected.success && rejected.data.vnp_ResponseCode !== "00") {
+    // Thông điệp của cổng là dữ liệu ngoài: chỉ giữ chữ, số, khoảng trắng và vài dấu câu, tối đa 80 ký tự.
+    const text = (rejected.data.vnp_Message ?? "").replace(/[^\p{L}\p{N} .,_-]/gu, "").slice(0, 80).trim();
+    return new PaymentGatewayError(
+      `VNPay từ chối ${action} (mã ${rejected.data.vnp_ResponseCode}${text ? `: ${text}` : ""}; phản hồi không kèm chữ ký).`,
+      true,
+      rejected.data.vnp_ResponseCode,
+    );
+  }
+  return new PaymentGatewayError(`VNPay trả phản hồi ${action} không hợp lệ (HTTP ${httpStatus}).`);
 }
 
 export function queryDrSignData(fields: Record<string, string>): string {

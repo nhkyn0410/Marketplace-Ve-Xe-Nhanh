@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
@@ -33,6 +34,7 @@ Future<void> _pumpHome(
   ValueChanged<ExploreArticle>? onArticleSelected,
   ValueChanged<HomeOperator>? onOperatorSelected,
   HomeHotlineLauncher? onCallHotline,
+  SupportContact support = const SupportContact(hotline: '1900 1234'),
   VoidCallback? onFeedbackRequested,
   VoidCallback? onLoginRequested,
   int unreadNotifications = 0,
@@ -75,6 +77,7 @@ Future<void> _pumpHome(
         onArticleSelected: onArticleSelected,
         onSearch: onSearch,
         onCallHotline: onCallHotline,
+        support: support,
         onFeedbackRequested: onFeedbackRequested,
         onLoginRequested: onLoginRequested,
       ),
@@ -159,6 +162,27 @@ void main() {
     expect(find.byKey(const Key('home-notification-unread')), findsNothing);
     expect(find.bySemanticsLabel('Thông báo'), findsOneWidget);
   });
+
+  testWidgets(
+    'nút đảo chiều có nhãn trợ năng; khối hỗ trợ không lẫn chữ tiếng Anh',
+    (tester) async {
+      await _pumpHome(tester, width: 412);
+      await tester.pump();
+      expect(
+        find.bySemanticsLabel('Đảo chiều điểm đi - điểm đến'),
+        findsOneWidget,
+      );
+
+      await tester.drag(
+        find.byKey(const Key('home-content-scroll')),
+        const Offset(0, -3000),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Trạm hỗ trợ hành trình'), findsOneWidget);
+      expect(find.textContaining('Support Station'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('bấm thẻ Nhà xe nổi bật mở trang của nhà xe đó', (tester) async {
     const operators = [
@@ -431,8 +455,8 @@ void main() {
           body: 'Vui lòng mở chi tiết vé để kiểm tra điều kiện.',
         ),
       ],
-      onCallHotline: (number) async {
-        calledNumber = number;
+      onCallHotline: (uri) async {
+        calledNumber = uri.toString();
         return true;
       },
     );
@@ -458,10 +482,119 @@ void main() {
     );
     await tester.ensureVisible(callHotline);
     await tester.pumpAndSettle();
+    // Số tổng đài lấy từ cấu hình, không ghi cứng trong màn.
+    expect(find.text('Gọi tổng đài'), findsOneWidget);
+    expect(find.text('1900 1234'), findsOneWidget);
     await tester.tap(callHotline);
     await tester.pump();
-    expect(calledNumber, '1900 636 707');
+    expect(calledNumber, 'tel:19001234');
     expect(tester.takeException(), isNull);
+  });
+
+  // PASSENGER-PARITY A26 (SCR-PSG-03): ô tìm, gợi ý nhanh, số câu, liên hệ CSKH.
+  testWidgets('trung tâm trợ giúp: tìm câu hỏi, gợi ý nhanh, không thấy thì mời liên hệ', (
+    tester,
+  ) async {
+    String? calledNumber;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadFaqs: () async => const [
+        HomeFaqItem(title: 'Làm sao đổi vé?', body: 'Mở chi tiết vé để kiểm tra.'),
+        HomeFaqItem(title: 'Bao lâu thì hoàn tiền?', body: 'Hủy vé xong hoàn trong 7 ngày.'),
+      ],
+      onCallHotline: (uri) async {
+        calledNumber = uri.toString();
+        return true;
+      },
+    );
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('support-help-center')));
+    await tester.pumpAndSettle();
+    expect(find.text('Câu hỏi thường gặp (2)'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('faq-keyword-Hoàn tiền')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bao lâu thì hoàn tiền?'), findsOneWidget);
+    expect(find.text('Làm sao đổi vé?'), findsNothing);
+    expect(find.textContaining('Tìm thấy 1 câu trả lời'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('faq-search')), 'wifi');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('faq-no-result')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('faq-contact-support')));
+    await tester.pump();
+    expect(calledNumber, 'tel:19001234');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('trung tâm trợ giúp: tải câu hỏi lỗi thì bấm Thử lại tải lại', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadFaqs: () async {
+        calls++;
+        if (calls == 1) throw StateError('offline');
+        return const [HomeFaqItem(title: 'Làm sao đổi vé?', body: 'Mở chi tiết vé.')];
+      },
+    );
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('support-help-center')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('faq-retry')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('faq-retry')));
+    await tester.pumpAndSettle();
+    expect(calls, 2);
+    expect(find.text('Câu hỏi thường gặp (1)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chưa cấu hình số tổng đài: thẻ hỗ trợ là email, không hiện số', (
+    tester,
+  ) async {
+    String? opened;
+    await _pumpHome(
+      tester,
+      width: 390,
+      support: const SupportContact(),
+      onCallHotline: (uri) async {
+        opened = uri.toString();
+        return true;
+      },
+    );
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Email hỗ trợ'), findsOneWidget);
+    expect(find.text('support@vexenhanh.vn'), findsOneWidget);
+    expect(find.text('Gọi tổng đài'), findsNothing);
+    expect(find.textContaining('1900'), findsNothing);
+
+    final card = find.byKey(
+      const Key('support-call-hotline'),
+      skipOffstage: false,
+    );
+    await tester.ensureVisible(card);
+    await tester.pumpAndSettle();
+    await tester.tap(card);
+    await tester.pump();
+    expect(opened, 'mailto:support@vexenhanh.vn');
+    expect(tester.takeException(), isNull, reason: 'thẻ email bị overflow');
   });
 
   testWidgets('dock trượt ẩn khi cuộn xuống và hiện khi cuộn lên', (
@@ -583,8 +716,8 @@ void main() {
     await tester.tap(find.byKey(const Key('home-search-button')));
     await tester.pumpAndSettle();
     expect(submitted, isNotNull);
-    expect(submitted!.from.id, 'hcm');
-    expect(submitted!.to.id, 'lam-dong');
+    expect(submitted!.from!.id, 'hcm');
+    expect(submitted!.to!.id, 'lam-dong');
     expect(submitted!.passengers, 1);
     expect(submitted!.operatorId, isNull);
     expect(tester.takeException(), isNull);
@@ -638,10 +771,10 @@ void main() {
 
       await tester.tap(find.byKey(const Key('home-search-button')));
       await tester.pumpAndSettle();
-      expect(submitted!.from.kind, HomeLocationKind.stopPoint);
-      expect(submitted!.from.id, 'mien-dong');
-      expect(submitted!.to.kind, HomeLocationKind.area);
-      expect(submitted!.to.id, '68-thanh-pho-da-lat');
+      expect(submitted!.from!.kind, HomeLocationKind.stopPoint);
+      expect(submitted!.from!.id, 'mien-dong');
+      expect(submitted!.to!.kind, HomeLocationKind.area);
+      expect(submitted!.to!.id, '68-thanh-pho-da-lat');
       expect(tester.takeException(), isNull);
     },
   );
@@ -676,8 +809,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(submitted!.mode, HomeSearchMode.operator);
     expect(submitted!.operatorId, 'op-pt');
-    expect(submitted!.from.id, 'lam-dong');
-    expect(submitted!.to.id, 'hcm');
+    expect(submitted!.from!.id, 'lam-dong');
+    expect(submitted!.to!.id, 'hcm');
+    expect(tester.takeException(), isNull);
+  });
+
+  // PASSENGER-PARITY A15 / Q10: tìm theo nhà xe trên mọi tuyến, như web.
+  testWidgets('theo nhà xe: chọn "Tất cả tuyến" thì tìm không cần điểm đi / đến', (
+    tester,
+  ) async {
+    HomeSearchQuery? submitted;
+    await _pumpHome(tester, width: 412, onSearch: (query) => submitted = query);
+    await tester.tap(find.byKey(const Key('search-mode-operator')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('operator-route-input')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('operator-option-op-pt')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('operator-route-option-all')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tất cả tuyến'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    expect(submitted!.mode, HomeSearchMode.operator);
+    expect(submitted!.operatorId, 'op-pt');
+    expect(submitted!.from, isNull);
+    expect(submitted!.to, isNull);
     expect(tester.takeException(), isNull);
   });
 

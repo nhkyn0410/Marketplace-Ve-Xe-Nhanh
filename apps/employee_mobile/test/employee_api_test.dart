@@ -190,6 +190,22 @@ void main() {
     expect(_body(adapter.requests.last)['status'], 'CHECKED_IN');
   });
 
+  test('server check-in time is shown in Vietnam time, not UTC', () async {
+    final (api, _) = _api(
+      (request) => request.path.endsWith('/verify')
+          ? _json(_verify())
+          : _json({
+              'ticket': _ticket('CHECKED_IN'),
+              'checkedInCount': 1,
+              'ticketCount': 1,
+            }),
+    );
+    final passenger = await api.board(_trip(), _token);
+    // Server sends 03:00Z; the "Soát vé" cell must read 10:00 like departures.
+    expect(passenger.checkedInAt?.hour, 10);
+    expect(passenger.checkedInAt?.minute, 0);
+  });
+
   test('URLs, arbitrary QR and human ticket code cannot check in', () async {
     final (api, adapter) = _api((_) => fail('No API request expected'));
     for (final value in ['https://example.com', _ticketCode, 'VX102001', '']) {
@@ -400,13 +416,57 @@ void main() {
       expect(trips.single.serverId, _tripId);
       expect(trips.single.departure, '10:00');
       expect(trips.single.plate, '51B-12345');
+      // API cũ chưa trả sơ đồ ghế: chỉ còn các ghế đã có vé.
       expect(trips.single.seats, ['A1']);
+      expect(trips.single.seatLayout, isEmpty);
       expect(trips.single.checkInTicket, isNotNull);
       expect(trips.single.reloadManifest, isNotNull);
       expect(
         adapter.requests.first.queryParameters['from'].toString(),
         '2026-10-31',
       );
+    },
+  );
+
+  test(
+    'Manifest seat layout lists every seat of the trip, sold or not',
+    () async {
+      final assignment = {
+        'tripId': _tripId,
+        'role': 'TICKET_STAFF',
+        'routeName': 'TP.HCM → Đà Lạt',
+        'departureAt': '2026-10-31T03:00:00.000Z',
+        'arrivalAt': '2026-10-31T10:00:00.000Z',
+        'status': 'BOARDING',
+        'vehiclePlateNumber': '51B-12345',
+        'origin': 'TP.HCM',
+        'destination': 'Đà Lạt',
+        'ticketCount': 1,
+        'checkedInCount': 0,
+      };
+      final seats = [
+        {'code': 'A1', 'deck': 1, 'row': 1, 'column': 1},
+        {'code': 'A2', 'deck': 1, 'row': 1, 'column': 2},
+        {'code': 'B1', 'deck': 2, 'row': 1, 'column': 1},
+      ];
+      final (api, _) = _api(
+        (r) => r.path.endsWith('/assignments')
+            ? _json({
+                'items': [assignment],
+              })
+            : _json({
+                'trip': assignment,
+                'passengers': [_ticket()],
+                'seats': seats,
+              }),
+      );
+      final trip = (await api.assignments(day: DateTime(2026, 10, 31))).single;
+      expect(trip.seats, ['A1', 'A2', 'B1']);
+      expect(trip.seatLayout, [
+        (code: 'A1', deck: 1, row: 1, column: 1),
+        (code: 'A2', deck: 1, row: 1, column: 2),
+        (code: 'B1', deck: 2, row: 1, column: 1),
+      ]);
     },
   );
 }

@@ -8,7 +8,7 @@ import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders, rememberLookupBookingAccess } from "./booking-access";
 import { apiMoney, mapLookupBookings, mapLookupResult, mapMyTicket, mapTicketDetail, moneyString, remainingSeconds, type ApiBooking } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
-import type { MyTicketsData, TicketDetailData, TicketLookupBookingsData, TicketLookupOtpSent, TicketLookupResultData } from "./types";
+import type { MyTicketsData, TicketDetailData, TicketLookupBookingsData, TicketLookupOtpSent, TicketLookupResultData, TicketReviewState } from "./types";
 
 const LOOKUP_COOKIE = "vxn_ticket_lookup";
 
@@ -46,8 +46,21 @@ export async function getTicketDetail(ticketId: string, bookingId?: string): Pro
     const tickets = await Promise.all(detail.tickets.map(async (item) => ({ ...item, qrCodeDataUrl: await QRCode.toDataURL(booking.data.tickets.find((source) => source.ticketId === item.ticketId)!.qrToken) })));
     const hasGuestAccess = Boolean((await bookingHeaders(booking.data.bookingId))["X-Booking-Token"]);
     const supportHref = hasGuestAccess ? `/support/guest?bookingId=${encodeURIComponent(booking.data.bookingId)}` : `/support?bookingCode=${encodeURIComponent(booking.data.bookingCode)}`;
-    return ok({ ...detail, bookingId: booking.data.bookingId, supportHref, tickets });
+    // Đánh giá chỉ dành cho tài khoản (như app); khách tra cứu bằng mã đơn không có khối này.
+    const review = hasGuestAccess ? undefined : await bookingReview(booking.data.bookingId);
+    return ok({ ...detail, bookingId: booking.data.bookingId, supportHref, tickets, ...(review ? { review } : {}) });
   } catch { return failed("GET /tickets/{ticketId}", "Không thể đọc thông tin vé."); }
+}
+
+/** Trạng thái đánh giá của đơn; lỗi (chưa đăng nhập, không phải chủ đơn…) thì bỏ khối đánh giá, không chặn trang vé. */
+async function bookingReview(bookingId: string): Promise<TicketReviewState | undefined> {
+  const result = await apiRequest<components["schemas"]["CustomerReviewDto_Output"]>(`/bookings/${encodeURIComponent(bookingId)}/review`);
+  if (result.status !== "ok") return undefined;
+  const review = result.data.review;
+  return {
+    review: review && { rating: review.rating, comment: review.comment ?? "", status: review.status },
+    canReview: result.data.canReview
+  };
 }
 
 /** Báo giá hoàn tiền do API tính cho các vé đang chọn, trước khi người dùng xác nhận. */

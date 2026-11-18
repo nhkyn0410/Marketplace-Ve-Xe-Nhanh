@@ -48,9 +48,11 @@ void main() {
 
     expect(find.text('Tra cứu hành trình'), findsOneWidget);
     expect(find.text('Tra cứu vé khách vãng lai'), findsOneWidget);
-    // Như bản web: chỉ cần email liên hệ, không có ô mã đặt vé.
-    expect(find.text('Mã đặt vé'), findsNothing);
-    expect(find.byKey(const Key('guest-booking-code-field')), findsNothing);
+    // UC-35 (như web): email bắt buộc, mã đặt vé tùy chọn; mất email thì liên hệ CSKH.
+    expect(find.text('Mã đặt vé (không bắt buộc)'), findsOneWidget);
+    expect(find.byKey(const Key('guest-booking-code-field')), findsOneWidget);
+    expect(find.text('Không còn dùng email đặt vé? '), findsOneWidget);
+    expect(find.byKey(const Key('guest-lost-email-support')), findsOneWidget);
     expect(find.text('Email liên hệ'), findsOneWidget);
     final helper = find.text('Mã OTP được gửi đến email liên hệ để xác minh');
     expect(helper, findsOneWidget);
@@ -80,12 +82,18 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('gửi đúng email sau khi form hợp lệ', (tester) async {
+  testWidgets('gửi đúng email sau khi form hợp lệ; không nhập mã thì mã null', (
+    tester,
+  ) async {
     String? email;
+    String? code = 'chưa gọi';
     await _pumpScreen(
       tester,
       width: 390,
-      onRequestOtp: (contactEmail) async => email = contactEmail,
+      onRequestOtp: (contactEmail, bookingCode) async {
+        email = contactEmail;
+        code = bookingCode;
+      },
     );
 
     await tester.enterText(
@@ -96,7 +104,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(email, 'guest@example.com');
+    expect(code, isNull);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('mã đặt vé: nhận cả mã vé, chữ thường; sai dạng thì báo lỗi', (
+    tester,
+  ) async {
+    final codes = <String?>[];
+    await _pumpScreen(
+      tester,
+      width: 390,
+      onRequestOtp: (_, bookingCode) async => codes.add(bookingCode),
+    );
+    await tester.enterText(
+      find.byKey(const Key('guest-email-field')),
+      'guest@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('guest-booking-code-field')),
+      'ABC',
+    );
+    await tester.tap(find.byKey(const Key('guest-request-otp-button')));
+    await tester.pump();
+    expect(
+      find.text('Mã đặt vé chưa đúng (ví dụ VXN-4H9P6C).'),
+      findsOneWidget,
+    );
+    expect(codes, isEmpty);
+
+    await tester.enterText(
+      find.byKey(const Key('guest-booking-code-field')),
+      ' vxn-4h9p6c-01 ',
+    );
+    await tester.tap(find.byKey(const Key('guest-request-otp-button')));
+    await tester.pumpAndSettle();
+    expect(codes, ['VXN4H9P6C']);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('chuẩn hóa mã đặt vé như API', () {
+    expect(normalizeLookupBookingCode('VXN-4H9P6C'), 'VXN4H9P6C');
+    expect(normalizeLookupBookingCode('vxn4h9p6c-001'), 'VXN4H9P6C');
+    expect(normalizeLookupBookingCode('VXN-123'), isNull);
   });
 
   testWidgets('máy thấp, chữ lớn: không cuộn, nội dung gọn trên thanh tab', (

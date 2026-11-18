@@ -158,3 +158,12 @@ export const CreatedBookingSchema = BookingResponseSchema.extend({
 export type CreatedBooking = z.infer<typeof CreatedBookingSchema>;
 /** Booking vừa tạo kèm mã truy cập. */
 export class CreatedBookingDto extends createZodDto(CreatedBookingSchema) {}
+
+// Gửi lại email vé điện tử (SCR-PSG-22; PASSENGER-PARITY giai đoạn 4 — chờ duyệt).
+export const TicketEmailResponseSchema = z.object({
+  /** Email liên hệ của đơn, đã che bớt. */
+  sentTo: z.string(),
+  /** Chờ bấy nhiêu giây mới gửi lại được. */
+  resendAfterSeconds: z.int(),
+});
+export class TicketEmailResponseDto extends createZodDto(TicketEmailResponseSchema) {}

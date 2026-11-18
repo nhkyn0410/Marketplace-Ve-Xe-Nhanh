@@ -146,12 +146,27 @@ final _tipsFeed = ExploreFeed(
   ],
 );
 
+/// Chuyên mục bài viết (`GET /v1/article-categories`) và số bài đang hiển thị.
+class ExploreCategory {
+  const ExploreCategory({
+    required this.slug,
+    required this.name,
+    required this.count,
+  });
+
+  final String slug;
+  final String name;
+  final int count;
+}
+
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({
     required this.onTabSelected,
     this.loadFeed,
     this.loadArticle,
     this.loadPromotions,
+    this.loadCategories,
+    this.loadRelatedArticles,
     super.key,
   });
 
@@ -167,6 +182,17 @@ class ExploreScreen extends StatefulWidget {
   /// Khuyến mãi đang chạy cho khối "Khuyến mãi nổi bật"; không có thì ẩn khối (chế độ API).
   final Future<List<HomePromotion>> Function()? loadPromotions;
 
+  /// Chuyên mục từ API kèm số bài (như web, PASSENGER-PARITY 4.7); không truyền thì dùng 3 chip
+  /// mẫu Figma.
+  final Future<List<ExploreCategory>> Function()? loadCategories;
+
+  /// Bài cùng chuyên mục ở màn đọc bài (SCR-PSG-37).
+  final Future<List<ExploreArticle>> Function(
+    String categorySlug,
+    String excludeSlug,
+  )?
+  loadRelatedArticles;
+
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
@@ -180,6 +206,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   /// Từ khóa đã gửi ở ô tìm kiếm; rỗng = không lọc.
   String _query = '';
   HomePromotion? _promotion;
+
+  /// Chuyên mục từ API; đang tải / lỗi thì rỗng (chỉ còn "Tất cả").
+  List<ExploreCategory> _categories = const [];
 
   String get _feedKey => '$_category|$_query';
 
@@ -214,6 +243,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
     widget.loadPromotions?.call().then((items) {
       if (mounted && items.isNotEmpty) setState(() => _promotion = items.first);
     }, onError: (_) {});
+    widget.loadCategories?.call().then((items) {
+      if (mounted) setState(() => _categories = items);
+    }, onError: (_) {});
   }
 
   Future<void> _copyPromotionCode(String code) async {
@@ -241,6 +273,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             slug: article.slug,
             loadArticle: loadArticle,
             onFindTrip: _findTrip,
+            loadRelated: widget.loadRelatedArticles,
           ),
         ),
       );
@@ -340,6 +373,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             status: status,
                             onRetry: _retryFeed,
                             category: _category,
+                            categories: widget.loadCategories == null
+                                ? null
+                                : _categories,
                             searchController: _searchController,
                             onCategorySelected: _selectCategory,
                             onSearch: _search,
@@ -394,6 +430,7 @@ class _ScaledExploreCanvas extends StatelessWidget {
   const _ScaledExploreCanvas({
     required this.feed,
     required this.category,
+    this.categories,
     required this.searchController,
     required this.onCategorySelected,
     required this.articleAction,
@@ -406,6 +443,9 @@ class _ScaledExploreCanvas extends StatelessWidget {
 
   final ExploreFeed feed;
   final String category;
+
+  /// Chuyên mục API; `null` = 3 chip mẫu Figma.
+  final List<ExploreCategory>? categories;
   final TextEditingController searchController;
   final ValueChanged<String> onCategorySelected;
   final VoidCallback? Function(ExploreArticle article) articleAction;
@@ -434,6 +474,7 @@ class _ScaledExploreCanvas extends StatelessWidget {
               child: _ExploreCanvas(
                 feed: feed,
                 category: category,
+                categories: categories,
                 searchController: searchController,
                 onCategorySelected: onCategorySelected,
                 articleAction: articleAction,
@@ -455,6 +496,7 @@ class _ExploreCanvas extends StatelessWidget {
   const _ExploreCanvas({
     required this.feed,
     required this.category,
+    this.categories,
     required this.searchController,
     required this.onCategorySelected,
     required this.articleAction,
@@ -467,6 +509,9 @@ class _ExploreCanvas extends StatelessWidget {
 
   final ExploreFeed feed;
   final String category;
+
+  /// Chuyên mục API; `null` = 3 chip mẫu Figma.
+  final List<ExploreCategory>? categories;
   final TextEditingController searchController;
   final ValueChanged<String> onCategorySelected;
   final VoidCallback? Function(ExploreArticle article) articleAction;
@@ -501,12 +546,14 @@ class _ExploreCanvas extends StatelessWidget {
           ),
         ),
         Positioned(
-          left: 60,
+          // Chuyên mục API dài hơn 3 chip mẫu: trải hết chiều ngang, vuốt ngang.
+          left: categories == null ? 60 : 18,
           top: 142,
-          width: 272,
+          width: categories == null ? 272 : 376,
           height: 30,
           child: _ExploreCategories(
             selected: category,
+            categories: categories,
             onSelected: onCategorySelected,
           ),
         ),
@@ -531,28 +578,29 @@ class _ExploreCanvas extends StatelessWidget {
             height: 271,
             child: _EmptyExploreCard(status: status, onRetry: onRetry),
           ),
-        Positioned(
-          left: 19,
-          top: latestHeadingTop,
-          child: const Text(
-            'Bài viết mới nhất',
-            style: TextStyle(
-              color: _ink,
-              fontFamily: 'Be Vietnam Pro',
-              fontSize: 18,
-              height: 1.4,
-              fontWeight: FontWeight.w600,
+        // Chỉ có một bài (đã hiện ở thẻ nổi bật, vd tìm ra đúng một kết quả) thì không có danh sách bên dưới:
+        // ẩn luôn tiêu đề, không báo "chưa có bài viết" khi vừa hiện một bài.
+        if (feed.featured == null || feed.latest.isNotEmpty)
+          Positioned(
+            left: 19,
+            top: latestHeadingTop,
+            child: const Text(
+              'Bài viết mới nhất',
+              style: TextStyle(
+                color: _ink,
+                fontFamily: 'Be Vietnam Pro',
+                fontSize: 18,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
         Positioned(
           left: 14,
           top: latestListTop,
           width: 384,
           child: _LatestArticles(
             articles: feed.latest,
-            hideEmptyMessage:
-                status != _FeedStatus.ready || feed.featured == null,
             articleAction: articleAction,
           ),
         ),
@@ -695,13 +743,45 @@ class _ExploreSearchField extends StatelessWidget {
 }
 
 class _ExploreCategories extends StatelessWidget {
-  const _ExploreCategories({required this.selected, required this.onSelected});
+  const _ExploreCategories({
+    required this.selected,
+    required this.onSelected,
+    this.categories,
+  });
 
   final String selected;
   final ValueChanged<String> onSelected;
 
+  /// Chuyên mục API; `null` = 3 chip mẫu Figma.
+  final List<ExploreCategory>? categories;
+
   @override
   Widget build(BuildContext context) {
+    final categories = this.categories;
+    if (categories != null) {
+      final total = categories.fold<int>(0, (sum, item) => sum + item.count);
+      return ListView(
+        key: const Key('explore-categories-api'),
+        scrollDirection: Axis.horizontal,
+        children: [
+          _CategoryChip(
+            key: const Key('explore-category-all'),
+            label: categories.isEmpty ? 'Tất cả' : 'Tất cả ($total)',
+            selected: selected == 'all',
+            onTap: () => onSelected('all'),
+          ),
+          for (final item in categories) ...[
+            const SizedBox(width: 8),
+            _CategoryChip(
+              key: Key('explore-category-${item.slug}'),
+              label: '${item.name} (${item.count})',
+              selected: selected == item.slug,
+              onTap: () => onSelected(item.slug),
+            ),
+          ],
+        ],
+      );
+    }
     return Row(
       children: [
         _CategoryChip(
@@ -734,14 +814,15 @@ class _ExploreCategories extends StatelessWidget {
 
 class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
-    required this.width,
     required this.label,
     required this.selected,
     required this.onTap,
+    this.width,
     super.key,
   });
 
-  final double width;
+  /// `null` = rộng theo chữ (chuyên mục API).
+  final double? width;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -758,9 +839,12 @@ class _CategoryChip extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: onTap,
-          child: SizedBox(
+          child: Container(
             width: width,
             height: 30,
+            padding: width == null
+                ? const EdgeInsets.symmetric(horizontal: 14)
+                : null,
             child: Center(
               child: Text(
                 label,
@@ -945,36 +1029,15 @@ class _ArticleCategoryBadge extends StatelessWidget {
 }
 
 class _LatestArticles extends StatelessWidget {
-  const _LatestArticles({
-    required this.articles,
-    required this.articleAction,
-    this.hideEmptyMessage = false,
-  });
+  const _LatestArticles({required this.articles, required this.articleAction});
 
   final List<ExploreArticle> articles;
   final VoidCallback? Function(ExploreArticle article) articleAction;
 
-  /// Đang tải, lỗi hoặc không có bài nào: thẻ phía trên đã báo, không lặp "chưa có bài viết".
-  final bool hideEmptyMessage;
-
   @override
   Widget build(BuildContext context) {
-    if (articles.isEmpty && hideEmptyMessage) return const SizedBox.shrink();
-    if (articles.isEmpty) {
-      return const SizedBox(
-        height: 588,
-        child: Center(
-          child: Text(
-            'Chưa có bài viết trong chuyên mục này.',
-            style: TextStyle(
-              color: _secondary,
-              fontFamily: 'Be Vietnam Pro',
-              fontSize: 14,
-            ),
-          ),
-        ),
-      );
-    }
+    // Không có bài nào bên dưới: thẻ phía trên đã hiện bài nổi bật hoặc đã báo trống / lỗi, không lặp lại.
+    if (articles.isEmpty) return const SizedBox.shrink();
     final visible = articles.toList(growable: false);
     return Column(
       children: [

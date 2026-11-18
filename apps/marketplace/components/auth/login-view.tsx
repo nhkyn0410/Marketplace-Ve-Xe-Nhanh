@@ -8,6 +8,7 @@ import { Button } from "@vexenhanh/ui/components/button";
 import { requestLoginOtp } from "../../lib/data/auth";
 import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
 import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
+import { GOOGLE_CLIENT_ID, GoogleLoginButton } from "./google-login-button";
 
 /**
  * Thuộc tính của LoginView (SCR-PSG-07)
@@ -16,6 +17,8 @@ export interface LoginViewProps {
   readonly initialEmail?: string;
   readonly isPreview?: boolean;
   readonly variant?: AuthModalVariant;
+  /** Client ID Google của web; trống thì ẩn nút Google. */
+  readonly googleClientId?: string;
 }
 
 /**
@@ -24,7 +27,8 @@ export interface LoginViewProps {
 export const LoginView: React.FC<LoginViewProps> = ({
   initialEmail = "",
   isPreview = false,
-  variant = "page"
+  variant = "page",
+  googleClientId = GOOGLE_CLIENT_ID
 }) => {
   const router = useRouter();
   const [email, setEmail] = useState<string>(initialEmail);
@@ -114,6 +118,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
           Chúng tôi gửi mã xác minh 6 số tới email của bạn. Không cần mật khẩu.
         </p>
       </form>
+
+      {!isPreview && googleClientId && (
+        <>
+          <div className="flex w-full items-center gap-3 text-xs text-vxn-fg-5">
+            <span className="h-px flex-1 bg-border" />
+            <span>hoặc</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <GoogleLoginButton clientId={googleClientId} />
+        </>
+      )}
 
       <p className="text-[13px]/[19.5px] text-vxn-fg-5">
         Chưa có tài khoản?{" "}

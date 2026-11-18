@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd, vnDayOffset } from "./index";
+import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd, tomorrowVnIsoDate, vnDayOffset } from "./index";
+
+describe("tomorrowVnIsoDate", () => {
+  it("ngày mai theo giờ Việt Nam, kể cả khi giờ UTC còn ở hôm trước", () => {
+    expect(tomorrowVnIsoDate(new Date("2026-11-16T03:00:00Z"))).toBe("2026-11-17");
+    // 23:30 UTC ngày 15 = 06:30 sáng 16/11 ở Việt Nam → ngày mai là 17/11.
+    expect(tomorrowVnIsoDate(new Date("2026-11-15T23:30:00Z"))).toBe("2026-11-17");
+    expect(tomorrowVnIsoDate(new Date("2026-12-31T05:00:00Z"))).toBe("2027-01-01");
+  });
+});
 
 describe("formatVnd", () => {
   it("định dạng số 0 thành 0đ", () => {

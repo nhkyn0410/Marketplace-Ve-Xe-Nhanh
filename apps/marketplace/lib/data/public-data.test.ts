@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getProvinces, getStopPoints } from "./catalog";
-import { getArticles, getLegalDocument } from "./content";
+import { getArticleBySlug, getArticles, getLegalDocument } from "./content";
 import { searchTrips } from "./trips";
 import { apiRequest } from "./api";
 
@@ -29,6 +29,25 @@ describe("public web API adapters", () => {
     const result = await searchTrips({ origin: "p1", destination: "p2", date: "2026-10-22", page: "3", passengers: 2 });
     expect(apiRequest).toHaveBeenCalledWith("/trips/search?date=2026-10-22&passengers=2&fromProvinceId=p1&toProvinceId=p2&page=3&sort=departure");
     expect(result).toMatchObject({ status: "ok", data: { summary: { totalTrips: 41, passengerCount: 2 }, trips: [] } });
+  });
+
+  it("bài viết kèm tối đa 3 bài cùng chuyên mục, bỏ chính nó; tải bài liên quan lỗi thì vẫn mở bài (A29)", async () => {
+    const item = (slug: string) => ({ title: `Bài ${slug}`, slug, summary: "", coverImageUrl: slug === "b" ? "https://cdn/b.jpg" : null,
+      featured: false, category: { name: "Cẩm nang", slug: "cam-nang" }, publishedAt: "2026-11-01T03:00:00.000Z" });
+    const detail = { ...item("a"), contentMarkdown: "Nội dung", updatedAt: "2026-11-01T03:00:00.000Z" };
+    vi.mocked(apiRequest).mockImplementation(async (path) => path.startsWith("/articles?")
+      ? { status: "ok", data: { items: ["a", "b", "c", "d"].map(item), nextCursor: null } }
+      : { status: "ok", data: detail });
+    const result = await getArticleBySlug("a");
+    expect(apiRequest).toHaveBeenLastCalledWith("/articles?category=cam-nang&limit=4");
+    expect(result.status === "ok" && result.data.relatedArticles.map((related) => related.slug)).toEqual(["b", "c", "d"]);
+    expect(result.status === "ok" && result.data.relatedArticles[0]).toMatchObject({ coverImageUrl: "https://cdn/b.jpg", publishedDateText: "01/11/2026" });
+
+    vi.mocked(apiRequest).mockImplementation(async (path) => path.startsWith("/articles?")
+      ? { status: "error", endpoint: "GET /articles", message: "Lỗi" }
+      : { status: "ok", data: detail });
+    const fallback = await getArticleBySlug("a");
+    expect(fallback.status === "ok" && fallback.data.relatedArticles).toEqual([]);
   });
 
   it("maps categories, article pagination and nullable cover without invented view counts", async () => {

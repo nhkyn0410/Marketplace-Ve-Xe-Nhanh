@@ -122,7 +122,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
           <p className="mt-3 text-xs text-vxn-fg-4">
             Mỗi mã chỉ lưu một lần. Lưu mã không giữ chỗ lượt dùng của chương trình.
           </p>
-          <p className="mt-2 text-xs text-vxn-fg-3">Bạn có thể lưu và theo dõi voucher tại đây. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.</p>
+          <p className="mt-2 text-xs text-vxn-fg-3">Bạn có thể lưu và theo dõi voucher tại đây. Khi đặt vé, chọn voucher ở bước Thông tin hành khách.</p>
         </div>
 
         {/* Tabs trạng thái voucher */}

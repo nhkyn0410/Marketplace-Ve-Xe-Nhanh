@@ -54,10 +54,23 @@ export const ManifestTicketSchema = z.object({
 });
 export type ManifestTicket = z.infer<typeof ManifestTicketSchema>;
 
+/** Một chỗ trong sơ đồ ghế của chuyến: tầng / hàng / cột đánh số từ 1, ô không có chỗ là lối đi. */
+export const ManifestSeatSchema = z.object({
+  code: z.string(),
+  deck: z.int(),
+  row: z.int(),
+  column: z.int(),
+});
+
 export const TripManifestSchema = z.object({
   trip: EmployeeAssignmentSchema,
   /** Theo thứ tự điểm đón rồi mã chỗ. Không gồm vé đã hủy / đã hoàn. */
   passengers: z.array(ManifestTicketSchema),
+  /**
+   * Đủ mọi chỗ của chuyến (kể cả chỗ chưa bán), theo tầng → hàng → cột, để app vẽ sơ đồ ghế đúng vị trí. Tùy chọn trong
+   * hợp đồng để app mới vẫn đọc được API cũ chưa trả trường này.
+   */
+  seats: z.array(ManifestSeatSchema).optional(),
 });
 export type TripManifest = z.infer<typeof TripManifestSchema>;
 /** Danh sách hành khách của chuyến được phân công. */

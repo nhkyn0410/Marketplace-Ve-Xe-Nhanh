@@ -12,6 +12,7 @@ import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 TripDetail sampleTripDetail({
   List<String> imageUrls = const [],
   String? operatorLogoUrl,
+  bool withCoordinates = false,
 }) {
   final start = DateTime.utc(2026, 10, 30); // 07:00 giờ VN
   TripStop stop(
@@ -29,6 +30,9 @@ TripDetail sampleTripDetail({
     plannedAt: start.add(Duration(hours: hours)),
     allowPickup: pickup,
     allowDropoff: dropoff,
+    // Toạ độ giả theo thứ tự điểm (A30: bản đồ điểm dừng).
+    latitude: withCoordinates ? 10.8 + sequence * 0.3 : null,
+    longitude: withCoordinates ? 106.7 + sequence * 0.2 : null,
   );
   TripSeat seat(
     String code,
@@ -87,7 +91,7 @@ TripDetail sampleTripDetail({
   );
 }
 
-/// Phiên giữ chỗ mẫu: [seats] ở chuyến mẫu, đón 1 / trả 5, 300.000 ₫ mỗi chỗ.
+/// Phiên giữ chỗ mẫu: [seats] ở chuyến mẫu, đón 1 / trả 5, 300.000đ mỗi chỗ.
 SeatHold sampleHold({
   List<String> seats = const ['A01', 'A03'],
   Set<String> doubleSeats = const {},
@@ -121,7 +125,7 @@ SeatHold sampleHold({
   );
 }
 
-/// Đơn mẫu chờ thanh toán: 2 chỗ, giảm 50.000 ₫, hạn sau 8 phút.
+/// Đơn mẫu chờ thanh toán: 2 chỗ, giảm 50.000đ, hạn sau 8 phút.
 CreatedBooking sampleBooking() {
   final trip = sampleTripDetail();
   return CreatedBooking(
@@ -240,7 +244,7 @@ class FakeBookingApi implements TripBookingApi {
   /// Dữ liệu điền sẵn (khách đã đăng nhập); `null` = khách vãng lai.
   BookingPrefill? prefill;
 
-  /// Mã khuyến mãi hợp lệ: giảm 50.000 ₫.
+  /// Mã khuyến mãi hợp lệ: giảm 50.000đ.
   String validPromotion = 'GIAM50';
 
   List<BookingVoucher> walletVouchers = [];
@@ -270,6 +274,16 @@ class FakeBookingApi implements TripBookingApi {
   )?
   paymentStarter;
   Future<BookingPaymentState> Function()? paymentStateLoader;
+
+  /// Danh sách cổng `GET /payment-providers`; mặc định bật đủ bốn cổng.
+  List<PaymentProviderOption> paymentProviders = fallbackPaymentProviders;
+  Future<List<PaymentProviderOption>> Function()? paymentProvidersLoader;
+
+  @override
+  Future<List<PaymentProviderOption>> loadPaymentProviders() async =>
+      paymentProvidersLoader == null
+      ? paymentProviders
+      : paymentProvidersLoader!();
 
   @override
   Future<BookingPaymentSession> startPayment(
@@ -450,17 +464,39 @@ class FakeBookingApi implements TripBookingApi {
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];
 
+  /// Số lần gửi lại email vé (SCR-PSG-22).
+  int ticketEmailResends = 0;
+
+  @override
+  Future<String> resendTicketEmail(CreatedBooking booking) async {
+    ticketEmailResends++;
+    return 'k***@example.com';
+  }
+
+  /// Hồ sơ nhà xe trả về (A30: đánh giá trên trang chuyến); `null` = hồ sơ trống.
+  OperatorProfile? operatorProfile;
+
+  /// Lỗi ném ra khi tải hồ sơ nhà xe (giữ tới khi xoá).
+  Object? operatorProfileError;
+  int operatorProfileLoads = 0;
+
   @override
   Future<OperatorProfile> loadOperatorProfile(
     String operatorId, {
     String? reviewCursor,
-  }) async => OperatorProfile(
-    operatorId: operatorId,
-    displayName: trip.operatorName,
-    scorecard: const OperatorScorecard(reviewCount: 0),
-    routes: const [],
-    reviews: const [],
-  );
+  }) async {
+    operatorProfileLoads++;
+    final error = operatorProfileError;
+    if (error != null) throw error;
+    return operatorProfile ??
+        OperatorProfile(
+          operatorId: operatorId,
+          displayName: trip.operatorName,
+          scorecard: const OperatorScorecard(reviewCount: 0),
+          routes: const [],
+          reviews: const [],
+        );
+  }
 
   @override
   Future<List<HomePromotion>> loadPromotions() async => const [];

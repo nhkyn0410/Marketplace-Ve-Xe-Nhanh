@@ -2532,6 +2532,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/bookings/{bookingId}/tickets/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BookingController_resendTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/bookings": {
         parameters: {
             query?: never;
@@ -2622,6 +2638,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["PaymentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/payment-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentProviderController_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -8418,6 +8450,14 @@ export interface components {
                     name: string;
                     count: number;
                 }[];
+                pickupPoints: {
+                    name: string;
+                    count: number;
+                }[];
+                dropoffPoints: {
+                    name: string;
+                    count: number;
+                }[];
                 priceMin: number | null;
                 priceMax: number | null;
             };
@@ -8799,6 +8839,10 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        TicketEmailResponseDto_Output: {
+            sentTo: string;
+            resendAfterSeconds: number;
+        };
         OperatorBookingPageDto_Output: {
             items: {
                 /** Format: uuid */
@@ -8962,6 +9006,8 @@ export interface components {
         PaymentInputDto: {
             /** @enum {string} */
             provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            /** @enum {string} */
+            client?: "WEB" | "APP";
         };
         PaymentResponseDto_Output: {
             /** Format: uuid */
@@ -8984,6 +9030,13 @@ export interface components {
                 description: string;
                 paymentLinkId: string;
             };
+        };
+        PaymentProviderListDto_Output: {
+            items: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                enabled: boolean;
+            }[];
         };
         AdminPaymentPageDto_Output: {
             items: {
@@ -9666,6 +9719,12 @@ export interface components {
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 checkedInAt: string | null;
+            }[];
+            seats?: {
+                code: string;
+                deck: number;
+                row: number;
+                column: number;
             }[];
         };
         TicketVerifyInputDto: {
@@ -21657,6 +21716,9 @@ export interface operations {
                 priceMin?: number;
                 priceMax?: number;
                 amenityIds?: string;
+                pickupPoint?: string;
+                dropoffPoint?: string;
+                minRating?: number;
                 sort?: "departure" | "price" | "price_desc" | "duration" | "rating";
                 page?: number;
                 limit?: number;
@@ -21980,6 +22042,67 @@ export interface operations {
             };
             /** @description `BOOKING_NOT_FOUND`. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_resendTickets: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã xếp hàng gửi lại vé điện tử. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketEmailResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_NOT_AVAILABLE` — đơn chưa có vé còn hiệu lực. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_RATE_LIMITED` — 1 lần / phút, 5 lần / ngày. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -22340,6 +22463,26 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PaymentProviderController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Các cổng theo thứ tự hiển thị, kèm cờ đang bật. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentProviderListDto_Output"];
                 };
             };
         };

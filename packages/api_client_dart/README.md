@@ -247,6 +247,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**sessionControllerRevoke**](doc/AuthApi.md#sessioncontrollerrevoke) | **DELETE** /v1/auth/sessions/{sessionId} | 
 [*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerCreate**](doc/BookingsApi.md#bookingcontrollercreate) | **POST** /v1/bookings | 
 [*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerGet**](doc/BookingsApi.md#bookingcontrollerget) | **GET** /v1/bookings/{bookingId} | 
+[*BookingsApi*](doc/BookingsApi.md) | [**bookingControllerResendTickets**](doc/BookingsApi.md#bookingcontrollerresendtickets) | **POST** /v1/bookings/{bookingId}/tickets/email | 
 [*CancellationsApi*](doc/CancellationsApi.md) | [**cancellationControllerCancel**](doc/CancellationsApi.md#cancellationcontrollercancel) | **POST** /v1/bookings/{bookingId}/cancellations | 
 [*CancellationsApi*](doc/CancellationsApi.md) | [**cancellationControllerQuote**](doc/CancellationsApi.md#cancellationcontrollerquote) | **GET** /v1/bookings/{bookingId}/cancellation-quote | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListAmenities**](doc/CatalogApi.md#catalogcontrollerlistamenities) | **GET** /v1/catalog/amenities | 
@@ -429,6 +430,7 @@ Class | Method | HTTP request | Description
 [*PassengerProfileApi*](doc/PassengerProfileApi.md) | [**passengerProfileControllerUpdate**](doc/PassengerProfileApi.md#passengerprofilecontrollerupdate) | **PUT** /v1/me/profile | 
 [*PassengerProfileApi*](doc/PassengerProfileApi.md) | [**passengerProfileControllerUpdateSaved**](doc/PassengerProfileApi.md#passengerprofilecontrollerupdatesaved) | **PUT** /v1/me/saved-passengers/{passengerId} | 
 [*PaymentsApi*](doc/PaymentsApi.md) | [**paymentControllerCreate**](doc/PaymentsApi.md#paymentcontrollercreate) | **POST** /v1/bookings/{bookingId}/payments | 
+[*PaymentsApi*](doc/PaymentsApi.md) | [**paymentProviderControllerList**](doc/PaymentsApi.md#paymentprovidercontrollerlist) | **GET** /v1/payment-providers | 
 [*PromotionsApi*](doc/PromotionsApi.md) | [**publicPromotionControllerCheck**](doc/PromotionsApi.md#publicpromotioncontrollercheck) | **POST** /v1/promotions/check | 
 [*PromotionsApi*](doc/PromotionsApi.md) | [**publicPromotionControllerList**](doc/PromotionsApi.md#publicpromotioncontrollerlist) | **GET** /v1/promotions | 
 [*PublicOperatorsApi*](doc/PublicOperatorsApi.md) | [**publicOperatorProfileControllerGet**](doc/PublicOperatorsApi.md#publicoperatorprofilecontrollerget) | **GET** /v1/operators/{operatorId}/public-profile | 
@@ -865,6 +867,8 @@ Class | Method | HTTP request | Description
  - [PasswordChangeChallengeResponse](doc/PasswordChangeChallengeResponse.md)
  - [PasswordChangeRequiredDto](doc/PasswordChangeRequiredDto.md)
  - [PaymentInputDto](doc/PaymentInputDto.md)
+ - [PaymentProviderListDtoOutput](doc/PaymentProviderListDtoOutput.md)
+ - [PaymentProviderListDtoOutputItemsInner](doc/PaymentProviderListDtoOutputItemsInner.md)
  - [PaymentResponseDtoOutput](doc/PaymentResponseDtoOutput.md)
  - [PaymentResponseDtoOutputTransfer](doc/PaymentResponseDtoOutputTransfer.md)
  - [PayoutBankAccountDtoOutput](doc/PayoutBankAccountDtoOutput.md)
@@ -1019,6 +1023,7 @@ Class | Method | HTTP request | Description
  - [TicketDetailDtoOutputMessagesInner](doc/TicketDetailDtoOutputMessagesInner.md)
  - [TicketDetailDtoOutputMessagesInnerAttachmentsInner](doc/TicketDetailDtoOutputMessagesInnerAttachmentsInner.md)
  - [TicketDetailDtoOutputPaymentsInner](doc/TicketDetailDtoOutputPaymentsInner.md)
+ - [TicketEmailResponseDtoOutput](doc/TicketEmailResponseDtoOutput.md)
  - [TicketLookupAccessDtoOutput](doc/TicketLookupAccessDtoOutput.md)
  - [TicketLookupBookingListDtoOutput](doc/TicketLookupBookingListDtoOutput.md)
  - [TicketLookupBookingListDtoOutputItemsInner](doc/TicketLookupBookingListDtoOutputItemsInner.md)
@@ -1050,6 +1055,7 @@ Class | Method | HTTP request | Description
  - [TripManifestDtoOutput](doc/TripManifestDtoOutput.md)
  - [TripManifestDtoOutputPassengersInner](doc/TripManifestDtoOutputPassengersInner.md)
  - [TripManifestDtoOutputPassengersInnerPickup](doc/TripManifestDtoOutputPassengersInnerPickup.md)
+ - [TripManifestDtoOutputSeatsInner](doc/TripManifestDtoOutputSeatsInner.md)
  - [TripOperationInputDto](doc/TripOperationInputDto.md)
  - [TripPassengerListDtoOutput](doc/TripPassengerListDtoOutput.md)
  - [TripPassengerListDtoOutputItemsInner](doc/TripPassengerListDtoOutputItemsInner.md)
@@ -1073,6 +1079,7 @@ Class | Method | HTTP request | Description
  - [TripSearchResponseDtoOutput](doc/TripSearchResponseDtoOutput.md)
  - [TripSearchResponseDtoOutputFacets](doc/TripSearchResponseDtoOutputFacets.md)
  - [TripSearchResponseDtoOutputFacetsOperatorsInner](doc/TripSearchResponseDtoOutputFacetsOperatorsInner.md)
+ - [TripSearchResponseDtoOutputFacetsPickupPointsInner](doc/TripSearchResponseDtoOutputFacetsPickupPointsInner.md)
  - [TripSearchResponseDtoOutputItemsInner](doc/TripSearchResponseDtoOutputItemsInner.md)
  - [TripSearchResponseDtoOutputItemsInnerAmenitiesInner](doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md)
  - [TripSearchResponseDtoOutputItemsInnerOperator](doc/TripSearchResponseDtoOutputItemsInnerOperator.md)

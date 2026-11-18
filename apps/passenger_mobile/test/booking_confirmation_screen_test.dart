@@ -280,7 +280,7 @@ void main() {
     expect(find.text('Giảm giá (GIAM50)'), findsOneWidget);
     expect(
       tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
-      '550.000 ₫',
+      '550.000đ',
     );
   });
 
@@ -317,6 +317,23 @@ void main() {
     },
   );
 
+  // PASSENGER-PARITY A16: ghi chú cho nhà xe phải tới được API khi tạo đơn.
+  testWidgets('ghi chú cho nhà xe gửi kèm khi tạo đơn', (tester) async {
+    final api = FakeBookingApi();
+    await _pumpScreen(
+      tester,
+      api,
+      draft: BookingDraft(
+        contact: _draft.contact,
+        passengers: _draft.passengers,
+        promotion: _draft.promotion,
+        note: 'Đón ở cổng sau bến xe',
+      ),
+    );
+    await _acceptAndSubmit(tester);
+    expect(api.bookings.single.draft.note, 'Đón ở cổng sau bến xe');
+  });
+
   testWidgets('giá vừa đổi: đọc lại giữ chỗ, tính lại mã, báo tổng mới', (
     tester,
   ) async {
@@ -331,10 +348,10 @@ void main() {
     await _acceptAndSubmit(tester);
 
     expect(find.byKey(const Key('payment-screen')), findsNothing);
-    expect(find.textContaining('Tổng mới: 590.000 ₫'), findsOneWidget);
+    expect(find.textContaining('Tổng mới: 590.000đ'), findsOneWidget);
     expect(
       tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
-      '590.000 ₫',
+      '590.000đ',
     );
 
     await tester.tap(find.byKey(const Key('booking-continue-payment')));
@@ -385,7 +402,7 @@ void main() {
         userVoucherId: 'wallet-1',
         subtotal: 640000,
       ));
-      expect(find.textContaining('Tổng mới: 590.000 ₫'), findsOneWidget);
+      expect(find.textContaining('Tổng mới: 590.000đ'), findsOneWidget);
       await tester.tap(find.byKey(const Key('booking-continue-payment')));
       await tester.pumpAndSettle();
       expect(api.bookings.single.draft.promotion?.userVoucherId, 'wallet-1');
@@ -418,7 +435,7 @@ void main() {
       expect(find.textContaining('Ưu đãi đã được bỏ'), findsOneWidget);
       expect(
         tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
-        '600.000 ₫',
+        '600.000đ',
       );
       expect(api.bookings, isEmpty);
       await tester.tap(find.byKey(const Key('booking-continue-payment')));

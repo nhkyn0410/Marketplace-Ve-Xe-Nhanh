@@ -9,6 +9,8 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **operators** | [**BuiltList&lt;TripSearchResponseDtoOutputFacetsOperatorsInner&gt;**](TripSearchResponseDtoOutputFacetsOperatorsInner.md) |  | 
+**pickupPoints** | [**BuiltList&lt;TripSearchResponseDtoOutputFacetsPickupPointsInner&gt;**](TripSearchResponseDtoOutputFacetsPickupPointsInner.md) |  | 
+**dropoffPoints** | [**BuiltList&lt;TripSearchResponseDtoOutputFacetsPickupPointsInner&gt;**](TripSearchResponseDtoOutputFacetsPickupPointsInner.md) |  | 
 **priceMin** | **int** |  | 
 **priceMax** | **int** |  | 
 

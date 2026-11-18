@@ -353,19 +353,24 @@ class _TripCard extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 18),
           child: Row(
             children: [
+              Text(
+                '${trip.plate} · ${trip.passengers.length} khách',
+                style: driverText(12, FontWeight.w400, DriverColors.secondary),
+              ),
+              const SizedBox(width: 12),
+              // Tên tuyến thật dài: rút gọn một dòng, không ép biển số.
               Expanded(
                 child: Text(
-                  '${trip.plate} · ${trip.passengers.length} khách',
+                  trip.id,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: driverText(
                     12,
                     FontWeight.w400,
                     DriverColors.secondary,
                   ),
                 ),
-              ),
-              Text(
-                trip.id,
-                style: driverText(12, FontWeight.w400, DriverColors.secondary),
               ),
             ],
           ),

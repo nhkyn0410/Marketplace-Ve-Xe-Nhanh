@@ -13,11 +13,16 @@ part 'payment_input_dto.g.dart';
 ///
 /// Properties:
 /// * [provider] 
+/// * [client] 
 @BuiltValue()
 abstract class PaymentInputDto implements Built<PaymentInputDto, PaymentInputDtoBuilder> {
   @BuiltValueField(wireName: r'provider')
   PaymentInputDtoProviderEnum get provider;
   // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
+
+  @BuiltValueField(wireName: r'client')
+  PaymentInputDtoClientEnum? get client;
+  // enum clientEnum {  WEB,  APP,  };
 
   PaymentInputDto._();
 
@@ -47,6 +52,13 @@ class _$PaymentInputDtoSerializer implements PrimitiveSerializer<PaymentInputDto
       object.provider,
       specifiedType: const FullType(PaymentInputDtoProviderEnum),
     );
+    if (object.client != null) {
+      yield r'client';
+      yield serializers.serialize(
+        object.client,
+        specifiedType: const FullType(PaymentInputDtoClientEnum),
+      );
+    }
   }
 
   @override
@@ -76,6 +88,14 @@ class _$PaymentInputDtoSerializer implements PrimitiveSerializer<PaymentInputDto
             specifiedType: const FullType(PaymentInputDtoProviderEnum),
           ) as PaymentInputDtoProviderEnum;
           result.provider = valueDes;
+          break;
+        case r'client':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(PaymentInputDtoClientEnum),
+          ) as PaymentInputDtoClientEnum?;
+          if (valueDes == null) continue;
+          result.client = valueDes;
           break;
         default:
           unhandled.add(key);
@@ -124,5 +144,20 @@ class PaymentInputDtoProviderEnum extends EnumClass {
 
   static BuiltSet<PaymentInputDtoProviderEnum> get values => _$paymentInputDtoProviderEnumValues;
   static PaymentInputDtoProviderEnum valueOf(String name) => _$paymentInputDtoProviderEnumValueOf(name);
+}
+
+class PaymentInputDtoClientEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'WEB')
+  static const PaymentInputDtoClientEnum WEB = _$paymentInputDtoClientEnum_WEB;
+  @BuiltValueEnumConst(wireName: r'APP')
+  static const PaymentInputDtoClientEnum APP = _$paymentInputDtoClientEnum_APP;
+
+  static Serializer<PaymentInputDtoClientEnum> get serializer => _$paymentInputDtoClientEnumSerializer;
+
+  const PaymentInputDtoClientEnum._(String name): super(name);
+
+  static BuiltSet<PaymentInputDtoClientEnum> get values => _$paymentInputDtoClientEnumValues;
+  static PaymentInputDtoClientEnum valueOf(String name) => _$paymentInputDtoClientEnumValueOf(name);
 }
 

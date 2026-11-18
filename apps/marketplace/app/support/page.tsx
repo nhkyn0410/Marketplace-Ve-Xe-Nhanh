@@ -62,7 +62,7 @@ export default async function SupportPage({
 
   if (result.status === "error") {
     // Khách chưa đăng nhập (API trả 401) → mời đăng nhập như các trang tài khoản, không hiện thẻ lỗi "phiên hết hạn".
-    if (result.httpStatus === 401) return <AccountSignInRequired />;
+    if (result.httpStatus === 401) return <AccountSignInRequired description="Đăng nhập bằng email để xem và gửi khiếu nại cho vé của bạn." />;
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <ErrorState

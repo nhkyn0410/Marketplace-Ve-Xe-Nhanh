@@ -167,8 +167,13 @@ class _BookingVoucherPickerState extends State<BookingVoucherPicker> {
                     itemBuilder: (context, index) {
                       final voucher = vouchers[index];
                       final expired = !voucher.expiresAt.isAfter(_now());
+                      // Đơn chưa tới mức tối thiểu: khóa và ghi lý do ngay, không đợi máy chủ báo (S59).
+                      final belowMinimum =
+                          widget.subtotal < (int.tryParse(voucher.minOrder) ?? 0);
                       final available =
-                          voucher.status == 'AVAILABLE' && !expired;
+                          voucher.status == 'AVAILABLE' &&
+                          !expired &&
+                          !belowMinimum;
                       final discount = voucher.discountType == 'PERCENT'
                           ? 'Giảm ${voucher.discountValue}%'
                           : 'Giảm ${_money(voucher.discountValue)}';
@@ -229,7 +234,12 @@ class _BookingVoucherPickerState extends State<BookingVoucherPicker> {
                                         Text(
                                           expired
                                               ? 'Voucher đã hết hạn'
-                                              : 'Voucher không còn khả dụng',
+                                              : voucher.status != 'AVAILABLE'
+                                              ? 'Voucher không còn khả dụng'
+                                              : 'Chưa đủ điều kiện: đơn tối thiểu ${_money(voucher.minOrder)}',
+                                          key: Key(
+                                            'booking-voucher-reason-${voucher.id}',
+                                          ),
                                           style: const TextStyle(
                                             color: Color(0xFFB54708),
                                           ),
@@ -289,5 +299,5 @@ class _BookingVoucherPickerState extends State<BookingVoucherPicker> {
 
 String _money(String value) {
   final digits = BigInt.tryParse(value)?.toString() ?? value;
-  return '${digits.replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')} ₫';
+  return '${digits.replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}đ';
 }

@@ -3,12 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/account/guest_account_screen.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 
 void main() {
   Future<({List<int> tabs, List<String> calls})> pump(
     WidgetTester tester, {
     bool hotlineOpens = true,
     VoidCallback? onLogin,
+    SupportContact support = const SupportContact(hotline: '1900 1234'),
   }) async {
     final tabs = <int>[];
     final calls = <String>[];
@@ -17,8 +19,9 @@ void main() {
         home: GuestAccountScreen(
           onLoginRequested: onLogin ?? () {},
           onTabSelected: tabs.add,
-          onCallHotline: (hotline) async {
-            calls.add(hotline);
+          support: support,
+          onCallHotline: (uri) async {
+            calls.add(uri.toString());
             return hotlineOpens;
           },
         ),
@@ -46,11 +49,39 @@ void main() {
     await tester.tap(find.byKey(const Key('guest-account-lookup')));
     expect(result.tabs, [3]);
 
+    // Số tổng đài lấy từ cấu hình, không ghi cứng trong màn.
+    expect(find.text('Tổng đài hỗ trợ'), findsOneWidget);
+    expect(find.text('1900 1234'), findsOneWidget);
     await tester.tap(find.byKey(const Key('guest-account-hotline')));
     await tester.pump();
-    expect(result.calls, ['1900 636 707']);
+    expect(result.calls, ['tel:19001234']);
     expect(
       find.text('Không thể mở ứng dụng gọi điện trên thiết bị này.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('chưa cấu hình số tổng đài: mục hỗ trợ là email, không hiện số', (
+    tester,
+  ) async {
+    final result = await pump(
+      tester,
+      hotlineOpens: false,
+      support: const SupportContact(),
+    );
+
+    expect(find.text('Email hỗ trợ'), findsOneWidget);
+    expect(find.text('support@vexenhanh.vn'), findsOneWidget);
+    expect(find.text('Tổng đài hỗ trợ'), findsNothing);
+    expect(find.textContaining('1900'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('guest-account-hotline')));
+    await tester.pump();
+    expect(result.calls, ['mailto:support@vexenhanh.vn']);
+    expect(
+      find.text(
+        'Không mở được ứng dụng email. Vui lòng gửi thư tới support@vexenhanh.vn.',
+      ),
       findsOneWidget,
     );
   });

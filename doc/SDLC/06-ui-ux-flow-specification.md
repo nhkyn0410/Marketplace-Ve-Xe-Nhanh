@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 03/11/2026                  |
+| Ngày cập nhật | 16/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -72,6 +72,7 @@
 | v0.46     | 02/11/2026 | AI Agent | **Chiến dịch thông báo + hộp thư + sửa phiên đăng nhập (`TASK-NSR-003`, Khanh 02/11/2026; tự thiết kế — chờ duyệt, Figma chưa có khung):** §6.1 thêm SCR-PSG-38 Hộp thư; SCR-PSG-12, SCR-PSG-13 trên app đã nối API thật; §6.2 thêm luồng Thông báo; §6.3 thêm trạng thái SCR-PSG-38; §9 thêm màn Thông báo của Admin. App: chuông Trang chủ chỉ có chấm đỏ khi có tin chưa đọc; thanh báo push tự tắt sau 6 giây; Back Android theo màn con; vé đã đi ghi "Đã đi" và không còn nút Hủy; Ví voucher có bảng Điều kiện; Lịch sử điểm lọc theo loại. |
 | v0.47     | 03/11/2026 | AI Agent | **Đánh giá chuyến từ chi tiết vé (Khanh 03/11/2026; tự thiết kế — chờ duyệt, Figma chưa có khung):** SCR-PSG-25 trên app thêm khối đánh giá ngay dưới thẻ vé, chỉ với tài khoản hành khách. Máy chủ trả `canReview` (`GET /bookings/{id}/review`) thì có nút "Đánh giá chuyến đi" mở form SCR-PSG-14; đã gửi thì hiện lại số sao, nhận xét, ghi chú chờ duyệt / bị ẩn; còn lại không hiện gì. Khách vãng lai không có khối này. Màn "Đánh giá của tôi" trên app vẫn là dữ liệu mẫu vì API chưa có danh sách theo tài khoản. |
 | v0.48     | 03/11/2026 | AI Agent | **Đánh giá của tôi dùng dữ liệu thật (Khanh 03/11/2026; tự thiết kế — chờ duyệt):** SCR-PSG-14 trên app đọc `GET /me/reviews`, không còn dữ liệu mẫu kể cả bản debug; thêm "Xem thêm" khi còn trang sau, số trên tab là tổng từ máy chủ. Giữ trạng thái Review. |
+| v0.49     | 16/11/2026 | AI Agent | **Chốt hai đoạn chờ duyệt mà đợt parity dựa vào (Khanh 16/11/2026 giao AI quyết):** SCR-PSG-12 bản app 02/11 (một công tắc mỗi loại thông báo, web giữ bảng loại × kênh) và khối đánh giá dưới thẻ vé ở SCR-PSG-25 (web thêm từ 16/11, như app). Không đổi trạng thái các màn khác. |
 
 ---
 
@@ -321,7 +322,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                               | Thiết kế |
 | -------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
-| Ideal          | Bảng loại thông báo × kênh đang bật (email, push). **App (02/11/2026, chờ duyệt):** một công tắc mỗi loại, đọc / ghi `/me/notification-preferences`; Ưu đãi, VXN Plus, Tin tức đổi được | Draft    |
+| Ideal          | Bảng loại thông báo × kênh đang bật (email, push). **App (02/11/2026, chốt 16/11/2026):** một công tắc mỗi loại, đọc / ghi `/me/notification-preferences`; Ưu đãi, VXN Plus, Tin tức đổi được | Draft    |
 | Empty          | — (luôn có danh mục loại thông báo)                                                                           | —        |
 | Loading        | Đang tải / đang lưu                                                                                           | Draft    |
 | Partial / Edge | Thông báo bắt buộc (bảo mật, vé, thanh toán, đổi/hủy chuyến, dispute) khóa, không tắt được (FR-NSR-14). Máy chưa đăng ký push vẫn bật được, tin vào hộp thư | Draft    |
@@ -465,7 +466,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Ideal          | Vé `VALID` ("Đã xác nhận") + QR; hành trình; hành khách & thanh toán; quy định lên xe; liên hệ nhà xe; bản đồ điểm đón; in / chia sẻ / hủy. Thiếu chính sách hủy snapshot (FR-BTP-12) | Review ⚠ (#2, #4) + Draft |
 | Empty          | —                                                                                                                                                                | —                     |
 | Loading        | Skeleton vé                                                                                                                                                      | Draft                 |
-| Partial / Edge | Vé `CHECKED_IN` / `USED` / `NO_SHOW` / `CANCELLED` / `REFUNDED` (ẩn/khóa QR khi hết hiệu lực); refund `REQUESTED` → `PROCESSING` → `SUCCESS` / `FAILED` / `REJECTED` + lý do; chuyến bị nhà xe hủy/đổi; hết hạn hủy → nút Hủy vô hiệu; booking nhiều vé; tài khoản hành khách sau chuyến `COMPLETED` và vé `USED` / `CHECKED_IN` → khối đánh giá dưới thẻ vé, đã gửi thì hiện lại (chờ duyệt) | Draft                 |
+| Partial / Edge | Vé `CHECKED_IN` / `USED` / `NO_SHOW` / `CANCELLED` / `REFUNDED` (ẩn/khóa QR khi hết hiệu lực); refund `REQUESTED` → `PROCESSING` → `SUCCESS` / `FAILED` / `REJECTED` + lý do; chuyến bị nhà xe hủy/đổi; hết hạn hủy → nút Hủy vô hiệu; booking nhiều vé; tài khoản hành khách sau chuyến `COMPLETED` và vé `USED` / `CHECKED_IN` → khối đánh giá dưới thẻ vé (web và app), đã gửi thì hiện lại (chốt 16/11/2026) | Draft                 |
 | Error          | Vé không tồn tại hoặc không thuộc người xem → 404, không lộ dữ liệu; lỗi tải                                                                                      | Draft                 |
 
 #### SCR-PSG-26 — Hủy vé (`385:14793`)

@@ -21,6 +21,7 @@ class GuestJourneyOtpScreen extends StatefulWidget {
     required this.onTabSelected,
     this.expiresInSeconds = 300,
     this.resendAfterSeconds = 60,
+    this.maxAttempts = 5,
     super.key,
   });
 
@@ -36,6 +37,9 @@ class GuestJourneyOtpScreen extends StatefulWidget {
   /// Thời gian chờ trước khi được gửi lại (giây).
   final int resendAfterSeconds;
 
+  /// Số lần nhập mã cho phép của mỗi mã (SCR-PSG-28 "còn N lần thử", như web).
+  final int maxAttempts;
+
   @override
   State<GuestJourneyOtpScreen> createState() => _GuestJourneyOtpScreenState();
 }
@@ -46,6 +50,9 @@ class _GuestJourneyOtpScreenState extends State<GuestJourneyOtpScreen> {
   String? _error;
   late int _expiresIn = widget.expiresInSeconds;
   late int _resendIn = widget.resendAfterSeconds;
+
+  /// Lần thử còn lại; sau mỗi lần sai lấy theo câu báo của máy chủ ("Còn N lần thử").
+  late int _attemptsLeft = widget.maxAttempts;
   Timer? _timer;
 
   @override
@@ -82,9 +89,13 @@ class _GuestJourneyOtpScreenState extends State<GuestJourneyOtpScreen> {
     });
     final error = await widget.onVerify(_otp);
     if (!mounted) return;
+    final left = error == null
+        ? null
+        : RegExp(r'Còn (\d+) lần thử').firstMatch(error)?.group(1);
     setState(() {
       _busy = false;
       _error = error;
+      if (left != null) _attemptsLeft = int.parse(left);
     });
   }
 
@@ -99,6 +110,7 @@ class _GuestJourneyOtpScreenState extends State<GuestJourneyOtpScreen> {
       if (error == null) {
         _expiresIn = widget.expiresInSeconds;
         _resendIn = widget.resendAfterSeconds;
+        _attemptsLeft = widget.maxAttempts;
       }
     });
     if (error == null) {
@@ -180,6 +192,17 @@ class _GuestJourneyOtpScreenState extends State<GuestJourneyOtpScreen> {
                                 color: Color(0xFFD92D20),
                                 fontSize: 12,
                                 height: 1.4,
+                              ),
+                            ),
+                          ],
+                          if (_attemptsLeft > 0) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              'Còn $_attemptsLeft lần thử',
+                              key: const Key('guest-journey-otp-attempts'),
+                              style: const TextStyle(
+                                color: journeyBody,
+                                fontSize: 11.5,
                               ),
                             ),
                           ],

@@ -11,12 +11,15 @@ class _$TripManifestDtoOutput extends TripManifestDtoOutput {
   final EmployeeAssignmentListDtoOutputItemsInner trip;
   @override
   final BuiltList<TripManifestDtoOutputPassengersInner> passengers;
+  @override
+  final BuiltList<TripManifestDtoOutputSeatsInner>? seats;
 
   factory _$TripManifestDtoOutput(
           [void Function(TripManifestDtoOutputBuilder)? updates]) =>
       (TripManifestDtoOutputBuilder()..update(updates))._build();
 
-  _$TripManifestDtoOutput._({required this.trip, required this.passengers})
+  _$TripManifestDtoOutput._(
+      {required this.trip, required this.passengers, this.seats})
       : super._();
   @override
   TripManifestDtoOutput rebuild(
@@ -32,7 +35,8 @@ class _$TripManifestDtoOutput extends TripManifestDtoOutput {
     if (identical(other, this)) return true;
     return other is TripManifestDtoOutput &&
         trip == other.trip &&
-        passengers == other.passengers;
+        passengers == other.passengers &&
+        seats == other.seats;
   }
 
   @override
@@ -40,6 +44,7 @@ class _$TripManifestDtoOutput extends TripManifestDtoOutput {
     var _$hash = 0;
     _$hash = $jc(_$hash, trip.hashCode);
     _$hash = $jc(_$hash, passengers.hashCode);
+    _$hash = $jc(_$hash, seats.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -48,7 +53,8 @@ class _$TripManifestDtoOutput extends TripManifestDtoOutput {
   String toString() {
     return (newBuiltValueToStringHelper(r'TripManifestDtoOutput')
           ..add('trip', trip)
-          ..add('passengers', passengers))
+          ..add('passengers', passengers)
+          ..add('seats', seats))
         .toString();
   }
 }
@@ -71,6 +77,12 @@ class TripManifestDtoOutputBuilder
           ListBuilder<TripManifestDtoOutputPassengersInner>? passengers) =>
       _$this._passengers = passengers;
 
+  ListBuilder<TripManifestDtoOutputSeatsInner>? _seats;
+  ListBuilder<TripManifestDtoOutputSeatsInner> get seats =>
+      _$this._seats ??= ListBuilder<TripManifestDtoOutputSeatsInner>();
+  set seats(ListBuilder<TripManifestDtoOutputSeatsInner>? seats) =>
+      _$this._seats = seats;
+
   TripManifestDtoOutputBuilder() {
     TripManifestDtoOutput._defaults(this);
   }
@@ -80,6 +92,7 @@ class TripManifestDtoOutputBuilder
     if ($v != null) {
       _trip = $v.trip.toBuilder();
       _passengers = $v.passengers.toBuilder();
+      _seats = $v.seats?.toBuilder();
       _$v = null;
     }
     return this;
@@ -105,6 +118,7 @@ class TripManifestDtoOutputBuilder
           _$TripManifestDtoOutput._(
             trip: trip.build(),
             passengers: passengers.build(),
+            seats: _seats?.build(),
           );
     } catch (_) {
       late String _$failedField;
@@ -113,6 +127,8 @@ class TripManifestDtoOutputBuilder
         trip.build();
         _$failedField = 'passengers';
         passengers.build();
+        _$failedField = 'seats';
+        _seats?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'TripManifestDtoOutput', _$failedField, e.toString());

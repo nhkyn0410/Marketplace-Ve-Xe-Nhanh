@@ -147,4 +147,27 @@ void main() {
     expect(find.byKey(_homeSearch), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('lịch chọn ngày của app hiện tiếng Việt (AS-14)', (tester) async {
+    FlutterSecureStorage.setMockInitialValues({
+      'access_token': 'access',
+      'refresh_token': 'refresh',
+    });
+    await _pumpApp(tester);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).locale,
+      const Locale('vi'),
+    );
+    await tester.tap(find.byKey(const Key('route-dock-tab-1')));
+    await _pumpFor(tester, const Duration(seconds: 1));
+    await tester.tap(find.byKey(const Key('explore-date-chip')));
+    await _pumpFor(tester, const Duration(seconds: 1));
+
+    expect(find.text('Chọn ngày đi'), findsOneWidget);
+    expect(find.text('Hủy'), findsOneWidget);
+    expect(find.byTooltip('Tháng sau'), findsOneWidget);
+    expect(find.byTooltip('Next month'), findsNothing);
+    expect(find.textContaining('tháng 11'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }

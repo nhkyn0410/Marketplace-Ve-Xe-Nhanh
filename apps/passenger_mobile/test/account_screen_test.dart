@@ -27,6 +27,7 @@ Future<void> _pumpAccount(
   VoidCallback? onMyReviews,
   VoidCallback? onNotificationSettings,
   VoidCallback? onLoginSessions,
+  VoidCallback? onSupport,
   String? logoutErrorMessage,
   double width = 390,
 }) async {
@@ -50,6 +51,7 @@ Future<void> _pumpAccount(
         onMyReviews: onMyReviews ?? () {},
         onNotificationSettings: onNotificationSettings ?? () {},
         onLoginSessions: onLoginSessions ?? () {},
+        onSupport: onSupport,
         logoutErrorMessage: logoutErrorMessage,
       ),
     ),
@@ -219,6 +221,25 @@ void main() {
 
     expect(opened, isTrue);
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  // PASSENGER-PARITY A24 (Q16): Khiếu nại và hỗ trợ mở từ Tài khoản.
+  testWidgets('mục khiếu nại và hỗ trợ mở màn khiếu nại', (tester) async {
+    var opened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onSupport: () => opened = true,
+    );
+    await tester.pumpAndSettle();
+
+    final item = find.byKey(const Key('account-support-menu'));
+    await tester.ensureVisible(item);
+    await tester.pumpAndSettle();
+    expect(find.text('Khiếu nại và hỗ trợ'), findsOneWidget);
+    await tester.tap(item);
+
+    expect(opened, isTrue);
   });
 
   testWidgets('hai mục cài đặt mở đúng màn hình thay vì báo sắp có', (

@@ -3,11 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/journey/journey_models.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Báo giá hủy các vé đã chọn.
 typedef JourneyCancellationQuoter = Future<JourneyCancellationQuote> Function(
@@ -48,6 +51,10 @@ class GuestTicketDetailScreen extends StatefulWidget {
     this.onSupportRequested,
     this.journeyDemoPanel,
     this.reviewPanel,
+    this.readOnly = false,
+    this.onLoginRequested,
+    this.launchExternal,
+    this.shareTicket,
     super.key,
   });
 
@@ -63,6 +70,17 @@ class GuestTicketDetailScreen extends StatefulWidget {
 
   /// Khối đánh giá chuyến, chỉ tài khoản hành khách có.
   final Widget? reviewPanel;
+
+  /// Đơn đặt bằng tài khoản xem qua tra cứu: chỉ đọc — ẩn hủy vé và gửi yêu cầu, mời đăng nhập
+  /// (UC-35 bước 6).
+  final bool readOnly;
+  final VoidCallback? onLoginRequested;
+
+  /// Mở link ngoài (chỉ đường Goong); `false` = máy không mở được. Mặc định trình duyệt / app bản đồ.
+  final Future<bool> Function(Uri uri)? launchExternal;
+
+  /// Chia sẻ nội dung vé; mặc định bảng chia sẻ của máy.
+  final Future<void> Function(String subject, String text)? shareTicket;
 
   @override
   State<GuestTicketDetailScreen> createState() =>
@@ -82,10 +100,13 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
 
   bool get _cancelled => _view?.ticket.isCancelled ?? false;
 
-  /// Vé đã lên xe / đã đi / đã hủy hoặc chuyến đã qua giờ chạy thì không còn nút hủy.
-  bool get _canCancel =>
+  /// Vé đã lên xe / đã đi / đã hủy hoặc chuyến đã qua giờ chạy thì không còn hủy được.
+  bool get _cancellable =>
       (_view?.ticket.isCancellable ?? false) &&
       _booking.departureAt.isAfter(DateTime.now());
+
+  /// Nút hủy: vé còn hủy được và được thao tác (đơn tài khoản xem chỉ đọc thì không).
+  bool get _canCancel => _cancellable && !widget.readOnly;
 
   void _movePassenger(int delta) {
     if (_tickets.isEmpty) return;
@@ -99,6 +120,37 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Chỉ đường tới điểm đón trên Goong, cùng link với web (PASSENGER-PARITY Q17).
+  Future<void> _openDirections() async {
+    final uri = journeyDirectionsUri(_booking.pickup);
+    final launch =
+        widget.launchExternal ??
+        (Uri target) => launchUrl(target, mode: LaunchMode.externalApplication);
+    var opened = false;
+    try {
+      opened = await launch(uri);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      _showMessage('Không mở được bản đồ. Vui lòng thử lại.');
+    }
+  }
+
+  /// Chia sẻ thông tin chuyến (không kèm mã QR hay mã truy cập của đơn).
+  Future<void> _shareTicket() async {
+    final share =
+        widget.shareTicket ??
+        (String subject, String text) => SharePlus.instance
+            .share(ShareParams(subject: subject, text: text))
+            .then((_) {});
+    try {
+      await share('Vé ${_booking.bookingCode}', journeyShareText(_booking));
+    } catch (_) {
+      if (mounted) _showMessage('Chưa thể chia sẻ vé. Vui lòng thử lại.');
+    }
   }
 
   Future<void> _openPassengerPicker() async {
@@ -260,6 +312,26 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                           ?widget.reviewPanel,
                           const SizedBox(height: 9),
                           _JourneyInformationCard(booking: _booking),
+                          const SizedBox(height: 9),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _DetailOutlineAction(
+                                  key: const Key('journey-open-directions'),
+                                  label: 'Mở chỉ đường Goong',
+                                  onPressed: _openDirections,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: _DetailOutlineAction(
+                                  key: const Key('journey-share-ticket'),
+                                  label: 'Chia sẻ vé',
+                                  onPressed: _shareTicket,
+                                ),
+                              ),
+                            ],
+                          ),
                           if (widget.journeyDemoPanel case final panel?) ...[
                             const SizedBox(height: 9),
                             panel,
@@ -271,10 +343,43 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                           const SizedBox(height: 9),
                           _CancellationPolicyCard(
                             booking: _booking,
-                            canCancel: _canCancel,
+                            canCancel: _cancellable,
                           ),
                           const SizedBox(height: 9),
-                          if (!_canCancel)
+                          if (widget.readOnly) ...[
+                            JourneySurface(
+                              key: const Key('journey-detail-read-only'),
+                              padding: const EdgeInsets.all(12),
+                              child: const Text(
+                                'Đơn đặt bằng tài khoản. Đăng nhập tài khoản đó để hủy vé hoặc gửi khiếu nại.',
+                                style: TextStyle(
+                                  color: journeyBody,
+                                  fontSize: 12,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 9),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _DetailOutlineAction(
+                                    label: 'Quay lại kết quả',
+                                    onPressed: widget.onBack,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: _DetailFilledAction(
+                                    key: const Key('journey-detail-login'),
+                                    label: 'Đăng nhập',
+                                    color: journeyButton,
+                                    onPressed: widget.onLoginRequested,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else if (!_canCancel)
                             Row(
                               children: [
                                 Expanded(
@@ -318,33 +423,34 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                               ],
                             ),
                           const SizedBox(height: 12),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(9),
-                            onTap: _showSupport,
-                            child: Container(
-                              width: double.infinity,
-                              height: 36,
-                              alignment: Alignment.centerLeft,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE4F5FC),
-                                borderRadius: BorderRadius.circular(9),
-                                border: Border.all(
-                                  color: const Color(0xFFC7EAF8),
+                          if (!widget.readOnly)
+                            InkWell(
+                              borderRadius: BorderRadius.circular(9),
+                              onTap: _showSupport,
+                              child: Container(
+                                width: double.infinity,
+                                height: 36,
+                                alignment: Alignment.centerLeft,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
                                 ),
-                              ),
-                              child: const Text(
-                                'Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →',
-                                style: TextStyle(
-                                  color: Color(0xFF087DCE),
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE4F5FC),
+                                  borderRadius: BorderRadius.circular(9),
+                                  border: Border.all(
+                                    color: const Color(0xFFC7EAF8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →',
+                                  style: TextStyle(
+                                    color: Color(0xFF087DCE),
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -364,12 +470,18 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
       support();
       return;
     }
-    _showMessage('Gọi tổng đài 1900 636 707 để được hỗ trợ về chuyến đi.');
+    _showMessage(
+      'Vui lòng ${SupportContact.configured.instruction} để được hỗ trợ về chuyến đi.',
+    );
   }
 }
 
 class _DetailOutlineAction extends StatelessWidget {
-  const _DetailOutlineAction({required this.label, required this.onPressed});
+  const _DetailOutlineAction({
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -1281,6 +1393,32 @@ class _CancelledQrNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Link chỉ đường Goong tới điểm đón, giống web (`https://maps.goong.io/?q=<địa chỉ>`).
+Uri journeyDirectionsUri(JourneyStop pickup) {
+  final address = pickup.address.trim().isEmpty ? pickup.name : pickup.address;
+  return Uri.parse('https://maps.goong.io/?q=${Uri.encodeComponent(address)}');
+}
+
+/// Nội dung "Chia sẻ vé": mã đơn, tuyến, giờ và điểm đón / trả, chỗ — không có mã QR.
+String journeyShareText(JourneyBooking booking) {
+  final seats = [
+    for (final ticket in booking.tickets)
+      if (!ticket.isCancelled) ticket.seatCode,
+  ];
+  String stop(String label, JourneyStop point) =>
+      '$label: ${journeyTime(point.plannedAt)}, '
+      '${journeyLongDate(point.plannedAt)} - ${point.name}';
+  return [
+    'Vé xe trên Vé Xe Nhanh',
+    'Mã đặt vé: ${booking.bookingCode}',
+    'Tuyến: ${booking.routeName}',
+    'Nhà xe: ${booking.operatorName}',
+    stop('Đón', booking.pickup),
+    stop('Trả', booking.dropoff),
+    if (seats.isNotEmpty) 'Chỗ: ${seats.join(', ')}',
+  ].join('\n');
 }
 
 /// Số ngày lịch giữa giờ đón và giờ trả (giờ máy).

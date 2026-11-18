@@ -37,7 +37,7 @@ export function PlusAndGuideSection({
             </span>
 
             <h3 className="mt-4 text-2xl font-extrabold text-[#0f172a] sm:text-[28px]">
-              Tích điểm cùng Vé xe nhanh
+              Tích điểm cùng Vé Xe Nhanh
             </h3>
 
             <p className="mt-3 text-sm leading-relaxed text-slate-700">

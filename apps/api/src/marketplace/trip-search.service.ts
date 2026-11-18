@@ -74,6 +74,8 @@ export class TripSearchService {
       limit: query.limit,
       facets: {
         operators: [...operators.values()].sort((a, b) => a.name.localeCompare(b.name)),
+        pickupPoints: pointFacet(all.map((item) => item.pickup.name)),
+        dropoffPoints: pointFacet(all.map((item) => item.dropoff.name)),
         priceMin: prices.length > 0 ? Math.min(...prices) : null,
         priceMax: prices.length > 0 ? Math.max(...prices) : null,
       },
@@ -329,9 +331,21 @@ function vnClock(iso: string): string {
   return new Date(Date.parse(iso) + VN_OFFSET).toISOString().slice(11, 16);
 }
 
-function matchesFilters(item: TripSearchItem, query: TripSearchQuery): boolean {
+/** Tên điểm kèm số chuyến, nhiều chuyến trước (export để test riêng). */
+export function pointFacet(names: string[]): { name: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1);
+  return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
+}
+
+/** Bộ lọc trên kết quả đã khớp vị trí (export để test riêng). */
+export function matchesFilters(item: TripSearchItem, query: TripSearchQuery): boolean {
   const clock = vnClock(item.pickup.plannedAt);
+  const rating = item.operator.averageRating;
   return (
+    (!query.pickupPoint || item.pickup.name === query.pickupPoint) &&
+    (!query.dropoffPoint || item.dropoff.name === query.dropoffPoint) &&
+    (query.minRating === undefined || (rating !== null && rating >= query.minRating)) &&
     (!query.operatorId || item.operator.id === query.operatorId) &&
     (!query.vehicleForm || item.vehicleType.form === query.vehicleForm) &&
     (!query.vehicleClass || item.vehicleType.class === query.vehicleClass) &&

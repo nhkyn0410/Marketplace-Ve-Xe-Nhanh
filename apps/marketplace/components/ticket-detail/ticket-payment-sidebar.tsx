@@ -82,6 +82,30 @@ export const TicketPaymentSidebar: React.FC<TicketPaymentSidebarProps> = ({
               </Badge>
             </div>
           </div>
+
+          {/* Hoàn tiền: số tiền, cổng hoàn, mã hoàn và trạng thái từng lần (FR-MKT-11, giống app) */}
+          {(payment.refunds ?? []).map((refund) => (
+            <div key={refund.refundCode} data-refund={refund.refundCode} className="pt-3 border-t border-border/50 space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <span>Tiền hoàn</span>
+                <span className="font-semibold text-foreground">{formatVnd(refund.amountVnd)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Phương thức hoàn</span>
+                <span className="font-medium text-foreground">{payment.methodLabel}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Mã hoàn tiền</span>
+                <span className="font-mono text-foreground">{refund.refundCode}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>Trạng thái hoàn</span>
+                <Badge tone={refund.failed ? "warning" : refund.statusLabel === "Đã hoàn" ? "success" : "neutral"} className="text-[11px] font-semibold py-0 text-right">
+                  {refund.statusLabel}
+                </Badge>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -296,6 +296,99 @@ void main() {
     },
   );
 
+  // FR-MKT-03 (PASSENGER-PARITY giai đoạn 4): lọc điểm đón / trả và đánh giá nhà xe, như web.
+  testWidgets('lọc theo điểm đón, điểm trả và đánh giá nhà xe; chip gỡ từng điều kiện', (
+    tester,
+  ) async {
+    final calls = <SearchCall>[];
+    final page = TripSearchPage(
+      items: [sampleTrip('t1')],
+      total: 1,
+      page: 1,
+      limit: 20,
+      operators: const [],
+      pickupPoints: const [
+        TripPointFacet(name: 'Bến xe Miền Đông', count: 3),
+        TripPointFacet(name: 'Ngã ba Dầu Giây', count: 1),
+      ],
+      dropoffPoints: const [TripPointFacet(name: 'Bến xe Đà Lạt', count: 2)],
+    );
+    await _pumpResults(
+      tester,
+      width: 390,
+      searchTrips: _recording(calls, (_) => page),
+    );
+
+    await tester.tap(find.byKey(const Key('results-filter')));
+    await tester.pumpAndSettle();
+    for (final key in [
+      const ValueKey('ticket-filter-rating-4.0'),
+      const ValueKey('ticket-filter-pickup-0'),
+      const ValueKey('ticket-filter-dropoff-0'),
+    ]) {
+      await tester.ensureVisible(find.byKey(key));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(key));
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const Key('ticket-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(calls.last.filters.minRating, 4.0);
+    expect(calls.last.filters.pickupPoint, 'Bến xe Miền Đông');
+    expect(calls.last.filters.dropoffPoint, 'Bến xe Đà Lạt');
+    expect(find.text('Đón: Bến xe Miền Đông'), findsOneWidget);
+    expect(find.text('Từ 4 ★'), findsOneWidget);
+
+    // Chip thứ ba nằm ngoài màn hẹp: cuộn hàng chip tới trước khi bấm.
+    await tester.ensureVisible(find.text('Từ 4 ★'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Từ 4 ★'));
+    await tester.pumpAndSettle();
+    expect(calls.last.filters.minRating, isNull);
+    expect(calls.last.filters.pickupPoint, 'Bến xe Miền Đông');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('nhiều điểm đón: chỉ hiện 6 điểm nhiều chuyến nhất, Xem thêm mở hết', (
+    tester,
+  ) async {
+    final page = TripSearchPage(
+      items: [sampleTrip('t1')],
+      total: 1,
+      page: 1,
+      limit: 20,
+      operators: const [],
+      pickupPoints: [
+        for (var i = 0; i < 9; i++) TripPointFacet(name: 'Điểm $i', count: 9 - i),
+      ],
+    );
+    await _pumpResults(tester, width: 390, searchTrips: (_, _, _) async => page);
+    await tester.tap(find.byKey(const Key('results-filter')));
+    await tester.pumpAndSettle();
+
+    final more = find.byKey(const ValueKey('ticket-filter-pickup-more'));
+    // Bảng lọc dựng lười: cuộn danh sách của bảng (Scrollable sau cùng) tới nút.
+    await tester.scrollUntilVisible(
+      more,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('ticket-filter-pickup-5')), findsOneWidget);
+    expect(find.byKey(const ValueKey('ticket-filter-pickup-6')), findsNothing);
+    expect(find.text('Xem thêm 3 điểm'), findsOneWidget);
+    await tester.tap(more);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('ticket-filter-pickup-8')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.byKey(const ValueKey('ticket-filter-pickup-8')), findsOneWidget);
+    expect(more, findsNothing);
+  });
+
   testWidgets(
     'khu vực / phường không có chuyến → nhắc đang hiện chuyến cả tỉnh',
     (tester) async {

@@ -11,6 +11,12 @@ class _$TripSearchResponseDtoOutputFacets
   @override
   final BuiltList<TripSearchResponseDtoOutputFacetsOperatorsInner> operators;
   @override
+  final BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner>
+      pickupPoints;
+  @override
+  final BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner>
+      dropoffPoints;
+  @override
   final int? priceMin;
   @override
   final int? priceMax;
@@ -20,7 +26,11 @@ class _$TripSearchResponseDtoOutputFacets
       (TripSearchResponseDtoOutputFacetsBuilder()..update(updates))._build();
 
   _$TripSearchResponseDtoOutputFacets._(
-      {required this.operators, this.priceMin, this.priceMax})
+      {required this.operators,
+      required this.pickupPoints,
+      required this.dropoffPoints,
+      this.priceMin,
+      this.priceMax})
       : super._();
   @override
   TripSearchResponseDtoOutputFacets rebuild(
@@ -36,6 +46,8 @@ class _$TripSearchResponseDtoOutputFacets
     if (identical(other, this)) return true;
     return other is TripSearchResponseDtoOutputFacets &&
         operators == other.operators &&
+        pickupPoints == other.pickupPoints &&
+        dropoffPoints == other.dropoffPoints &&
         priceMin == other.priceMin &&
         priceMax == other.priceMax;
   }
@@ -44,6 +56,8 @@ class _$TripSearchResponseDtoOutputFacets
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, operators.hashCode);
+    _$hash = $jc(_$hash, pickupPoints.hashCode);
+    _$hash = $jc(_$hash, dropoffPoints.hashCode);
     _$hash = $jc(_$hash, priceMin.hashCode);
     _$hash = $jc(_$hash, priceMax.hashCode);
     _$hash = $jf(_$hash);
@@ -54,6 +68,8 @@ class _$TripSearchResponseDtoOutputFacets
   String toString() {
     return (newBuiltValueToStringHelper(r'TripSearchResponseDtoOutputFacets')
           ..add('operators', operators)
+          ..add('pickupPoints', pickupPoints)
+          ..add('dropoffPoints', dropoffPoints)
           ..add('priceMin', priceMin)
           ..add('priceMax', priceMax))
         .toString();
@@ -75,6 +91,26 @@ class TripSearchResponseDtoOutputFacetsBuilder
               operators) =>
       _$this._operators = operators;
 
+  ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>?
+      _pickupPoints;
+  ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>
+      get pickupPoints => _$this._pickupPoints ??=
+          ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>();
+  set pickupPoints(
+          ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>?
+              pickupPoints) =>
+      _$this._pickupPoints = pickupPoints;
+
+  ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>?
+      _dropoffPoints;
+  ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>
+      get dropoffPoints => _$this._dropoffPoints ??=
+          ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>();
+  set dropoffPoints(
+          ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>?
+              dropoffPoints) =>
+      _$this._dropoffPoints = dropoffPoints;
+
   int? _priceMin;
   int? get priceMin => _$this._priceMin;
   set priceMin(int? priceMin) => _$this._priceMin = priceMin;
@@ -91,6 +127,8 @@ class TripSearchResponseDtoOutputFacetsBuilder
     final $v = _$v;
     if ($v != null) {
       _operators = $v.operators.toBuilder();
+      _pickupPoints = $v.pickupPoints.toBuilder();
+      _dropoffPoints = $v.dropoffPoints.toBuilder();
       _priceMin = $v.priceMin;
       _priceMax = $v.priceMax;
       _$v = null;
@@ -118,6 +156,8 @@ class TripSearchResponseDtoOutputFacetsBuilder
       _$result = _$v ??
           _$TripSearchResponseDtoOutputFacets._(
             operators: operators.build(),
+            pickupPoints: pickupPoints.build(),
+            dropoffPoints: dropoffPoints.build(),
             priceMin: priceMin,
             priceMax: priceMax,
           );
@@ -126,6 +166,10 @@ class TripSearchResponseDtoOutputFacetsBuilder
       try {
         _$failedField = 'operators';
         operators.build();
+        _$failedField = 'pickupPoints';
+        pickupPoints.build();
+        _$failedField = 'dropoffPoints';
+        dropoffPoints.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'TripSearchResponseDtoOutputFacets', _$failedField, e.toString());

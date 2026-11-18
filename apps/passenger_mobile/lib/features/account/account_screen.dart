@@ -47,6 +47,7 @@ class AccountScreen extends StatefulWidget {
     required this.onMyReviews,
     required this.onNotificationSettings,
     required this.onLoginSessions,
+    this.onSupport,
     this.logoutErrorMessage,
     super.key,
   });
@@ -62,6 +63,9 @@ class AccountScreen extends StatefulWidget {
   final VoidCallback onMyReviews;
   final VoidCallback onNotificationSettings;
   final VoidCallback onLoginSessions;
+
+  /// Khiếu nại và hỗ trợ (SCR-PSG-30); `null` thì ẩn mục.
+  final VoidCallback? onSupport;
   final String? logoutErrorMessage;
 
   @override
@@ -133,6 +137,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   onMyReviews: widget.onMyReviews,
                   onNotificationSettings: widget.onNotificationSettings,
                   onLoginSessions: widget.onLoginSessions,
+                  onSupport: widget.onSupport,
                 );
               },
             ),
@@ -172,6 +177,7 @@ class _AccountContent extends StatelessWidget {
     required this.onMyReviews,
     required this.onNotificationSettings,
     required this.onLoginSessions,
+    this.onSupport,
   });
 
   final AccountOverview overview;
@@ -187,6 +193,7 @@ class _AccountContent extends StatelessWidget {
   final VoidCallback onMyReviews;
   final VoidCallback onNotificationSettings;
   final VoidCallback onLoginSessions;
+  final VoidCallback? onSupport;
 
   @override
   Widget build(BuildContext context) {
@@ -253,6 +260,16 @@ class _AccountContent extends StatelessWidget {
                       subtitle: 'Các chuyến đi đã đánh giá',
                       onTap: onMyReviews,
                     ),
+                    if (onSupport != null)
+                      _AccountMenuItem(
+                        key: const Key('account-support-menu'),
+                        icon: Icons.support_agent_rounded,
+                        color: const Color(0xFF1985C4),
+                        background: const Color(0xFFE2F3FC),
+                        title: 'Khiếu nại và hỗ trợ',
+                        subtitle: 'Theo dõi yêu cầu hỗ trợ của bạn',
+                        onTap: onSupport!,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 18),

@@ -62,6 +62,7 @@ class _PassengerInformationScreenState
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _promoCode = TextEditingController();
+  final _note = TextEditingController();
 
   late final List<HeldSeat> _seats = [...widget.hold.seats]
     ..sort((a, b) => a.code.compareTo(b.code));
@@ -77,6 +78,9 @@ class _PassengerInformationScreenState
     for (final _ in _seats) TextEditingController(),
   ];
   List<SavedTraveller> _travellers = const [];
+
+  /// Chỗ 1 điền sẵn tên người liên hệ cho tới khi khách sửa / chọn người khác (PASSENGER-PARITY Q4).
+  bool _firstSeatFollowsContact = true;
   PromotionQuote? _promotion;
   String? _promoError;
   bool _checkingPromo = false;
@@ -102,6 +106,7 @@ class _PassengerInformationScreenState
     _email.dispose();
     _phone.dispose();
     _promoCode.dispose();
+    _note.dispose();
     for (final controller in [
       ..._passengerNames,
       ..._passengerPhones,
@@ -127,7 +132,14 @@ class _PassengerInformationScreenState
       if (_email.text.isEmpty) _email.text = contact.email;
       if (_phone.text.isEmpty) _phone.text = contact.phone;
       _travellers = prefill!.travellers;
+      _syncFirstSeat();
     });
+  }
+
+  void _syncFirstSeat() {
+    if (_firstSeatFollowsContact) {
+      _passengerNames.first.text = _contactName.text;
+    }
   }
 
   DateTime _now() => widget.now?.call() ?? DateTime.now();
@@ -150,12 +162,13 @@ class _PassengerInformationScreenState
       _email.text.trim().length <= 254 &&
       _emailPattern.hasMatch(_email.text.trim());
 
-  /// Ghế đầu mặc định là người liên hệ; chỉ hiện thẻ khi có hành khách đã lưu để chọn thay.
-  bool get _showFirstSeat => _travellers.isNotEmpty;
-
+  /// Mỗi chỗ phải có họ tên (Q4); không tự lấy tên người liên hệ cho chỗ để trống.
   bool get _formValid =>
       _contactName.text.trim().isNotEmpty &&
       _nameError(_contactName.text) == null &&
+      _passengerNames.every(
+        (controller) => controller.text.trim().isNotEmpty,
+      ) &&
       [..._passengerNames, ..._companionNames].every(
         (controller) => _nameError(controller.text) == null,
       ) &&
@@ -182,6 +195,7 @@ class _PassengerInformationScreenState
     setState(() {
       _passengerNames[index].text = selected.fullName;
       _passengerPhones[index].text = selected.phone ?? '';
+      if (index == 0) _firstSeatFollowsContact = false;
     });
   }
 
@@ -265,13 +279,13 @@ class _PassengerInformationScreenState
         for (var index = 0; index < _seats.length; index++)
           BookingPassenger(
             seatCode: _seats[index].code,
-            fullName: _passengerNames[index].text.trim().isEmpty
-                ? _contactName.text.trim()
-                : _passengerNames[index].text.trim(),
-            // Ghế đầu bỏ trống là người liên hệ đi chỗ này nên dùng luôn số của họ.
+            fullName: _passengerNames[index].text.trim(),
+            // Chỗ 1 vẫn là người liên hệ (tên chưa đổi) thì dùng luôn số của họ.
             phone: _passengerPhones[index].text.trim().isNotEmpty
                 ? _normalizePhone(_passengerPhones[index].text)
-                : index == 0 && _passengerNames[index].text.trim().isEmpty
+                : index == 0 &&
+                      _passengerNames[index].text.trim() ==
+                          _contactName.text.trim()
                 ? _normalizePhone(_phone.text)
                 : null,
             companionName:
@@ -282,6 +296,7 @@ class _PassengerInformationScreenState
           ),
       ],
       promotion: _promotion,
+      note: _note.text.trim().isEmpty ? null : _note.text.trim(),
     );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -303,7 +318,6 @@ class _PassengerInformationScreenState
     final expired = _remaining == Duration.zero;
     final phoneTouched = _phone.text.trim().isNotEmpty;
     final emailTouched = _email.text.trim().isNotEmpty;
-    final firstCardIndex = _showFirstSeat ? 0 : 1;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.white,
@@ -358,22 +372,18 @@ class _PassengerInformationScreenState
                         phoneError: phoneTouched && !_phoneValid
                             ? 'Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.'
                             : null,
-                        onChanged: () => setState(() {}),
+                        onChanged: () => setState(_syncFirstSeat),
                       ),
                     ),
-                    if (_seats.length > firstCardIndex)
-                      SliverToBoxAdapter(
-                        child: _SectionTitle(
-                          icon: Icons.group_rounded,
-                          title: _showFirstSeat
-                              ? 'Hành khách (tùy chọn)'
-                              : 'Hành khách bổ sung (tùy chọn)',
-                        ),
+                    const SliverToBoxAdapter(
+                      child: _SectionTitle(
+                        icon: Icons.group_rounded,
+                        title: 'Hành khách',
                       ),
+                    ),
                     SliverList.builder(
-                      itemCount: _seats.length - firstCardIndex,
-                      itemBuilder: (context, offset) {
-                        final index = offset + firstCardIndex;
+                      itemCount: _seats.length,
+                      itemBuilder: (context, index) {
                         final phone = _passengerPhones[index];
                         return _PassengerCard(
                           index: index,
@@ -390,13 +400,21 @@ class _PassengerInformationScreenState
                           companionController: isDoubleSeat(_seats[index].type)
                               ? _companionNames[index]
                               : null,
-                          onChanged: () => setState(() {}),
+                          onChanged: () => setState(() {
+                            // Sửa tên chỗ 1 khác người liên hệ thì thôi điền theo liên hệ.
+                            if (index == 0) {
+                              _firstSeatFollowsContact =
+                                  _passengerNames.first.text.trim() ==
+                                  _contactName.text.trim();
+                            }
+                          }),
                           onChooseSaved: _travellers.isEmpty
                               ? null
                               : () => _chooseSavedPassenger(index),
                         );
                       },
                     ),
+                    SliverToBoxAdapter(child: _NoteCard(controller: _note)),
                     SliverToBoxAdapter(
                       child: _PromotionCard(
                         controller: _promoCode,
@@ -918,8 +936,8 @@ class _PassengerCard extends StatelessWidget {
                     ),
                     Text(
                       index == 0
-                          ? 'Để trống nếu người liên hệ đi chỗ này'
-                          : 'Không bắt buộc',
+                          ? 'Điền sẵn theo người liên hệ'
+                          : 'Họ tên khớp giấy tờ khi lên xe',
                       style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
@@ -963,10 +981,10 @@ class _PassengerCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
             child: _InputField(
               fieldKey: Key('passenger-name-$seat'),
-              label: 'Họ và tên (tùy chọn)',
+              label: 'Họ và tên',
               icon: Icons.person_rounded,
               controller: controller,
-              hintText: 'Nhập họ và tên',
+              hintText: 'Nhập họ và tên hành khách',
               errorText: _nameError(controller.text),
               textInputAction: TextInputAction.next,
               onChanged: onChanged,
@@ -1000,6 +1018,63 @@ class _PassengerCard extends StatelessWidget {
                 onChanged: onChanged,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ghi chú cho nhà xe (đón dọc đường, hành lý…) — không bắt buộc, tối đa 300 ký tự như web (Q19).
+class _NoteCard extends StatelessWidget {
+  const _NoteCard({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: const BorderSide(color: Color(0xFFE0E9EE)),
+    );
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 7),
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _CardTitle(
+            icon: Icons.edit_note_rounded,
+            title: 'Ghi chú cho nhà xe (không bắt buộc)',
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('booking-note-field'),
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: bookingNoteMaxLength,
+            keyboardType: TextInputType.multiline,
+            style: const TextStyle(color: _ink, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Ví dụ: có trẻ nhỏ đi cùng, cần hỗ trợ hành lý...',
+              hintStyle: const TextStyle(
+                color: Color(0xFF9BB0BE),
+                fontSize: 13,
+              ),
+              filled: true,
+              fillColor: _field,
+              isDense: true,
+              contentPadding: const EdgeInsets.all(12),
+              enabledBorder: border,
+              focusedBorder: border.copyWith(
+                borderSide: const BorderSide(color: _blue),
+              ),
+            ),
+          ),
         ],
       ),
     );

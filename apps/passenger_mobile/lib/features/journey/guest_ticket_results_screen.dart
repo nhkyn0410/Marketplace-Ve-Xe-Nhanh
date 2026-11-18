@@ -17,6 +17,10 @@ class GuestTicketResultsScreen extends StatelessWidget {
     this.lookupEmail,
     this.onChangeLookup,
     this.onRefresh,
+    this.hasAccount = false,
+    this.onLoginRequested,
+    this.filterBar,
+    this.emptyMessage,
     super.key,
   });
 
@@ -30,12 +34,27 @@ class GuestTicketResultsScreen extends StatelessWidget {
   final String? lookupEmail;
   final VoidCallback? onChangeLookup;
 
+  /// Email tra cứu đã có tài khoản: mời đăng nhập (UC-35 A1b, như web).
+  final bool hasAccount;
+  final VoidCallback? onLoginRequested;
+
+  /// Ô tìm + tab có đếm của "Vé của tôi" (SCR-PSG-24); `null` ở kết quả tra cứu.
+  final Widget? filterBar;
+
+  /// Câu khi danh sách (đã lọc) trống; `null` = câu mặc định.
+  final String? emptyMessage;
+
   /// Kéo xuống để tải lại.
   final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
     final email = lookupEmail;
+    final login = onLoginRequested;
+    final inviteLogin =
+        email != null &&
+        login != null &&
+        (hasAccount || bookings.any((booking) => booking.bookedWithAccount));
     final content = CustomScrollView(
       key: const Key('journey-results-scroll'),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -59,6 +78,14 @@ class GuestTicketResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                     ],
+                    if (inviteLogin) ...[
+                      _LoginInvite(onLogin: login),
+                      const SizedBox(height: 14),
+                    ],
+                    if (filterBar case final bar?) ...[
+                      bar,
+                      const SizedBox(height: 14),
+                    ],
                     Text(
                       bookings.isEmpty
                           ? 'Chưa có đơn nào'
@@ -75,20 +102,38 @@ class GuestTicketResultsScreen extends StatelessWidget {
                       JourneySurface(
                         key: const Key('journey-results-empty'),
                         padding: const EdgeInsets.all(16),
-                        child: Text(
-                          email != null
-                              ? 'Email này chưa có đơn nào trong 12 tháng gần đây.'
-                              : 'Bạn chưa đặt vé nào. Tìm chuyến ở tab Mua vé để bắt đầu hành trình.',
-                          style: const TextStyle(
-                            color: journeyBody,
-                            fontSize: 12.5,
-                            height: 1.5,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              emptyMessage ??
+                                  (email != null
+                                      ? 'Email này chưa có đơn nào trong 12 tháng gần đây.'
+                                      : 'Bạn chưa đặt vé nào. Tìm chuyến ở tab Mua vé để bắt đầu hành trình.'),
+                              style: const TextStyle(
+                                color: journeyBody,
+                                fontSize: 12.5,
+                                height: 1.5,
+                              ),
+                            ),
+                            // SCR-PSG-24 Empty: CTA đặt vé mới (tab Mua vé).
+                            if (email == null) ...[
+                              const SizedBox(height: 11),
+                              JourneyOutlineButton(
+                                key: const Key('journey-results-book'),
+                                label: 'Đặt vé mới',
+                                onPressed: () => onTabSelected(1),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     for (final booking in bookings) ...[
                       _TicketResultCard(
                         booking: booking,
+                        // Danh sách của tài khoản đơn nào cũng đặt bằng tài khoản: không cần ghi.
+                        showAccountLabel:
+                            email != null && booking.bookedWithAccount,
                         onPressed: () => onOpenBooking(booking),
                       ),
                       const SizedBox(height: 12),
@@ -246,11 +291,63 @@ class _LookupSummary extends StatelessWidget {
 
 const _weekdays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
 
+/// Mời đăng nhập khi email tra cứu có tài khoản / có đơn đặt bằng tài khoản (UC-35 A1b).
+class _LoginInvite extends StatelessWidget {
+  const _LoginInvite({required this.onLogin});
+
+  final VoidCallback onLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    return JourneySurface(
+      key: const Key('journey-lookup-login-invite'),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Email này đã có tài khoản',
+            style: TextStyle(
+              color: journeyInk,
+              fontSize: 14,
+              height: 21 / 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Đăng nhập để xem toàn bộ vé, hủy vé và gửi khiếu nại cho đơn đặt bằng tài khoản.',
+            style: TextStyle(
+              color: journeyBody,
+              fontSize: 11.5,
+              height: 17 / 11.5,
+            ),
+          ),
+          const SizedBox(height: 11),
+          JourneyPrimaryButton(
+            key: const Key('journey-lookup-login'),
+            label: 'Đăng nhập',
+            height: 40,
+            onPressed: onLogin,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TicketResultCard extends StatelessWidget {
-  const _TicketResultCard({required this.booking, required this.onPressed});
+  const _TicketResultCard({
+    required this.booking,
+    required this.onPressed,
+    this.showAccountLabel = false,
+  });
 
   final JourneyBookingSummary booking;
   final VoidCallback onPressed;
+
+  /// Kết quả tra cứu: ghi "Đặt bằng tài khoản" cho đơn chỉ xem được, hủy vé phải đăng nhập.
+  final bool showAccountLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -372,6 +469,12 @@ class _TicketResultCard extends StatelessWidget {
               _Meta(icon: 'ticket_meta.svg', label: booking.bookingCode),
               if (count != null) _Meta(icon: 'seat.svg', label: '$count vé'),
               _Meta(icon: 'payment_card.svg', label: journeyVnd(booking.total)),
+              if (showAccountLabel)
+                const _Meta(
+                  key: Key('journey-booked-with-account'),
+                  icon: 'passenger.svg',
+                  label: 'Đặt bằng tài khoản',
+                ),
             ],
           ),
           const SizedBox(height: 11),
@@ -389,7 +492,7 @@ class _TicketResultCard extends StatelessWidget {
 }
 
 class _Meta extends StatelessWidget {
-  const _Meta({required this.icon, required this.label});
+  const _Meta({required this.icon, required this.label, super.key});
 
   final String icon;
   final String label;

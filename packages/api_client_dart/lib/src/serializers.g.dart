@@ -723,7 +723,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           PasswordChangeChallengeResponsePasswordChangeRequiredEnum.serializer)
       ..add(PasswordChangeRequiredDto.serializer)
       ..add(PaymentInputDto.serializer)
+      ..add(PaymentInputDtoClientEnum.serializer)
       ..add(PaymentInputDtoProviderEnum.serializer)
+      ..add(PaymentProviderListDtoOutput.serializer)
+      ..add(PaymentProviderListDtoOutputItemsInner.serializer)
+      ..add(PaymentProviderListDtoOutputItemsInnerProviderEnum.serializer)
       ..add(PaymentResponseDtoOutput.serializer)
       ..add(PaymentResponseDtoOutputProviderEnum.serializer)
       ..add(PaymentResponseDtoOutputStatusEnum.serializer)
@@ -988,6 +992,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TicketDetailDtoOutputReporterPartyEnum.serializer)
       ..add(TicketDetailDtoOutputRequestedPriorityEnum.serializer)
       ..add(TicketDetailDtoOutputStatusEnum.serializer)
+      ..add(TicketEmailResponseDtoOutput.serializer)
       ..add(TicketLookupAccessDtoOutput.serializer)
       ..add(TicketLookupBookingListDtoOutput.serializer)
       ..add(TicketLookupBookingListDtoOutputItemsInner.serializer)
@@ -1032,6 +1037,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripManifestDtoOutputPassengersInner.serializer)
       ..add(TripManifestDtoOutputPassengersInnerPickup.serializer)
       ..add(TripManifestDtoOutputPassengersInnerStatusEnum.serializer)
+      ..add(TripManifestDtoOutputSeatsInner.serializer)
       ..add(TripOperationInputDto.serializer)
       ..add(TripOperationInputDtoStatusEnum.serializer)
       ..add(TripPassengerListDtoOutput.serializer)
@@ -1067,6 +1073,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripSearchResponseDtoOutput.serializer)
       ..add(TripSearchResponseDtoOutputFacets.serializer)
       ..add(TripSearchResponseDtoOutputFacetsOperatorsInner.serializer)
+      ..add(TripSearchResponseDtoOutputFacetsPickupPointsInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInnerAmenitiesInner.serializer)
       ..add(TripSearchResponseDtoOutputItemsInnerOperator.serializer)
@@ -1819,6 +1826,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<PassengerTicketPageDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(PaymentProviderListDtoOutputItemsInner)]),
+          () => ListBuilder<PaymentProviderListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(PayoutDetailDtoOutputTripsInner)]),
           () => ListBuilder<PayoutDetailDtoOutputTripsInner>())
       ..addBuilderFactory(
@@ -2224,6 +2235,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<TripManifestDtoOutputPassengersInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(TripManifestDtoOutputSeatsInner)]),
+          () => ListBuilder<TripManifestDtoOutputSeatsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(TripSalesDtoOutputChangesInner)]),
           () => ListBuilder<TripSalesDtoOutputChangesInner>())
       ..addBuilderFactory(
@@ -2266,6 +2281,18 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)
           ]),
           () => ListBuilder<TripSearchResponseDtoOutputFacetsOperatorsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)
+          ]),
+          () =>
+              ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)
+          ]),
+          () =>
+              ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripSearchResponseDtoOutputItemsInner)]),

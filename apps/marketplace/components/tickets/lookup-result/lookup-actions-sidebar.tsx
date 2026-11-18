@@ -26,6 +26,8 @@ export interface LookupActionsSidebarProps {
   readonly canUnlock?: boolean;
   /** Đơn đặt bằng tài khoản: hủy vé / khiếu nại qua tài khoản. */
   readonly bookedWithAccount?: boolean;
+  /** Email tra cứu đã có tài khoản hoặc đơn đặt bằng tài khoản: mời đăng nhập thay vì tạo tài khoản (UC-35 A1b). */
+  readonly hasAccount?: boolean;
   readonly ticketId?: string;
   readonly onPrintOrder?: () => void;
   readonly onOpenManagement?: (target: "cancel" | "complaint") => void;
@@ -42,6 +44,7 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
   canManageBooking,
   canUnlock = false,
   bookedWithAccount = false,
+  hasAccount = false,
   ticketId,
   onPrintOrder,
   onOpenManagement,
@@ -76,6 +79,13 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
               <span>Phí dịch vụ</span>
               <span className="font-semibold text-foreground">{formatVnd(payment.serviceFeeVnd)}</span>
             </div>
+
+            {payment.discountVnd !== "0" && (
+              <div className="flex items-center justify-between text-emerald-700">
+                <span>Ưu đãi</span>
+                <span className="font-semibold">-{formatVnd(payment.discountVnd)}</span>
+              </div>
+            )}
           </div>
 
           <div className="pt-3 border-t border-border/50 flex items-center justify-between">
@@ -156,26 +166,28 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
         </div>
       </div>
 
-      {/* Khối 3: Tạo tài khoản Vé Xe Nhanh */}
+      {/* Khối 3: Mời đăng nhập khi đã có tài khoản, ngược lại mời tạo tài khoản */}
       <div className="rounded-2xl border border-amber-300/80 bg-amber-50/50 dark:bg-amber-950/20 p-5 sm:p-6 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-amber-950 dark:text-amber-200">
           <UserPlus className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
           <h4 className="font-bold text-sm">
-            Tạo tài khoản Vé Xe Nhanh
+            {hasAccount ? "Đăng nhập tài khoản Vé Xe Nhanh" : "Tạo tài khoản Vé Xe Nhanh"}
           </h4>
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Lưu lịch sử vé, hành khách thường đi và tích điểm VXN Plus cho các chuyến đặt sau khi đăng nhập.
+          {hasAccount
+            ? "Email này đã có tài khoản. Đăng nhập để xem toàn bộ vé, hủy vé, gửi khiếu nại và tích điểm VXN Plus."
+            : "Lưu lịch sử vé, hành khách thường đi và tích điểm VXN Plus cho các chuyến đặt sau khi đăng nhập."}
         </p>
 
-        <Link href="/register" className="block pt-1">
+        <Link href={hasAccount ? "/login?next=%2Fmy-tickets" : "/register"} className="block pt-1">
           <Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 text-xs font-bold border-amber-400/80 bg-background hover:bg-amber-100/50 dark:hover:bg-amber-900/40 text-amber-950 dark:text-amber-200"
           >
-            <span>Tạo tài khoản</span>
+            <span>{hasAccount ? "Đăng nhập" : "Tạo tài khoản"}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         </Link>

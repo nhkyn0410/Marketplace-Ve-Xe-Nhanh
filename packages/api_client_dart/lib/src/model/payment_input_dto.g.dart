@@ -39,9 +39,33 @@ final BuiltSet<PaymentInputDtoProviderEnum>
   _$paymentInputDtoProviderEnum_DEMO,
 ]);
 
+const PaymentInputDtoClientEnum _$paymentInputDtoClientEnum_WEB =
+    const PaymentInputDtoClientEnum._('WEB');
+const PaymentInputDtoClientEnum _$paymentInputDtoClientEnum_APP =
+    const PaymentInputDtoClientEnum._('APP');
+
+PaymentInputDtoClientEnum _$paymentInputDtoClientEnumValueOf(String name) {
+  switch (name) {
+    case 'WEB':
+      return _$paymentInputDtoClientEnum_WEB;
+    case 'APP':
+      return _$paymentInputDtoClientEnum_APP;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<PaymentInputDtoClientEnum> _$paymentInputDtoClientEnumValues =
+    BuiltSet<PaymentInputDtoClientEnum>(const <PaymentInputDtoClientEnum>[
+  _$paymentInputDtoClientEnum_WEB,
+  _$paymentInputDtoClientEnum_APP,
+]);
+
 Serializer<PaymentInputDtoProviderEnum>
     _$paymentInputDtoProviderEnumSerializer =
     _$PaymentInputDtoProviderEnumSerializer();
+Serializer<PaymentInputDtoClientEnum> _$paymentInputDtoClientEnumSerializer =
+    _$PaymentInputDtoClientEnumSerializer();
 
 class _$PaymentInputDtoProviderEnumSerializer
     implements PrimitiveSerializer<PaymentInputDtoProviderEnum> {
@@ -76,14 +100,45 @@ class _$PaymentInputDtoProviderEnumSerializer
           _fromWire[serialized] ?? (serialized is String ? serialized : ''));
 }
 
+class _$PaymentInputDtoClientEnumSerializer
+    implements PrimitiveSerializer<PaymentInputDtoClientEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'WEB': 'WEB',
+    'APP': 'APP',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'WEB': 'WEB',
+    'APP': 'APP',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[PaymentInputDtoClientEnum];
+  @override
+  final String wireName = 'PaymentInputDtoClientEnum';
+
+  @override
+  Object serialize(Serializers serializers, PaymentInputDtoClientEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  PaymentInputDtoClientEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      PaymentInputDtoClientEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$PaymentInputDto extends PaymentInputDto {
   @override
   final PaymentInputDtoProviderEnum provider;
+  @override
+  final PaymentInputDtoClientEnum? client;
 
   factory _$PaymentInputDto([void Function(PaymentInputDtoBuilder)? updates]) =>
       (PaymentInputDtoBuilder()..update(updates))._build();
 
-  _$PaymentInputDto._({required this.provider}) : super._();
+  _$PaymentInputDto._({required this.provider, this.client}) : super._();
   @override
   PaymentInputDto rebuild(void Function(PaymentInputDtoBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -94,13 +149,16 @@ class _$PaymentInputDto extends PaymentInputDto {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is PaymentInputDto && provider == other.provider;
+    return other is PaymentInputDto &&
+        provider == other.provider &&
+        client == other.client;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, provider.hashCode);
+    _$hash = $jc(_$hash, client.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -108,7 +166,8 @@ class _$PaymentInputDto extends PaymentInputDto {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'PaymentInputDto')
-          ..add('provider', provider))
+          ..add('provider', provider)
+          ..add('client', client))
         .toString();
   }
 }
@@ -122,6 +181,10 @@ class PaymentInputDtoBuilder
   set provider(PaymentInputDtoProviderEnum? provider) =>
       _$this._provider = provider;
 
+  PaymentInputDtoClientEnum? _client;
+  PaymentInputDtoClientEnum? get client => _$this._client;
+  set client(PaymentInputDtoClientEnum? client) => _$this._client = client;
+
   PaymentInputDtoBuilder() {
     PaymentInputDto._defaults(this);
   }
@@ -130,6 +193,7 @@ class PaymentInputDtoBuilder
     final $v = _$v;
     if ($v != null) {
       _provider = $v.provider;
+      _client = $v.client;
       _$v = null;
     }
     return this;
@@ -153,6 +217,7 @@ class PaymentInputDtoBuilder
         _$PaymentInputDto._(
           provider: BuiltValueNullFieldError.checkNotNull(
               provider, r'PaymentInputDto', 'provider'),
+          client: client,
         );
     replace(_$result);
     return _$result;

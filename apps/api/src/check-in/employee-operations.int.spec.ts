@@ -250,6 +250,13 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
       ["A1", "0*** *** 567", `Bến 0 ${tag}`, "VALID"],
       ["A2", "0*** *** 567", `Bến 0 ${tag}`, "VALID"],
     ]);
+    // Sơ đồ đủ 4 chỗ của chính chuyến này (A3, A4 chưa bán), không lẫn chỗ của chuyến thứ hai cùng nhà xe.
+    expect(manifest.seats).toEqual([
+      { code: "A1", deck: 1, row: 1, column: 1 },
+      { code: "A2", deck: 1, row: 1, column: 2 },
+      { code: "A3", deck: 1, row: 2, column: 1 },
+      { code: "A4", deck: 1, row: 2, column: 2 },
+    ]);
     expect(await rejectionOf(operations.manifest(authz, staff, first.tripId))).toMatchObject({ status: 404, code: "ASSIGNMENT_NOT_FOUND" });
 
     const byQr = await operations.verify(authz, driver, { tripId: first.tripId, code: qr.token(first.tickets[0]!.id) });

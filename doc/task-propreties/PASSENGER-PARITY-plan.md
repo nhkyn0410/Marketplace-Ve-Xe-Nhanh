@@ -18,7 +18,7 @@ AI chốt theo yêu cầu của Khanh ngày 14/11/2026. Khanh đổi được b�
 
 | # | Điểm lệch | Quyết định | Căn cứ | Bên sửa |
 | --- | --- | --- | --- | --- |
-| Q1 | Ba số tổng đài (4.2) | Mỗi nền tảng đọc số tổng đài từ **một cấu hình duy nhất**: web `NEXT_PUBLIC_SUPPORT_HOTLINE`, app `--dart-define=SUPPORT_HOTLINE`. **Bỏ ngay 1900 6067** vì đó là số tổng đài của nhà xe Phương Trang. Khi chưa có số thật: ẩn nút gọi, hiện email `support@vexenhanh.vn` | `AS-16` cho phép email hoặc ticket thay hotline | Web, App |
+| Q1 | Ba số tổng đài (4.2) | Mỗi nền tảng đọc số tổng đài từ **một cấu hình duy nhất**: web `NEXT_PUBLIC_SUPPORT_HOTLINE`, app `--dart-define=SUPPORT_HOTLINE`. **Bỏ ngay 1900 6067** vì đó là số tổng đài của nhà xe Phương Trang. **Khanh chốt 16/11/2026: dùng một số đồng bộ `1900 636 707`** (số có sẵn trong thiết kế app) làm mặc định cho cả hai; đặt biến rỗng thì ẩn nút gọi, hiện email `support@vexenhanh.vn` | `AS-16` cho phép email hoặc ticket thay hotline | Web, App |
 | Q2 | Ô đồng ý điều khoản (4.4) | Mặc định **chưa tick**, nút thanh toán khóa tới khi khách tự tick (như app) | SCR-PSG-20 trạng thái Empty: "Chưa đồng ý điều khoản → CTA vô hiệu"; NĐ 13/2023: im lặng không phải là đồng ý | Web |
 | Q3 | Tra cứu vé (4.5, 4.22, 4.25) | Theo `UC-35`: email bắt buộc, **mã đặt vé tùy chọn** ở cả hai. Có mã thì mở thẳng đơn đó; không có mã thì liệt kê đơn 12 tháng. Đơn đặt bằng tài khoản: hỏi "Bạn có muốn đăng nhập không?", **vẫn cho xem chi tiết chỉ đọc**, chặn hủy vé và khiếu nại | `UC-35` bước 1, 5, 6, A1b; SCR-PSG-27, SCR-PSG-29 | App (chính), Web (khối mời đăng nhập) |
 | Q4 | Tên hành khách từng chỗ (4.6) | **Mỗi chỗ phải có họ tên.** Chỗ 1 điền sẵn tên người liên hệ, sửa được. App bỏ việc tự lấy tên người liên hệ cho mọi chỗ để trống | `UC-04` bước 5 (thông tin hành khách đủ tối thiểu); danh sách hành khách cho nhà xe (`UC` manifest); web đã ghi "Họ tên cần khớp giấy tờ tùy thân khi lên xe" | App |
@@ -32,7 +32,7 @@ AI chốt theo yêu cầu của Khanh ngày 14/11/2026. Khanh đổi được b�
 | Q12 | Cách hủy vé (4.32) | **Giữ khác biệt**: lý do đều tùy chọn (web tự nhập, app chọn sẵn). App hủy từng vé là đủ cho hủy một phần. Chỉ sửa chữ "Hoàn về DEMO" | SCR-PSG-26: "Lý do để trống vẫn cho hủy", hủy một phần `PARTIALLY_CANCELLED` | App (chữ) |
 | Q13 | Nút "VI" trên web (4.33) | **Ẩn** | `AS-14`: v1 chỉ tiếng Việt | Web |
 | Q14 | In vé / PDF trên app (4.34) | **Ẩn "Tải vé này (PDF)"**; app dùng "Chia sẻ vé" (Q17). In vé chỉ có trên web | Mã QR trong app là vé lên xe; không thêm thư viện PDF ở v1 | App |
-| Q15 | Đăng nhập mạng xã hội | App **ẩn nút Facebook, Apple** khi chưa tích hợp. Web thêm nút Google ở giai đoạn 3, khi có cấu hình | ADR-020; SCR-PSG-07 | App, Web |
+| Q15 | Đăng nhập mạng xã hội | ~~App ẩn nút Facebook, Apple~~ → **Khanh chốt 16/11/2026: giữ hai nút tượng trưng** (bấm báo "chưa được tích hợp trong giai đoạn này", như hiện có). Web thêm nút Google ở giai đoạn 3, khi có cấu hình | ADR-020; SCR-PSG-07 | App, Web |
 | Q16 | Khiếu nại trên app (4.14) | **Làm màn khiếu nại trên app** bằng API đã có: danh sách, gửi, trao đổi. Đính kèm tệp làm đợt sau | `06 UI` §4: app có "support trên mobile"; SCR-PSG-30/31/32 | App |
 | Q17 | Bản đồ, chia sẻ ở chi tiết vé | App thêm **"Mở chỉ đường Goong"** (cùng link với web) và **"Chia sẻ vé"**. Bản đồ nhúng làm ở giai đoạn 3 | SCR-PSG-25 ("bản đồ điểm đón; in / chia sẻ / hủy"); ADR-027 | App |
 | Q18 | Lọc và sắp xếp chuyến | Web thêm lọc **Nhà xe, Tiện ích** và sắp xếp **"Đánh giá cao nhất"** (app đã có). Lọc theo điểm đón/trả và theo đánh giá: cả hai chưa có, để sau | `FR-MKT-03`, `FR-MKT-04` | Web |
@@ -43,11 +43,12 @@ AI chốt theo yêu cầu của Khanh ngày 14/11/2026. Khanh đổi được b�
 | Q23 | Ảnh báo cáo ~177 MB | Chuyển ảnh trong `doc/report/screenshots/` sang JPEG chất lượng 80 (ước 20–30 MB), sửa liên kết trong tài liệu. Không commit PNG gốc | Giữ repo nhẹ | Tài liệu |
 | Q24 | Nhánh làm việc | Nhánh mới `fix/passenger-parity` từ `master` (CLAUDE.md §4.7). 13 sửa web ngày 12/11 (đang chưa commit trên `feat/new-notification`) commit trước thành một commit riêng | Tách khỏi nhánh thông báo chưa merge | — |
 
-**Còn chờ Khanh:**
+**Đã chốt 16/11/2026** (Khanh: "Sử dụng số tổng đài đồng bộ", "A8 để tượng trưng", "Quyết định giúp tôi các đặc tả api"):
 
-- Số tổng đài thật của sàn (Q1). Chưa có thì giữ trống, giao diện tự ẩn nút gọi.
-- Có bật cổng DEMO trên production không (Q5). ADR-029 vẫn Proposed; cổng DEMO cho thanh toán không mất tiền.
-- Duyệt các đoạn đặc tả đang "chờ duyệt" mà quyết định dựa vào: `UC-35` bản 27/10, SCR-PSG-12 bản 02/11, khối đánh giá ở SCR-PSG-25.
+- Số tổng đài (Q1): `1900 636 707` cho cả web và app.
+- A8 (Q15): giữ nút Facebook, Apple tượng trưng, không ẩn.
+- Cổng DEMO (Q5): **không bật trên production**; bản demo đã có VNPay sandbox để thanh toán thử không mất tiền. DEMO chỉ dùng ở máy phát triển / E2E (`PAYMENT_DEMO_ENABLED`), máy chủ tự tắt DEMO khi có payOS. Không cần đổi code.
+- Đặc tả: chốt các đoạn mà quyết định dựa vào — 05 API v0.53 (`/trips/search`, `/trips/{tripId}`, `/payment-providers`, `/guest/ticket-lookup*`, `/promotions/check`, `/me/reviews`), 01 SRS v1.41 (`UC-35` bản 27/10), 06 UI v0.49 (SCR-PSG-12 bản app 02/11, khối đánh giá SCR-PSG-25). Trạng thái tài liệu giữ Review (promote vẫn do Khanh). Hợp đồng payOS (ADR-029 Proposed) không thuộc đợt này.
 
 ## 2. Việc cần làm theo giai đoạn
 
@@ -202,3 +203,111 @@ AI chốt theo yêu cầu của Khanh ngày 14/11/2026. Khanh đổi được b�
 | 4.17 | A11 | 4.34 | A9 |
 
 Tổng: giai đoạn 1 có 25 việc (11 web, 12 app, 2 API) + R1; giai đoạn 2 có 18 việc; giai đoạn 3 có 8 việc.
+
+## 5. Tiến độ giai đoạn 1 (cập nhật 16/11/2026)
+
+Làm trên nhánh `fix/passenger-parity`, tách từ `develop` (không phải `master` như Q24: Khanh đã commit và merge 13 sửa web, tài liệu và ảnh vào `develop` ngày 14/11). **Chưa commit, chưa review.**
+
+| Nhóm | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| Web W1–W11 | Xong | 142 test đạt, typecheck và lint sạch. Trên trình duyệt mới xem được trang chủ (không còn nút "VI", không còn 1900 6067, hiện email hỗ trợ); các trang cần API chưa xem vì Docker tắt |
+| API P1 | Xong | Vitest |
+| API P2 | Xong phần ghi mã lỗi; nguyên nhân nằm ở sandbox | 1.422 test đơn vị đạt; test tích hợp bị bỏ qua vì không có database |
+| App A1–A7, A9–A12 | Xong | 404 test đạt, `flutter analyze` sạch. Chưa chạy trên máy ảo |
+| App A8 | **Không làm** — Khanh chốt 16/11/2026 giữ nút tượng trưng | — |
+| R1 | **Bỏ** | — |
+
+Ghi chú:
+
+- **A8 (ẩn nút Facebook, Apple):** màn đăng nhập của app làm theo chuyển động Figma với đúng 35 thành phần và có 3 test kiểm tra con số này; còn một test ghi rõ "Apple chưa hỗ trợ vẫn báo rõ". Ẩn hai nút sẽ phá các test đó, nên Q15 cần Khanh xác nhận lại trước khi làm.
+- **R1 (nén ảnh):** 372 ảnh PNG đã nằm trong lịch sử git từ commit ngày 14/11, nén lúc này không làm repo nhẹ đi.
+- **P2 (VNPay):** sandbox trả `99 Unexpected error` cho mọi yêu cầu `querydr` và `refund` đủ tham số, kể cả khi cố tình ký sai hoặc dùng mã merchant sai (đáng lẽ phải ra 97 / 02). Yêu cầu thiếu tham số thì được báo đúng ("Parameter required", "Command not support"). Vậy lỗi không nằm ở tham số mình gửi. Đã sửa để hồ sơ hoàn tiền và nhật ký đối soát ghi mã lỗi (`errorCodes`, vd `VNPAY:99`). Chưa kiểm tra trên production.
+- **A12 (ký hiệu tiền):** đổi sang "đ" làm dòng tổng tiền ở thanh dưới màn Xác nhận đặt vé không còn xuống dòng, thanh thấp đi 27px. Bốn test luồng đặt vé bấm ô đồng ý khi danh sách chưa cuộn xong nên bị trượt; đã sửa test để chờ cuộn xong.
+- **Còn dùng "₫":** email và hộp thư thông báo do máy chủ sinh ra (`notification-templates.ts`) vì mẫu này dùng chung cho cả nhà xe.
+- **Cấu hình mới:** `NEXT_PUBLIC_SUPPORT_HOTLINE` (web) và `SUPPORT_HOTLINE` (app, `--dart-define`). Để trống thì giao diện hiện email hỗ trợ.
+
+## 6. Tiến độ giai đoạn 2 (cập nhật 16/11/2026)
+
+Cùng nhánh `fix/passenger-parity`, nối tiếp giai đoạn 1. **Chưa commit, chưa review.**
+
+| Việc | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| P3 | Xong: `GET /v1/payment-providers` công khai; sinh lại client TS + Dart; 05 API v0.52 (chờ duyệt) | HTTP spec; 54 test thanh toán; typecheck, lint |
+| W12 | Xong: ngày đi mặc định là ngày mai (giờ VN) | Vitest |
+| W13 | Xong: nhãn đơn đã đóng + trạng thái hoàn tiền ở danh sách; khối hoàn tiền từng lần ở chi tiết vé | Vitest |
+| W14 | Xong: lọc Nhà xe (nhà xe có chuyến, kèm số chuyến) và Tiện ích; sắp xếp "Đánh giá cao nhất" | Vitest |
+| W15 | Xong: khối đánh giá dưới thẻ vé (chỉ tài khoản, máy chủ quyết định được đánh giá không); form chấm sao tách thành component dùng chung với "Đánh giá của tôi" | Vitest |
+| W16 | Xong: đếm ngược hiệu lực OTP 5 phút | Vitest |
+| W17 | Xong: danh sách cổng theo P3; cổng chưa bật hiện mờ "Sắp hỗ trợ"; DEMO ẩn khi chưa bật | Vitest |
+| A13 | Xong: ô mã đặt vé tùy chọn, có mã thì mở thẳng đơn; đơn tài khoản hỏi đăng nhập một lần rồi xem chỉ đọc (ẩn hủy vé, gửi yêu cầu); nhãn "Đặt bằng tài khoản"; mời đăng nhập khi email có tài khoản; dòng "Không còn dùng email đặt vé?" | Widget test |
+| A14 | Xong: mỗi chỗ một thẻ họ tên bắt buộc; chỗ 1 điền sẵn theo người liên hệ cho tới khi khách sửa | Widget test |
+| A15 | Xong: "Tất cả tuyến" khi tìm theo nhà xe | Widget test |
+| A16 | Xong: ô ghi chú cho nhà xe tối đa 300 ký tự, gửi kèm khi tạo đơn | Widget test |
+| A17 | Xong: tab Sắp tới / Đã đi / Đã hủy / Tất cả có đếm + ô tìm (mã, tuyến, nhà xe); trống thì có nút "Đặt vé mới" | Widget test |
+| A18 | Đã có trên `develop` (PR #78), không làm thêm | — |
+| A19 | Xong: chuyên mục Khám phá lấy từ `GET /v1/article-categories` kèm số bài | Widget test |
+| A20 | Xong: voucher chưa đạt đơn tối thiểu bị khóa và ghi lý do ngay trong bảng chọn | Widget test |
+| A21 | Xong phần tra cứu vé: hiện "Còn N lần thử" và câu báo của máy chủ. OTP đăng nhập chỉ báo sai mã (API không trả số lần còn lại) | Widget test |
+| A22 | Xong: "Mở chỉ đường Goong" (cùng link web) và "Chia sẻ vé" (không kèm mã QR) | Widget test |
+| A23 | Xong: cổng theo P3; đang tải thì khóa "Tiếp tục"; tải lỗi thì giữ bốn cổng như trước | Widget test |
+
+Tổng: web 165 test, app 422 test, `flutter analyze` sạch; lint + typecheck web và API sạch. Chưa xem trên trình duyệt / máy ảo; chưa chạy test tích hợp cần database.
+
+Ghi chú:
+
+- **A2 (giai đoạn 1) thu hồi:** snackbar đơn tài khoản nay là hộp thoại (A13), phần chỉnh snackbar thành thừa nên trả về như cũ.
+- **A14 đổi hành vi:** trước đây chỗ để trống lấy tên người liên hệ; nay phải nhập, nên nhiều test cũ của màn Thông tin được sửa theo.
+- **A15:** `HomeSearchQuery.from/to` được phép rỗng khi chọn "Tất cả tuyến"; màn kết quả ghi "Tất cả tuyến" ở ô điểm đi / đến.
+- **A21 – OTP đăng nhập:** muốn hiện "Còn N lần thử" cần API trả số lần còn lại (Better Auth tự đếm). Để thành việc riêng nếu Khanh cần.
+- **A8:** Khanh chốt 16/11/2026 giữ nút Facebook, Apple tượng trưng — không đổi code.
+- **Số tổng đài (16/11/2026):** mặc định `1900 636 707` ở `apps/marketplace/lib/support-contact.ts` (`DEFAULT_SUPPORT_HOTLINE`) và `apps/passenger_mobile/lib/features/common/support_contact.dart` (`defaultSupportHotline`); `.env.example` hai bên cùng số. Trang chính sách trong dữ liệu mẫu (`apps/api/prisma/seed-data`, không nằm trong git) đổi theo; trang đã nằm trong database production (nếu còn ghi 1900 6067) phải sửa ở Admin → Nội dung.
+
+## 7. Tiến độ giai đoạn 3 (cập nhật 16/11/2026)
+
+Cùng nhánh `fix/passenger-parity`, nối tiếp commit `6943b2ce` (giai đoạn 1–2). **Chưa commit, chưa review.**
+
+| Việc | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| W18 | Xong, **khác cách trong kế hoạch**: luồng chuyển hướng `POST /auth/oauth/{provider}` không chạy được từ web (cookie `state` và phiên Better Auth nằm ở domain API, CORS không mở cho web, máy chủ web không đọc được), nên web dùng Google Identity Services lấy ID token rồi Server Action gọi `POST /auth/oauth/google/id-token` — endpoint app đang dùng — và lưu cookie như đăng nhập OTP. Nút chỉ hiện khi có `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (cùng `GOOGLE_CLIENT_ID` của API). `/auth/callback` giữ nguyên. 05 API v0.55 (chờ duyệt) | Vitest (Server Action + giao diện) |
+| A24 | Xong: màn "Khiếu nại và hỗ trợ" — tab Đang xử lý / Đã đóng có đếm, gửi khiếu nại (danh mục, mức độ gợi ý, tiêu đề 3–200, nội dung ≤2000 ký tự), chi tiết + trao đổi (nhắc khi "Chờ bạn bổ sung", khóa phản hồi khi Đã đóng). Mở từ chi tiết vé (đúng đơn, thay nút chỉ gọi tổng đài) và từ Tài khoản (chọn đơn). Đính kèm: chỉ hiện tên tệp, tải lên làm đợt sau. Khách vãng lai vẫn gọi tổng đài | Widget test + test lớp API |
+| A25 + P4 | Xong: `POST /bookings/{id}/payments` nhận `client` (`WEB` mặc định / `APP`); `APP` → cổng quay về `{PAYMENT_RETURN_BASE_URL}/app/bookings/{id}/payment/result`. App gửi `APP`, khai App Link cho đường dẫn đó (host = `APP_LINK_HOST`), tắt deep link sẵn có của Flutter; app còn chạy thì màn thanh toán tự kiểm tra khi được mở lại, app đã bị đóng thì mở đơn trong "Vé của tôi". Web: `/.well-known/assetlinks.json` từ `ANDROID_APP_PACKAGE` + `ANDROID_APP_CERT_SHA256`, trang dự phòng nhắc quay lại app. 05 API v0.54 (chờ duyệt). Sinh lại client TS + Dart | Vitest API + web, test app; build APK debug, kiểm manifest gộp |
+| A26 | Xong: FAQ có ô tìm, gợi ý nhanh, đếm số câu, khối liên hệ CSKH; tải lỗi có "Thử lại" | Widget test |
+| A27 | Xong: ví voucher tab Khả dụng / Đang giữ / Đã dùng / Hết hạn có đếm và nhãn trạng thái; tải đủ mọi trạng thái | Widget test |
+| A28 | 4 thẻ tổng, tab theo loại, lọc thời gian đã có sẵn; bổ sung: lịch sử trống vẫn hiện tổng quan điểm | Widget test |
+| A29 | Xong (web + app): tối đa 3 bài cùng chuyên mục dưới bài viết | Vitest + widget test |
+| A30 | Xong: bản đồ điểm dừng nền Goong (`maplibre_gl`, chỉ xem, đánh số theo Lịch trình, trạm nghỉ màu cam; cần `GOONG_MAPTILES_KEY`) và khối đánh giá nhà xe (điểm trung bình, 3 đánh giá mới nhất, "Xem tất cả" mở trang nhà xe) | Widget test + test hàm thuần |
+
+Tổng: web 174 test, typecheck + lint sạch; app 451 test, `flutter analyze` sạch; API 1.425 test qua (520 bỏ qua vì cần database thật), typecheck sạch, lint các tệp đã đổi sạch — lần chạy đầu lúc máy đang chạy song song app + web có 2 test hỏng, chạy lại trên máy rảnh thì qua hết; client Dart `dart analyze` 0 lỗi. Đã xem trên trình duyệt (Next dev, biến môi trường giả): nút Google ở trang đăng nhập, trang dự phòng `/app/bookings/…/payment/result`, `/.well-known/assetlinks.json`. Build APK debug với `APP_LINK_HOST` thử: manifest gộp đúng host. Chưa làm: chạy App Link trên máy thật / máy ảo, đăng nhập Google thật, bản đồ với khóa Goong thật, test tích hợp cần database.
+
+Ghi chú:
+
+- **Cần cấu hình để chạy thật.** W18: Google Cloud Console thêm origin web vào "Authorized JavaScript origins" của client ID loại Web. A25: API `PAYMENT_RETURN_BASE_URL` = origin web; app `APP_LINK_HOST` = host đó (file `.env` khi build); web `ANDROID_APP_PACKAGE` + `ANDROID_APP_CERT_SHA256` (bản build hiện ký bằng khóa debug của máy build nên vân tay đổi theo máy). A30: `GOONG_MAPTILES_KEY` khi build app.
+- **A25 chưa thử trên thiết bị:** lúc làm không có máy ảo / điện thoại nối vào. Payment đang mở được dùng lại theo đơn + cổng, nên link đã tạo từ web trước đó vẫn quay về trang web.
+- **Lỗi phát hiện khi làm A24:** nút "Thử lại" của FAQ (A26) gọi `setState` trả về Future — đã sửa, thêm test.
+- **Test tích hợp thanh toán** (`payment.int.spec.ts`) thêm ca `client: APP` nhưng bị bỏ qua ở máy này vì cần Postgres + Redis thật.
+- **Client Dart sinh lại bằng Docker (RB-04):** chỉ `PaymentInputDto` đổi nội dung; các tệp khác chỉ khác kiểu xuống dòng, git không tính là thay đổi.
+
+## 8. Giai đoạn 4 (cập nhật 16/11/2026)
+
+Kế hoạch chỉ có 3 giai đoạn; Khanh chọn ngày 16/11/2026 ba phần cho "giai đoạn 4": phần còn dở của giai đoạn 3, backlog chung web + app, kiểm chứng cuối. Nối tiếp commit `3bff3c21` (giai đoạn 3). **Chưa commit, chưa review.**
+
+| Việc | Kết quả | Kiểm chứng |
+| --- | --- | --- |
+| A21 (OTP đăng nhập) | API: OTP sai vẫn 401 `AUTH_INVALID_CREDENTIALS`, `detail` ghi "Còn N lần thử." (đọc bản ghi Better Auth `sign-in-otp-{email}`), hết lượt / hết hạn thì nhắc gửi lại mã; chưa có bản ghi thì giữ câu chung. Web hiện sẵn `detail`; app hiện câu của máy chủ thay câu chung | Vitest API, test app |
+| A24 đợt 2 | App: đính kèm ảnh / PDF (≤ 10 MB, tối đa 5 tệp) khi gửi khiếu nại và khi phản hồi — xin URL rồi tải thẳng lên kho; bấm tệp đã gửi để mở bằng URL có hạn. Thêm thư viện `file_picker` (chỉ là plugin chọn tệp). Hàng tab Đang xử lý / Đã đóng đổi sang `Wrap` (tràn ngang ở màn hẹp) | Widget test + test lớp API |
+| Lọc điểm đón / trả, đánh giá (FR-MKT-03) | API: `GET /trips/search` thêm `pickupPoint`, `dropoffPoint` (theo tên), `minRating` (1–5) và `facets.pickupPoints` / `facets.dropoffPoints`. Web: hai ô chọn điểm + nhóm "Đánh giá nhà xe" (Từ 3 / 4 / 4,5 ★). App: các mục tương ứng trong bảng lọc + chip gỡ từng điều kiện. 05 API v0.56 (chờ duyệt) | Vitest API + web, widget test |
+| Gửi lại email vé (SCR-PSG-22) | API: `POST /bookings/{bookingId}/tickets/email` (chủ đơn hoặc mã truy cập), xếp lại thông báo vé điện tử tới email liên hệ của đơn, 1 lần / phút và 5 lần / ngày. Web: nút ở màn thanh toán thành công; app: nút ở màn hoàn tất thanh toán | Vitest API (service + HTTP) + web, widget test |
+
+**Kiểm chứng cuối (16/11/2026):**
+
+- Bộ test: web 178 test, typecheck + lint sạch; API 1.435 test (520 bỏ qua vì cần database thật), typecheck sạch; app `flutter analyze` sạch, 457 test; sau đó sửa bảng lọc và thêm 1 test, chạy lại riêng test Kết quả + Mua vé (qua).
+- API nhánh chạy cổng 3100 trên DB nhân bản `vxn_parity_check` (từ `vxn_web_shots`, đã xoá sau khi xong): facet điểm đón / trả có trên 300 chuyến; lọc `pickupPoint` = Bến xe Miền Tây → 15 chuyến; `minRating` = 7 → 400.
+- Web (Next dev 3002 → API 3100, Playwright): chọn "Bến xe Miền Tây" + "Từ 4 ★" → URL mang đúng tham số, còn 3 chuyến.
+- Máy ảo Pixel_6 (APK debug, `APP_LINK_HOST=app-link-check.example`): App Link đăng ký cho `MainActivity`; mở link khi app đang chạy → cùng tiến trình, chỉ đưa app lên trước (màn thanh toán giữ nguyên); app đã tắt → mở bình thường, không lỗi route. Tên miền thử không xác minh được (đúng dự kiến) — xác minh thật cần tên miền web + `assetlinks.json` thật.
+- Bảng lọc app trên máy ảo: chọn điểm trả Rạch Giá → "Bộ lọc · 1", chỉ còn chuyến tới Rạch Giá. Lỗi phát hiện khi thử: chế độ xem mọi tuyến có hàng chục điểm làm bảng lọc rất dài → sửa: hiện 6 điểm nhiều chuyến nhất + "Xem thêm N điểm".
+- Chưa làm: chụp lại toàn bộ màn S01–S66 và cập nhật tài liệu so sánh; gửi lại email vé và đính kèm khiếu nại chưa thử đầu-cuối (cần đăng nhập / đơn đã thanh toán trên DB nhân bản); đăng nhập Google thật.
+
+Ghi chú:
+
+- Gửi lại email vé dùng lại loại thông báo `BOOKING_CONFIRMED` nên ngoài email, hộp thư / push của app cũng có thêm một tin "vé đã xác nhận" mỗi lần gửi lại.
+- Client TS + Dart sinh lại; `pnpm gen:api-client` lỗi ở bước `pnpm --filter @vexenhanh/types build` trên máy này nên chạy từng bước bằng tay (build types, `tsc -p tsconfig.build.json`, `generate-openapi.js`, `openapi-typescript`). `OpenApiModule` thêm stub `TicketEmailService`.

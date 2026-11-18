@@ -21,7 +21,7 @@ export interface PaymentSummarySidebarProps {
   readonly dropoffPoint: SeatLocationPoint;
   readonly passengers: readonly CheckoutPassengerItem[];
   readonly priceSummary: CheckoutPriceSummary;
-  readonly selectedPaymentMethod: SupportedPaymentMethod;
+  readonly selectedPaymentMethod?: SupportedPaymentMethod;
   readonly isAgreedTerms: boolean;
   readonly onPayNow?: () => void;
 }
@@ -42,7 +42,9 @@ export function PaymentSummarySidebar({
   isAgreedTerms,
   onPayNow
 }: PaymentSummarySidebarProps) {
-  const methodLabel = selectedPaymentMethod === "vnpay" ? "VNPay" : "MoMo";
+  const methodLabel = selectedPaymentMethod ? { payos: "payOS", momo: "MoMo", vnpay: "VNPay", demo: "thử" }[selectedPaymentMethod] : "";
+  // Chưa đồng ý điều khoản hoặc chưa có cổng nào dùng được thì khóa nút thanh toán.
+  const canPay = isAgreedTerms && Boolean(selectedPaymentMethod);
 
   return (
     <aside className="w-full lg:w-[360px] xl:w-[380px] shrink-0 sticky top-6">
@@ -161,10 +163,10 @@ export function PaymentSummarySidebar({
           <div className="space-y-3">
             <button
               type="button"
-              disabled={!isAgreedTerms}
+              disabled={!canPay}
               onClick={onPayNow}
               className={`w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-xs transition text-center ${
-                isAgreedTerms
+                canPay
                   ? "bg-[#00506a] hover:bg-[#00476b] active:scale-[0.99] cursor-pointer"
                   : "bg-neutral-300 cursor-not-allowed"
               }`}
@@ -175,7 +177,7 @@ export function PaymentSummarySidebar({
             {/* Dòng bảo mật */}
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
               <Lock className="h-3 w-3 text-neutral-400" />
-              <span>Thanh toán an toàn qua cổng {methodLabel}</span>
+              <span>{methodLabel ? `Thanh toán an toàn qua cổng ${methodLabel}` : "Thanh toán an toàn qua cổng đối tác"}</span>
             </div>
           </div>
         </div>

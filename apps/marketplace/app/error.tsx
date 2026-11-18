@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { PassengerTopBar } from "../components/passenger-topbar";
+import { SUPPORT_EMAIL, SUPPORT_HOTLINE } from "../lib/support-contact";
 
 /**
  * Thuộc tính của trang xử lý lỗi toàn cục Next.js (Error Boundary).
@@ -64,7 +65,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
         {/* Mô tả chi tiết */}
         <p className="mt-3 max-w-lg text-sm leading-relaxed text-vxn-fg-3">
-          Hệ thống gặp sự cố khi xử lý yêu cầu. Vui lòng thử lại; nếu lỗi lặp lại, hãy liên hệ CSKH 1900 6067 kèm mã tham chiếu bên dưới.
+          Hệ thống gặp sự cố khi xử lý yêu cầu. Vui lòng thử lại; nếu lỗi lặp lại, hãy liên hệ CSKH {SUPPORT_HOTLINE?.label ?? `qua email ${SUPPORT_EMAIL}`} kèm mã tham chiếu bên dưới.
         </p>
 
         {/* Khung mã tham chiếu */}

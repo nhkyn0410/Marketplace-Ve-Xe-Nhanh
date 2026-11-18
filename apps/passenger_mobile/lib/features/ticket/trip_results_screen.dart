@@ -67,6 +67,9 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
         priceMax: _filters.priceMax,
         amenityIds: _filters.amenityIds,
         operatorId: operator.id,
+        pickupPoint: _filters.pickupPoint,
+        dropoffPoint: _filters.dropoffPoint,
+        minRating: _filters.minRating,
         sort: _filters.sort,
       );
       _operatorName ??= operator.name;
@@ -226,8 +229,8 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
             return _TripCard(
               key: ValueKey('results-trip-${trip.tripId}'),
               trip: trip,
-              fromLabel: query.from.name,
-              toLabel: query.to.name,
+              fromLabel: query.from?.name ?? trip.pickup.name,
+              toLabel: query.to?.name ?? trip.dropoff.name,
               onOpenDetail: () => widget.onTripSelected?.call(trip, query),
             );
           },
@@ -361,6 +364,8 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
         priceMin: _page?.priceMin,
         priceMax: _page?.priceMax,
         loadAmenities: widget.searchCatalog?.loadAmenities,
+        pickupPoints: _page?.pickupPoints ?? const [],
+        dropoffPoints: _page?.dropoffPoints ?? const [],
       ),
     );
     if (result != null && mounted) _applyFilters(result);
@@ -667,17 +672,21 @@ class _SearchSummaryCard extends StatelessWidget {
 class _SummaryPlace extends StatelessWidget {
   const _SummaryPlace({required this.location});
 
-  final HomeLocation location;
+  /// `null` = tìm theo nhà xe trên mọi tuyến.
+  final HomeLocation? location;
 
   @override
   Widget build(BuildContext context) {
-    final detail = location.detail;
+    final location = this.location;
+    final detail = location?.detail;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          _compactPlace(location.name),
+          location == null
+              ? allOperatorRoutesLabel
+              : _compactPlace(location.name),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -1030,6 +1039,12 @@ class _ActiveFilterChips extends StatelessWidget {
           '${filters.amenityIds.length} tiện ích',
           _copy(filters, clearAmenities: true),
         ),
+      if (filters.pickupPoint != null)
+        ('Đón: ${filters.pickupPoint}', _copy(filters, clearPickup: true)),
+      if (filters.dropoffPoint != null)
+        ('Trả: ${filters.dropoffPoint}', _copy(filters, clearDropoff: true)),
+      if (filters.minRating != null)
+        (formatMinRating(filters.minRating!), _copy(filters, clearRating: true)),
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -1058,6 +1073,9 @@ class _ActiveFilterChips extends StatelessWidget {
     bool clearPrice = false,
     bool clearAmenities = false,
     bool clearOperator = false,
+    bool clearPickup = false,
+    bool clearDropoff = false,
+    bool clearRating = false,
   }) {
     return TripSearchFilters(
       vehicleForm: clearVehicleForm ? null : source.vehicleForm,
@@ -1067,6 +1085,9 @@ class _ActiveFilterChips extends StatelessWidget {
       priceMax: clearPrice ? null : source.priceMax,
       amenityIds: clearAmenities ? const {} : source.amenityIds,
       operatorId: clearOperator ? null : source.operatorId,
+      pickupPoint: clearPickup ? null : source.pickupPoint,
+      dropoffPoint: clearDropoff ? null : source.dropoffPoint,
+      minRating: clearRating ? null : source.minRating,
       sort: source.sort,
     );
   }

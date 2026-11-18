@@ -10,6 +10,7 @@ Future<void> _pumpScreen(
   double width = 412,
   double height = 900,
   bool disableAnimations = false,
+  Future<String> Function()? resendTicketEmail,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -33,6 +34,7 @@ Future<void> _pumpScreen(
       home: PaymentCompletionScreen(
         selectedSeats: _seats,
         passengerNames: _passengerNames,
+        resendTicketEmail: resendTicketEmail,
       ),
     ),
   );
@@ -51,6 +53,32 @@ String _textAt(WidgetTester tester, String key) {
 }
 
 void main() {
+  // SCR-PSG-22 (PASSENGER-PARITY giai đoạn 4): gửi lại email vé.
+  testWidgets('gửi lại email vé: báo email đã che; không có hàm gửi thì không hiện nút', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpScreen(
+      tester,
+      height: 2000,
+      disableAnimations: true,
+      resendTicketEmail: () async {
+        calls++;
+        return 'k***@example.com';
+      },
+    );
+    await tester.tap(find.byKey(const Key('payment-completion-resend-email')));
+    await tester.pumpAndSettle();
+    expect(calls, 1);
+    expect(find.text('Đã gửi lại vé tới k***@example.com.'), findsOneWidget);
+
+    await _pumpScreen(tester, height: 2000, disableAnimations: true);
+    expect(
+      find.byKey(const Key('payment-completion-resend-email')),
+      findsNothing,
+    );
+  });
+
   testWidgets('hiển thị đủ dữ liệu vé mô phỏng của hành khách đầu tiên', (
     tester,
   ) async {
@@ -146,13 +174,16 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.scrollUntilVisible(
-      find.byKey(const Key('download-ticket')),
+      find.text('Vé sau'),
       420,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pump();
 
-    expect(find.byKey(const Key('download-ticket')), findsOneWidget);
+    expect(find.text('Vé sau'), findsOneWidget);
+    // v1 chưa có tải vé PDF: không còn nút bấm vào chỉ báo "chưa hỗ trợ".
+    expect(find.byKey(const Key('download-ticket')), findsNothing);
+    expect(find.textContaining('PDF'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

@@ -249,7 +249,9 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
                     if (data.transactions.isEmpty &&
                         _query.type == PointTypeFilter.all &&
                         _query.date == PointDateFilter.all) {
+                      // Tài khoản chưa có giao dịch vẫn thấy 4 ô tổng (bằng 0) như web (SCR-PSG-34, S46).
                       return _PointHistoryEmpty(
+                        overview: _PointOverview(data: data),
                         onLearnMore: widget.onLearnMore,
                       );
                     }
@@ -677,20 +679,31 @@ Size _transactionIconSize(PointTransactionKind kind) => switch (kind) {
 };
 
 class _PointHistoryEmpty extends StatelessWidget {
-  const _PointHistoryEmpty({this.onLearnMore});
+  const _PointHistoryEmpty({this.onLearnMore, this.overview});
   final VoidCallback? onLearnMore;
+
+  /// Ô tổng điểm (hiện có / đã tích / đã đổi / hết hạn) đặt trên phần trống.
+  final Widget? overview;
 
   @override
   Widget build(BuildContext context) {
+    final overview = this.overview;
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        child: SizedBox(
+        child: ConstrainedBox(
           key: const Key('point-history-empty'),
-          height: constraints.maxHeight,
+          // Máy thấp: nội dung dài hơn màn thì cuộn, không tràn.
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Column(
             children: [
-              const SizedBox(height: 124),
+              if (overview == null)
+                const SizedBox(height: 124)
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 11, 16, 28),
+                  child: overview,
+                ),
               SvgPicture.asset(
                 '$_assetRoot/empty_history.svg',
                 width: 180,

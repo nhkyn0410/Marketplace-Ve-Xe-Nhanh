@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
+import 'package:passenger_mobile/features/journey/guest_ticket_detail_screen.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/journey/journey_models.dart';
+import 'package:passenger_mobile/features/journey/journey_ticket_filters.dart';
 
 JourneyBooking _booking({
   bool cancelled = false,
@@ -86,6 +88,9 @@ class _FakeJourneyApi implements JourneyApi {
   ApiFailure? reviewLoadFailure;
   ApiFailure? reviewSubmitFailure;
 
+  /// Câu máy chủ trả khi nhập sai mã tra cứu.
+  String otpFailureDetail = 'Sai mã';
+
   @override
   Future<JourneyReviewStatus> loadReview(String bookingId) async {
     calls.add('review-load:$bookingId');
@@ -105,8 +110,11 @@ class _FakeJourneyApi implements JourneyApi {
   }
 
   @override
-  Future<JourneyLookupOtp> requestLookupOtp(String email) async {
-    calls.add('otp:$email');
+  Future<JourneyLookupOtp> requestLookupOtp(
+    String email, {
+    String? bookingCode,
+  }) async {
+    calls.add(bookingCode == null ? 'otp:$email' : 'otp:$email:$bookingCode');
     return const JourneyLookupOtp(
       maskedEmail: 'kh***@example.com',
       expiresInSeconds: 300,
@@ -115,13 +123,17 @@ class _FakeJourneyApi implements JourneyApi {
   }
 
   @override
-  Future<String> verifyLookupOtp(String email, String otp) async {
-    calls.add('verify:$otp');
+  Future<String> verifyLookupOtp(
+    String email,
+    String otp, {
+    String? bookingCode,
+  }) async {
+    calls.add(bookingCode == null ? 'verify:$otp' : 'verify:$otp:$bookingCode');
     if (otp != '123456') {
-      throw const ApiFailure(
+      throw ApiFailure(
         status: 422,
         code: 'TICKET_LOOKUP_OTP_INVALID',
-        detail: 'Sai mã',
+        detail: otpFailureDetail,
       );
     }
     return 'lookup-token-0123456789-abcdef';
@@ -139,6 +151,15 @@ class _FakeJourneyApi implements JourneyApi {
   Future<String> grantLookupAccess(String lookupToken, String bookingId) async {
     calls.add('access:$bookingId');
     return 'access-token';
+  }
+
+  @override
+  Future<JourneyBooking> lookupBooking(
+    String lookupToken,
+    String bookingId,
+  ) async {
+    calls.add('lookup:$bookingId');
+    return _booking(cancelled: cancelled);
   }
 
   @override
@@ -188,10 +209,19 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpAndSettle();
 }
 
+/// Chạm sau khi cuộn tới (thanh tab / ô tìm đẩy thẻ vé xuống dưới màn nhỏ).
+Future<void> _tapVisible(WidgetTester tester, Key key) async {
+  await tester.ensureVisible(find.byKey(key));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(key));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _openDetail(WidgetTester tester, JourneyApi api) async {
   await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
-  await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-  await tester.pumpAndSettle();
+  // Vé đã đi nằm ở tab "Đã đi"; tab "Tất cả" luôn có đơn mẫu.
+  await _tapVisible(tester, const Key('journey-tab-all'));
+  await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 }
 
 Future<void> _enterOtp(WidgetTester tester, String otp) async {
@@ -239,8 +269,7 @@ void main() {
     expect(find.text('TP. Hồ Chí Minh → Đà Lạt'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'results');
 
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
     expect(api.calls, contains('access:b-1'));
     expect(api.calls, contains('load:b-1:access-token'));
     expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
@@ -275,6 +304,69 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // PASSENGER-PARITY A17 / Q6 (SCR-PSG-24): tab có đếm + ô tìm.
+  test('chia đơn vào tab như web và lọc theo mã / tuyến / nhà xe', () {
+    final bookings = _ManyBookingsApi.items;
+    expect(bookings.map(journeyTicketTabOf), [
+      JourneyTicketTab.upcoming,
+      JourneyTicketTab.completed,
+      JourneyTicketTab.cancelled,
+      JourneyTicketTab.upcoming,
+    ]);
+    expect(journeyTicketCounts(bookings), {
+      JourneyTicketTab.upcoming: 2,
+      JourneyTicketTab.completed: 1,
+      JourneyTicketTab.cancelled: 1,
+      JourneyTicketTab.all: 4,
+    });
+    String codes(JourneyTicketTab tab, String query) => filterJourneyBookings(
+      bookings,
+      tab,
+      query,
+    ).map((booking) => booking.bookingCode).join(',');
+    expect(codes(JourneyTicketTab.all, 'vxn-past'), 'VXN-PAST01');
+    expect(codes(JourneyTicketTab.all, 'nha trang'), 'VXN-NT0001');
+    expect(codes(JourneyTicketTab.upcoming, 'sao mai'), 'VXN-TEST01');
+    expect(codes(JourneyTicketTab.cancelled, 'đà lạt'), 'VXN-CANCEL');
+  });
+
+  testWidgets('Vé của tôi: mặc định Sắp tới, đổi tab, tìm không thấy thì báo', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      MyJourneyFlow(api: _ManyBookingsApi(), onTabSelected: (_) {}),
+    );
+    expect(find.text('Sắp tới (2)'), findsOneWidget);
+    expect(find.text('Đã đi (1)'), findsOneWidget);
+    expect(find.text('Đã hủy (1)'), findsOneWidget);
+    expect(find.text('Tất cả (4)'), findsOneWidget);
+    expect(find.byKey(const Key('journey-open-VXN-TEST01')), findsOneWidget);
+    expect(find.byKey(const Key('journey-open-VXN-PAST01')), findsNothing);
+
+    await _tapVisible(tester, const Key('journey-tab-cancelled'));
+    expect(find.byKey(const Key('journey-open-VXN-CANCEL')), findsOneWidget);
+    expect(find.byKey(const Key('journey-open-VXN-TEST01')), findsNothing);
+
+    await _tapVisible(tester, const Key('journey-tab-all'));
+    await tester.enterText(
+      find.byKey(const Key('journey-ticket-search')),
+      'nha trang',
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('journey-open-VXN-NT0001')), findsOneWidget);
+    expect(find.byKey(const Key('journey-open-VXN-TEST01')), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const Key('journey-ticket-search')),
+      'không có',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Không tìm thấy đơn khớp "không có".'), findsOneWidget);
+    expect(find.byKey(const Key('journey-results-book')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('đã đăng nhập: "Vé của tôi" → chi tiết không cần mã truy cập', (
     tester,
   ) async {
@@ -282,24 +374,90 @@ void main() {
     await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
 
     expect(find.text('Vé của tôi'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
     expect(api.calls, contains('load:b-1:user'));
     expect(find.text('Vé chuyến - Nhà xe Sao Mai'), findsOneWidget);
     expect(find.text('Giường đơn'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('đơn đặt bằng tài khoản: khách vãng lai được mời đăng nhập', (
+  // PASSENGER-PARITY A24 (Q16): "Gửi yêu cầu" mở khiếu nại của đúng đơn thay vì chỉ gọi tổng đài.
+  testWidgets('đã đăng nhập: "Gửi yêu cầu" ở chi tiết vé mở khiếu nại của đơn đó', (
     tester,
   ) async {
-    final api = _AccountBookingApi();
-    var loginRequested = false;
+    final opened = <String>[];
+    var hotlineCalls = 0;
+    await _pump(
+      tester,
+      MyJourneyFlow(
+        api: _FakeJourneyApi(),
+        onTabSelected: (_) {},
+        onSupportRequested: () => hotlineCalls++,
+        onOpenSupport: (booking) => opened.add(booking.bookingCode),
+      ),
+    );
+    await _tapVisible(tester, const Key('journey-tab-all'));
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+
+    final link = find.text('Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →');
+    await tester.ensureVisible(link);
+    await tester.pumpAndSettle();
+    await tester.tap(link);
+    await tester.pump();
+
+    expect(opened, ['VXN-TEST01']);
+    expect(hotlineCalls, 0);
+  });
+
+  // PASSENGER-PARITY A22 / Q17: chỉ đường Goong (cùng link web) và chia sẻ vé.
+  testWidgets('chi tiết vé: mở chỉ đường Goong tới điểm đón, chia sẻ không kèm mã QR', (
+    tester,
+  ) async {
+    final launched = <Uri>[];
+    final shared = <(String, String)>[];
+    await _pump(
+      tester,
+      GuestTicketDetailScreen(
+        booking: _booking(),
+        onBack: () {},
+        onTabSelected: (_) {},
+        quoteCancellation: (_) async => throw UnimplementedError(),
+        cancelTickets: (_, _, _) async => throw UnimplementedError(),
+        launchExternal: (uri) async {
+          launched.add(uri);
+          return true;
+        },
+        shareTicket: (subject, text) async => shared.add((subject, text)),
+      ),
+    );
+    await _tapVisible(tester, const Key('journey-open-directions'));
+    expect(
+      launched.single.toString(),
+      'https://maps.goong.io/?q=501%20Ho%C3%A0ng%20H%E1%BB%AFu%20Nam',
+    );
+
+    await _tapVisible(tester, const Key('journey-share-ticket'));
+    final (subject, text) = shared.single;
+    expect(subject, 'Vé VXN-TEST01');
+    expect(text, contains('Mã đặt vé: VXN-TEST01'));
+    expect(text, contains('Đón: '));
+    expect(text, contains('Bến xe Miền Đông mới'));
+    expect(text, contains('Chỗ: A3'));
+    expect(text, isNot(contains('qr-token')));
+    expect(tester.takeException(), isNull);
+  });
+
+  // PASSENGER-PARITY A21 (S31, SCR-PSG-28): sai mã hiện câu của máy chủ + "Còn N lần thử".
+  testWidgets('OTP tra cứu: hiện số lần thử còn lại, sai mã cập nhật theo máy chủ', (
+    tester,
+  ) async {
+    final api = _FakeJourneyApi()
+      ..otpFailureDetail = 'Mã xác minh không đúng. Còn 4 lần thử.';
     await _pump(
       tester,
       GuestJourneyFlow(
         api: api,
-        onLoginRequested: () => loginRequested = true,
+        onLoginRequested: () {},
         onTabSelected: (_) {},
       ),
     );
@@ -309,15 +467,159 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('guest-request-otp-button')));
     await tester.pumpAndSettle();
+    expect(find.text('Còn 5 lần thử'), findsOneWidget);
+
+    await _enterOtp(tester, '000000');
+    await tester.tap(find.byKey(const Key('guest-journey-verify-otp')));
+    await tester.pumpAndSettle();
+    expect(find.text('Mã xác minh không đúng. Còn 4 lần thử.'), findsOneWidget);
+    expect(find.text('Còn 4 lần thử'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  // PASSENGER-PARITY A13 / UC-35 A1b, bước 6.
+  Future<void> lookupByEmail(WidgetTester tester, {String? code}) async {
+    await tester.enterText(
+      find.byKey(const Key('guest-email-field')),
+      'khach@example.com',
+    );
+    if (code != null) {
+      await tester.enterText(
+        find.byKey(const Key('guest-booking-code-field')),
+        code,
+      );
+    }
+    await tester.tap(find.byKey(const Key('guest-request-otp-button')));
+    await tester.pumpAndSettle();
     await _enterOtp(tester, '123456');
     await tester.tap(find.byKey(const Key('guest-journey-verify-otp')));
     await tester.pumpAndSettle();
+  }
 
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+  testWidgets(
+    'đơn đặt bằng tài khoản: ghi nhãn, mời đăng nhập; chọn Đăng nhập',
+    (tester) async {
+      final api = _AccountBookingApi();
+      var loginRequested = 0;
+      await _pump(
+        tester,
+        GuestJourneyFlow(
+          api: api,
+          onLoginRequested: () => loginRequested++,
+          onTabSelected: (_) {},
+        ),
+      );
+      await lookupByEmail(tester);
+      expect(
+        find.byKey(const Key('journey-booked-with-account')),
+        findsOneWidget,
+      );
+      expect(find.text('Đặt bằng tài khoản'), findsOneWidget);
+      expect(
+        find.byKey(const Key('journey-lookup-login-invite')),
+        findsOneWidget,
+      );
+
+      await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+      expect(
+        find.byKey(const Key('journey-account-booking-dialog')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('journey-account-booking-login')));
+      await tester.pumpAndSettle();
+      expect(loginRequested, 1);
+      expect(api.calls.where((call) => call.startsWith('access')), isEmpty);
+      expect(api.calls.where((call) => call.startsWith('lookup')), isEmpty);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'đơn đặt bằng tài khoản: "Chỉ xem vé" mở chi tiết chỉ đọc, không hỏi lại',
+    (tester) async {
+      final api = _AccountBookingApi();
+      final key = GlobalKey();
+      await _pump(
+        tester,
+        GuestJourneyFlow(
+          key: key,
+          api: api,
+          onLoginRequested: () {},
+          onTabSelected: (_) {},
+        ),
+      );
+      await lookupByEmail(tester);
+      await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+      await tester.tap(find.byKey(const Key('journey-account-booking-view')));
+      await tester.pumpAndSettle();
+
+      expect(api.calls, contains('lookup:b-1'));
+      expect(api.calls.where((call) => call.startsWith('access')), isEmpty);
+      expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+      expect(find.byKey(const Key('journey-ticket-qr')), findsOneWidget);
+      expect(find.byKey(const Key('journey-detail-read-only')), findsOneWidget);
+      expect(find.byKey(const Key('journey-detail-login')), findsOneWidget);
+      expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
+      expect(find.textContaining('Gửi yêu cầu'), findsNothing);
+      // Chính sách hủy vẫn cho biết mức hoàn hiện tại (vé còn hủy được sau khi đăng nhập).
+      expect(find.text('Vé này không còn hủy được.'), findsNothing);
+
+      expect((key.currentState! as JourneyBackHandler).handleBack(), isTrue);
+      await tester.pumpAndSettle();
+      await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+      expect(
+        find.byKey(const Key('journey-account-booking-dialog')),
+        findsNothing,
+        reason: 'đã chọn chỉ xem một lần trong phiên',
+      );
+      expect(find.byKey(const Key('journey-detail-read-only')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('có mã đặt vé: gửi kèm mã, sau OTP mở thẳng đơn đó', (
+    tester,
+  ) async {
+    final api = _BookingScopedApi();
+    final key = GlobalKey();
+    await _pump(
+      tester,
+      GuestJourneyFlow(
+        key: key,
+        api: api,
+        onLoginRequested: () {},
+        onTabSelected: (_) {},
+      ),
+    );
+    await lookupByEmail(tester, code: 'vxn-test01-01');
+    expect(api.calls, contains('otp:khach@example.com:VXNTEST01'));
+    expect(api.calls, contains('verify:123456:VXNTEST01'));
+    expect(api.calls, contains('access:b-1'));
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+    expect(find.byKey(const Key('guest-ticket-cancel-button')), findsOneWidget);
+
+    // Back về danh sách một đơn của phiên, không tự mở lại.
+    expect((key.currentState! as JourneyBackHandler).handleBack(), isTrue);
     await tester.pumpAndSettle();
-    expect(api.calls.where((call) => call.startsWith('access')), isEmpty);
-    await tester.tap(find.widgetWithText(SnackBarAction, 'Đăng nhập'));
-    expect(loginRequested, isTrue);
+    expect(find.text('Kết quả tra cứu vé'), findsOneWidget);
+    expect(find.byKey(const Key('journey-open-VXN-TEST01')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('tên cổng và nhãn hoàn tiền lỗi viết cho hành khách đọc, giống web', () {
+    expect(journeyProviderLabel('DEMO'), 'Cổng thanh toán thử');
+    expect(journeyProviderLabel('PAYOS'), 'payOS');
+    expect(journeyProviderLabel('VNPAY'), 'VNPay');
+    expect(journeyProviderLabel('MOMO'), 'MoMo');
+    expect(journeyProviderLabel(null), 'Chưa thanh toán');
+    expect(
+      journeyBookingStatusLabel('REFUND_FAILED'),
+      'Hoàn tiền chưa thành công',
+    );
+    expect(
+      journeyRefundStatusLabel('FAILED'),
+      'Hoàn tiền chưa thành công — đang hỗ trợ',
+    );
   });
 
   test('trạng thái hiện cho khách lấy theo vé còn hiệu lực', () {
@@ -349,12 +651,12 @@ void main() {
   ) async {
     final api = _UsedTicketApi();
     await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
+    await _tapVisible(tester, const Key('journey-tab-completed'));
 
     expect(find.text('Đã đi'), findsOneWidget);
     expect(find.text('Hợp lệ'), findsNothing);
 
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     expect(find.text('Đã sử dụng'), findsOneWidget);
     expect(find.text('Lên xe quét mã'), findsNothing);
@@ -507,8 +809,7 @@ void main() {
       tester,
       MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
     );
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     // Tên điểm chỉ còn ở phần Hành trình.
     expect(find.text('Bến xe Miền Đông mới'), findsOneWidget);
@@ -538,8 +839,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     expect(find.textContaining('BX Miền Đông mới'), findsOneWidget);
     expect(find.textContaining('Quốc lộ 20'), findsOneWidget);
@@ -549,48 +849,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('chạm mã QR: thẻ vé phóng to, xoay ngang; Back hoặc nút đóng thì trở lại', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
-    );
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
-    const enlarged = Key('journey-ticket-enlarged');
-    const zoom = Key('journey-ticket-qr-zoom');
+  testWidgets(
+    'chạm mã QR: thẻ vé phóng to, xoay ngang; Back hoặc nút đóng thì trở lại',
+    (tester) async {
+      await _pump(
+        tester,
+        MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
+      );
+      await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
+      const enlarged = Key('journey-ticket-enlarged');
+      const zoom = Key('journey-ticket-qr-zoom');
 
-    await tester.tap(find.byKey(zoom));
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.byKey(enlarged), findsOneWidget);
-    expect(tester.takeException(), isNull, reason: 'đang chạy hiệu ứng');
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(zoom));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(enlarged), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'đang chạy hiệu ứng');
+      await tester.pumpAndSettle();
 
-    final pass = tester.renderObject<RenderBox>(find.byKey(enlarged));
-    final bounds = Rect.fromPoints(
-      pass.localToGlobal(Offset.zero),
-      pass.localToGlobal(pass.size.bottomRight(Offset.zero)),
-    );
-    expect(bounds.height, greaterThan(bounds.width), reason: 'cạnh dài nằm dọc');
-    expect(bounds.width, greaterThan(412 * .85), reason: 'gần hết chiều ngang');
-    expect(const Rect.fromLTWH(0, 0, 412, 915).intersect(bounds), bounds);
+      final pass = tester.renderObject<RenderBox>(find.byKey(enlarged));
+      final bounds = Rect.fromPoints(
+        pass.localToGlobal(Offset.zero),
+        pass.localToGlobal(pass.size.bottomRight(Offset.zero)),
+      );
+      expect(
+        bounds.height,
+        greaterThan(bounds.width),
+        reason: 'cạnh dài nằm dọc',
+      );
+      expect(
+        bounds.width,
+        greaterThan(412 * .85),
+        reason: 'gần hết chiều ngang',
+      );
+      expect(const Rect.fromLTWH(0, 0, 412, 915).intersect(bounds), bounds);
 
-    // Trong màn phóng to, chạm mã QR không mở thêm lớp nữa.
-    expect(find.byKey(zoom), findsOneWidget);
+      // Trong màn phóng to, chạm mã QR không mở thêm lớp nữa.
+      expect(find.byKey(zoom), findsOneWidget);
 
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.byKey(enlarged), findsNothing);
-    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byKey(enlarged), findsNothing);
+      expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
 
-    await tester.tap(find.byKey(zoom));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('journey-ticket-enlarged-close')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(enlarged), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+      await tester.tap(find.byKey(zoom));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('journey-ticket-enlarged-close')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(enlarged), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('khách xoay máy ngang khi đang phóng to: thẻ không xoay thêm', (
     tester,
@@ -599,8 +907,7 @@ void main() {
       tester,
       MyJourneyFlow(api: _FakeJourneyApi(), onTabSelected: (_) {}),
     );
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     await tester.tap(find.byKey(const Key('journey-ticket-qr-zoom')));
     await tester.pumpAndSettle();
@@ -620,8 +927,7 @@ void main() {
   testWidgets('vé đã hủy: mã QR không phóng to được', (tester) async {
     final api = _FakeJourneyApi()..cancelled = true;
     await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     expect(find.text('Đã hủy'), findsWidgets);
     expect(find.text('QR không còn hiệu lực'), findsOneWidget);
@@ -635,8 +941,7 @@ void main() {
     final api = _DepartedTripApi();
     await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
 
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
 
     expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
     expect(tester.takeException(), isNull);
@@ -654,8 +959,7 @@ void main() {
 
     expect(flow.handleBack(), isFalse, reason: 'danh sách là bước đầu');
 
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
     expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
 
     expect(flow.handleBack(), isTrue);
@@ -689,8 +993,7 @@ void main() {
     await _enterOtp(tester, '123456');
     await tester.tap(find.byKey(const Key('guest-journey-verify-otp')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, const Key('journey-open-VXN-TEST01'));
     expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
 
     expect(flow.handleBack(), isTrue);
@@ -703,6 +1006,45 @@ void main() {
     expect(flow.handleBack(), isFalse);
     expect(tester.takeException(), isNull);
   });
+}
+
+/// Bốn đơn của tài khoản: sắp đi, đã đi, đã hủy và một chuyến sắp đi khác tuyến.
+class _ManyBookingsApi extends _FakeJourneyApi {
+  static final items = [
+    _summary,
+    JourneyBookingSummary(
+      bookingId: 'b-past',
+      bookingCode: 'VXN-PAST01',
+      status: 'CONFIRMED',
+      routeName: 'TP. Hồ Chí Minh → Vũng Tàu',
+      operatorName: 'Nhà xe Hoa Mai',
+      departureAt: DateTime.now().subtract(const Duration(days: 5)),
+      total: 180000,
+      ticketStatuses: const ['USED'],
+    ),
+    JourneyBookingSummary(
+      bookingId: 'b-cancel',
+      bookingCode: 'VXN-CANCEL',
+      status: 'REFUNDED',
+      routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+      operatorName: 'Nhà xe Thành Bưởi',
+      departureAt: DateTime.now().add(const Duration(days: 9)),
+      total: 320000,
+      ticketStatuses: const ['REFUNDED'],
+    ),
+    JourneyBookingSummary(
+      bookingId: 'b-nt',
+      bookingCode: 'VXN-NT0001',
+      status: 'PENDING_PAYMENT',
+      routeName: 'TP. Hồ Chí Minh → Nha Trang',
+      operatorName: 'Nhà xe Phương Nam',
+      departureAt: DateTime.now().add(const Duration(days: 2)),
+      total: 400000,
+    ),
+  ];
+
+  @override
+  Future<List<JourneyBookingSummary>> listMyBookings() async => items;
 }
 
 class _UsedTicketApi extends _FakeJourneyApi {
@@ -756,8 +1098,7 @@ class _LongNamesApi extends _FakeJourneyApi {
     routeName: 'TP. Hồ Chí Minh (BX Miền Đông mới) – Đà Lạt (Quốc lộ 20)',
     pickupName:
         'Văn phòng Phương Trang Lê Hồng Phong và điểm trung chuyển Quận 10',
-    pickupAddress:
-        '231-233 Lê Hồng Phong, Phường Chợ Quán, Thành phố Hồ Chí Minh, Việt Nam',
+    pickupAddress: '231-233 Lê Hồng Phong, Phường Chợ Quán, Thành phố Hồ Chí Minh, Việt Nam',
   );
 }
 
@@ -811,6 +1152,18 @@ JourneyBooking _withTicketStatus(
   paymentCode: base.paymentCode,
   paymentStatus: base.paymentStatus,
 );
+
+/// Phiên mở bằng mã đặt vé: chỉ một đơn khách vãng lai.
+class _BookingScopedApi extends _FakeJourneyApi {
+  @override
+  Future<JourneyLookupResult> listLookupBookings(String lookupToken) async =>
+      JourneyLookupResult(
+        maskedEmail: 'kh***@example.com',
+        hasAccount: false,
+        bookingScoped: true,
+        bookings: [_summary],
+      );
+}
 
 class _AccountBookingApi extends _FakeJourneyApi {
   @override

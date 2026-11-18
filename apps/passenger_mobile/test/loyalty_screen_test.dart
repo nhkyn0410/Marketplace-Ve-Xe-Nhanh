@@ -101,7 +101,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('Ước tính quy đổi ≈ 1.250.000 ₫ voucher'),
+      find.text('Ước tính quy đổi ≈ 1.250.000đ voucher'),
       findsOneWidget,
     );
     final progress = tester.widget<LinearProgressIndicator>(
@@ -255,18 +255,18 @@ void main() {
     await tester.pumpAndSettle();
     await _openRedeem(tester);
 
-    expect(find.text('1 điểm = 1.000 ₫'), findsOneWidget);
-    expect(find.text('Giảm 100.000 ₫'), findsOneWidget);
+    expect(find.text('1 điểm = 1.000đ'), findsOneWidget);
+    expect(find.text('Giảm 100.000đ'), findsOneWidget);
     expect(find.text('1.150 điểm'), findsOneWidget);
     expect(find.text('30 ngày · đến 01/12/2026'), findsOneWidget);
     expect(find.text('Xác nhận đổi 100 điểm'), findsOneWidget);
 
     await _tapInSheet(tester, const Key('loyalty-quick-500'));
-    expect(find.text('Giảm 500.000 ₫'), findsOneWidget);
+    expect(find.text('Giảm 500.000đ'), findsOneWidget);
     expect(find.text('750 điểm'), findsOneWidget);
 
     await _tapInSheet(tester, const Key('loyalty-quick-all'));
-    expect(find.text('Giảm 1.250.000 ₫'), findsOneWidget);
+    expect(find.text('Giảm 1.250.000đ'), findsOneWidget);
     expect(find.text('0 điểm'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

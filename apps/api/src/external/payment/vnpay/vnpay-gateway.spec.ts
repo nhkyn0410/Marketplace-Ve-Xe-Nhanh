@@ -134,6 +134,28 @@ describe("VnpayGateway", () => {
         }),
       ).toBeInstanceOf(PaymentGatewayError);
     });
+
+    it("phản hồi lỗi không kèm chữ ký (sandbox trả 99): nêu mã + thông điệp, luôn cho thử lại, không coi là kết quả", async () => {
+      const unsigned = async (body: unknown): Promise<PaymentGatewayError> => {
+        try {
+          await new VnpayGateway(config, (async () => new Response(JSON.stringify(body))) as typeof fetch).refund(request);
+        } catch (error) {
+          return error as PaymentGatewayError;
+        }
+        throw new Error("Phản hồi không kèm chữ ký phải bị từ chối.");
+      };
+      const rejected = await unsigned({ vnp_ResponseCode: "99", vnp_Message: "Unexpected error" });
+      expect(rejected).toMatchObject({ retryable: true, resultCode: "99" });
+      expect(rejected.message).toBe("VNPay từ chối hoàn tiền (mã 99: Unexpected error; phản hồi không kèm chữ ký).");
+      // Mã "từ chối dứt khoát" nhưng không có chữ ký thì không đủ tin để dừng thử lại.
+      expect(await unsigned({ vnp_ResponseCode: "91" })).toMatchObject({ retryable: true, resultCode: "91" });
+      // Tự nhận thành công mà không có chữ ký → vẫn là phản hồi không hợp lệ, không trả mã hoàn.
+      expect(await unsigned({ vnp_ResponseCode: "00", vnp_TransactionNo: "14000099" })).toMatchObject({ retryable: true, resultCode: null });
+      // Thông điệp của cổng là dữ liệu ngoài: bỏ ký tự lạ, cắt ngắn.
+      const noisy = await unsigned({ vnp_ResponseCode: "99", vnp_Message: `<script>alert(1)</script>\n${"x".repeat(200)}` });
+      expect(noisy.message).not.toMatch(/[<>\n]/u);
+      expect(noisy.message.length).toBeLessThan(160);
+    });
   });
 
   describe("tra cứu giao dịch — querydr (đối soát FR-BTP-17)", () => {
@@ -176,6 +198,17 @@ describe("VnpayGateway", () => {
       expect((await run(reply("91", ""))).status).toBe("NOT_FOUND");
       expect(await run(reply("94", "")).catch((error: unknown) => error)).toMatchObject({ retryable: true, resultCode: "94" });
       expect(await run(reply("00", "00", true)).catch((error: unknown) => error)).toBeInstanceOf(PaymentGatewayError);
+    });
+
+    it("phản hồi không kèm chữ ký: mã 99 → lỗi thử lại có mã; tự nhận 'đã trả' mà không có chữ ký → không bao giờ thành SUCCESS", async () => {
+      const unsigned = (body: unknown) => new VnpayGateway(config, (async () => new Response(JSON.stringify(body))) as typeof fetch).queryTransaction(query).catch((error: unknown) => error as PaymentGatewayError);
+      const rejected = await unsigned({ vnp_ResponseCode: "99", vnp_Message: "Unexpected error" });
+      expect(rejected).toBeInstanceOf(PaymentGatewayError);
+      expect(rejected).toMatchObject({ retryable: true, resultCode: "99", message: "VNPay từ chối tra cứu (mã 99: Unexpected error; phản hồi không kèm chữ ký)." });
+      const forged = await unsigned({ vnp_ResponseCode: "00", vnp_TransactionStatus: "00", vnp_TransactionNo: "14000001", vnp_Amount: "32000000" });
+      expect(forged).toBeInstanceOf(PaymentGatewayError);
+      expect(forged).toMatchObject({ resultCode: null });
+      expect(await unsigned("khong phai JSON hop le")).toBeInstanceOf(PaymentGatewayError);
     });
   });
 });

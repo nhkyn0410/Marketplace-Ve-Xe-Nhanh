@@ -1,7 +1,8 @@
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { ChevronDown, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import Link from "next/link";
 import { Fragment } from "react";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, SUPPORT_HOTLINE } from "../lib/support-contact";
 
 /**
  * Mục phần tử trong đường dẫn phân cấp (breadcrumb).
@@ -51,24 +52,16 @@ export function PassengerTopBar({
           })}
         </nav>
 
-        {/* Tiện ích liên hệ và ngôn ngữ bên phải */}
+        {/* Tiện ích liên hệ bên phải (v1 chỉ tiếng Việt — AS-14 — nên không có nút ngôn ngữ) */}
         <div className="flex shrink-0 items-center gap-2">
+          {/* Có số tổng đài thì hiện nút gọi; chưa có thì hiện email hỗ trợ (lib/support-contact). */}
           <a
-            href="tel:19006067"
+            href={SUPPORT_HOTLINE?.telHref ?? SUPPORT_EMAIL_HREF}
             className="hidden h-9 items-center gap-2 rounded-full border border-vxn-border bg-white/95 px-3.5 text-[13px] font-medium text-vxn-ink transition-colors hover:bg-vxn-bg-mist sm:inline-flex"
           >
-            <Phone className="size-[13px] text-vxn-teal-700" />
-            <span>CSKH 1900 6067</span>
+            {SUPPORT_HOTLINE ? <Phone className="size-[13px] text-vxn-teal-700" /> : <Mail className="size-[13px] text-vxn-teal-700" />}
+            <span>{SUPPORT_HOTLINE ? `CSKH ${SUPPORT_HOTLINE.label}` : SUPPORT_EMAIL}</span>
           </a>
-
-          {/* Nút chọn ngôn ngữ */}
-          <div className="flex h-9 items-center gap-2 rounded-full bg-[rgb(7_54_76/0.75)] px-3.5 text-[13px] text-white backdrop-blur-[8px]">
-            <span aria-hidden="true" className="flex h-3.5 w-[22px] items-center justify-center rounded-[2px] bg-[#da251d] text-[10px] leading-none text-[#ffcd00]">
-              ★
-            </span>
-            <span>VI</span>
-            <ChevronDown className="size-2.5" />
-          </div>
         </div>
       </div>
     </div>

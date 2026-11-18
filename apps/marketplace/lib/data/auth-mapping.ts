@@ -24,10 +24,19 @@ export function mapProfile(profile: ProfileResponse, saved?: SavedPassengersResp
   };
 }
 
+/** Nhãn thiết bị API trả bằng tiếng Anh ("Chrome on Windows", "Mobile app on Android") → tiếng Việt, cùng quy tắc với app hành khách. */
+export function deviceNameVi(label: string): string {
+  return label
+    .replaceAll("Mobile app", "Ứng dụng di động")
+    .replaceAll("Unknown device", "Thiết bị không xác định")
+    .replaceAll("Device", "Thiết bị")
+    .replaceAll(" on ", " trên ");
+}
+
 /** Chuyển danh sách session family, không suy đoán vị trí từ địa chỉ IP. */
 export function mapSessions(response: SessionsResponse): UserSessionItem[] {
   return response.items.map((item) => ({
-    id: item.sessionId, deviceName: item.deviceLabel, ipAddress: item.ipAddress ?? "Không có dữ liệu",
+    id: item.sessionId, deviceName: deviceNameVi(item.deviceLabel), ipAddress: item.ipAddress ?? "Không có dữ liệu",
     locationText: "Không có dữ liệu vị trí", loginDateText: new Date(item.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
     lastActiveText: new Date(item.lastUsedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }), isCurrent: item.current
   }));

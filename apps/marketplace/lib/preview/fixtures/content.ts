@@ -377,7 +377,7 @@ export const legalTermsDocumentFixture: LegalDocumentData = {
       id: "sec-08",
       title: "8. Liên hệ",
       paragraphs: [
-        "Tổng đài CSKH 1900 6067 hoặc email support@vexenhanh.vn (hỗ trợ 24/7)."
+        "Liên hệ CSKH qua email support@vexenhanh.vn."
       ]
     }
   ]

@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**paymentControllerCreate**](PaymentsApi.md#paymentcontrollercreate) | **POST** /v1/bookings/{bookingId}/payments | 
+[**paymentProviderControllerList**](PaymentsApi.md#paymentprovidercontrollerlist) | **GET** /v1/payment-providers | 
 
 
 # **paymentControllerCreate**
@@ -54,6 +55,43 @@ No authorization required
 
  - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **paymentProviderControllerList**
+> PaymentProviderListDtoOutput paymentProviderControllerList()
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getPaymentsApi();
+
+try {
+    final response = api.paymentProviderControllerList();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling PaymentsApi->paymentProviderControllerList: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**PaymentProviderListDtoOutput**](PaymentProviderListDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

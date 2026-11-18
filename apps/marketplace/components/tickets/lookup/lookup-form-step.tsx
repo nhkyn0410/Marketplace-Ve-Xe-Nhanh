@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Info, AlertCircle } from "lucide-react";
 import { requestTicketLookupOtp } from "../../../lib/data/tickets";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, SUPPORT_HOTLINE } from "../../../lib/support-contact";
 import type { TicketLookupInitData, TicketLookupOtpState } from "../../../lib/data/types";
 import { otpStateFrom } from "./lookup-otp-step";
 
@@ -152,8 +153,8 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
       {/* Dòng liên kết đăng nhập */}
       <div className="space-y-1.5 pt-2 text-center text-xs text-muted-foreground">
         <p>
-          Không còn dùng email đặt vé? Gọi CSKH{" "}
-          <a href="tel:19006067" className="font-semibold text-teal-700 hover:underline dark:text-teal-400">1900 6067</a> để được hỗ trợ.
+          Không còn dùng email đặt vé? {SUPPORT_HOTLINE ? "Gọi CSKH" : "Gửi email tới"}{" "}
+          <a href={SUPPORT_HOTLINE?.telHref ?? SUPPORT_EMAIL_HREF} className="font-semibold text-teal-700 hover:underline dark:text-teal-400">{SUPPORT_HOTLINE?.label ?? SUPPORT_EMAIL}</a> để được hỗ trợ.
         </p>
         <p>
         <span>Đã có tài khoản? </span>

@@ -71,7 +71,7 @@ export default async function MyTicketsPage({ searchParams }: MyTicketsPageProps
 
   if (result.status === "error") {
     // Khách chưa đăng nhập (API trả 401) → mời đăng nhập như các trang tài khoản, không báo lỗi máy chủ.
-    if (result.httpStatus === 401) return <AccountSignInRequired />;
+    if (result.httpStatus === 401) return <AccountSignInRequired description="Đăng nhập bằng email để xem vé đã đặt và hành trình của bạn." />;
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />

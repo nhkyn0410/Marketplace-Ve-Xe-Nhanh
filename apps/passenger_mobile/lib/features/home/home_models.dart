@@ -68,8 +68,10 @@ class HomeSearchQuery {
   });
 
   final HomeSearchMode mode;
-  final HomeLocation from;
-  final HomeLocation to;
+
+  /// `null` chỉ khi tìm "Theo nhà xe" với "Tất cả tuyến" (như web, PASSENGER-PARITY Q10).
+  final HomeLocation? from;
+  final HomeLocation? to;
   final DateTime date;
   final int passengers;
 

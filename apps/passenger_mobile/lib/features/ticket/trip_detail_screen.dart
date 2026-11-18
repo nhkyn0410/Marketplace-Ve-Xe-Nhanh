@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/seat_selection_screen.dart';
 import 'package:passenger_mobile/features/ticket/stop_picker_sheet.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+import 'package:passenger_mobile/features/ticket/trip_stop_map.dart';
 import 'package:share_plus/share_plus.dart';
 
 const _detailAssets = 'assets/ticket/detail';
@@ -28,10 +30,18 @@ class TripDetailScreen extends StatefulWidget {
     this.isSignedIn = false,
     this.onBookingFinished,
     this.onOperatorSelected,
+    this.mapKey = goongMaptilesKey,
+    this.stopMapBuilder,
     super.key,
   });
 
   final TripBookingApi api;
+
+  /// Khóa Goong Maptiles; trống thì không có bản đồ điểm dừng (A30, ADR-027).
+  final String mapKey;
+
+  /// Vẽ bản đồ điểm dừng; mặc định [GoongStopMap] (test thay bằng khối giả vì bản đồ là view gốc).
+  final Widget Function(List<TripStop> stops, String mapKey)? stopMapBuilder;
   final String tripId;
   final bool isSignedIn;
   final VoidCallback? onBookingFinished;
@@ -58,6 +68,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   int? _dropoff;
   bool _sharing = false;
 
+  /// Đánh giá nhà xe (A30): tải riêng sau chuyến, lỗi không chặn trang chuyến.
+  Future<OperatorProfile>? _reviews;
+
   @override
   void initState() {
     super.initState();
@@ -78,12 +91,21 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         _trip = trip;
         _pickup ??= _initialPickup(trip);
         _dropoff ??= _initialDropoff(trip, _pickup);
+        final operatorId = trip.operatorId;
+        if (_reviews == null && operatorId != null) {
+          _reviews = _loadReviews(operatorId);
+        }
       });
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = describeBookingFailure(error));
     }
   }
+
+  /// Lỗi hiện ở khối đánh giá (FutureBuilder). `ignore` để lỗi xảy ra trước khi khối được dựng (vd còn ngoài
+  /// màn hình) không bị coi là lỗi chưa bắt; FutureBuilder đăng ký sau vẫn nhận lỗi.
+  Future<OperatorProfile> _loadReviews(String operatorId) =>
+      widget.api.loadOperatorProfile(operatorId)..ignore();
 
   int? _initialPickup(TripDetail trip) {
     final pickups = trip.pickupStops;
@@ -277,6 +299,13 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         ),
         _VehicleSummary(trip: trip),
         _ScheduleSection(trip: trip, pickup: pickup, dropoff: dropoff),
+        if (widget.mapKey.trim().isNotEmpty &&
+            mappableStops(trip.stops).isNotEmpty)
+          _StopMapSection(
+            stops: mappableStops(trip.stops),
+            mapKey: widget.mapKey.trim(),
+            builder: widget.stopMapBuilder,
+          ),
         if (pickup != null && dropoff != null)
           _PickupDropoffSection(
             pickup: pickup,
@@ -287,6 +316,17 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         if (trip.amenityNames.isNotEmpty)
           _AmenitiesSection(names: trip.amenityNames),
         _CancellationSection(tiers: trip.cancellationTiers),
+        if (_reviews case final reviews?)
+          _OperatorReviewsSection(
+            profile: reviews,
+            onViewAll:
+                widget.onOperatorSelected == null || trip.operatorId == null
+                ? null
+                : () => widget.onOperatorSelected!(trip.operatorId!),
+            onRetry: () => setState(() {
+              _reviews = _loadReviews(trip.operatorId!);
+            }),
+          ),
         _NoticeSection(note: trip.note),
         const SizedBox(height: 14),
       ],
@@ -1269,6 +1309,242 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Vị trí các điểm dừng trên bản đồ Goong, đánh số theo Lịch trình (SCR-PSG-16, như web).
+class _StopMapSection extends StatelessWidget {
+  const _StopMapSection({
+    required this.stops,
+    required this.mapKey,
+    this.builder,
+  });
+
+  final List<TripStop> stops;
+  final String mapKey;
+  final Widget Function(List<TripStop> stops, String mapKey)? builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const Key('trip-stop-map'),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(icon: 'pin.svg', title: 'Vị trí các điểm dừng'),
+          const SizedBox(height: 4),
+          const Text(
+            'Số trên bản đồ theo thứ tự trong Lịch trình.',
+            style: TextStyle(color: _muted, fontSize: 12.5),
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(13),
+            child: SizedBox(
+              height: 220,
+              child:
+                  builder?.call(stops, mapKey) ??
+                  GoongStopMap(stops: stops, mapKey: mapKey),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Đánh giá nhà xe trên trang chuyến (SCR-PSG-16, như web): điểm trung bình, 3 đánh giá mới nhất, xem tất cả ở
+/// trang nhà xe.
+class _OperatorReviewsSection extends StatelessWidget {
+  const _OperatorReviewsSection({
+    required this.profile,
+    required this.onRetry,
+    this.onViewAll,
+  });
+
+  final Future<OperatorProfile> profile;
+  final VoidCallback onRetry;
+  final VoidCallback? onViewAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const Key('trip-operator-reviews'),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: _SectionTitle(icon: 'star.svg', title: 'Đánh giá nhà xe'),
+              ),
+              if (onViewAll != null)
+                TextButton(
+                  key: const Key('trip-reviews-view-all'),
+                  onPressed: onViewAll,
+                  child: const Text('Xem tất cả'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          FutureBuilder<OperatorProfile>(
+            future: profile,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: SizedBox.square(
+                      dimension: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                );
+              }
+              if (snapshot.hasError || !snapshot.hasData) {
+                return _WhiteCard(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Chưa tải được đánh giá nhà xe.',
+                          style: TextStyle(color: _muted),
+                        ),
+                      ),
+                      TextButton(
+                        key: const Key('trip-reviews-retry'),
+                        onPressed: onRetry,
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              final data = snapshot.requireData;
+              final average = data.scorecard.averageRating;
+              final reviews = data.reviews.take(3).toList(growable: false);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _WhiteCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Text(
+                          average == null ? '–' : average.toStringAsFixed(1),
+                          key: const Key('trip-reviews-average'),
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.star_rounded,
+                          color: Color(0xFFFFB31A),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${data.scorecard.reviewCount} đánh giá nhà xe',
+                            style: const TextStyle(color: _muted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (reviews.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Chưa có đánh giá để hiển thị.',
+                        key: Key('trip-reviews-empty'),
+                        style: TextStyle(color: _muted),
+                      ),
+                    ),
+                  for (final review in reviews)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _TripReviewCard(review: review),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TripReviewCard extends StatelessWidget {
+  const _TripReviewCard({required this.review});
+
+  final OperatorReview review;
+
+  @override
+  Widget build(BuildContext context) {
+    final comment = review.comment?.trim();
+    final reply = review.operatorReply?.trim();
+    return _WhiteCard(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        key: Key('trip-review-${review.id}'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  review.authorName,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              for (var star = 1; star <= 5; star++)
+                Icon(
+                  Icons.star_rounded,
+                  size: 16,
+                  color: star <= review.rating
+                      ? const Color(0xFFFFB31A)
+                      : const Color(0xFFD9E2EA),
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            formatVnDate(review.createdAt),
+            style: const TextStyle(color: _muted, fontSize: 12),
+          ),
+          if (comment != null && comment.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(comment, style: const TextStyle(color: _ink, height: 1.4)),
+          ],
+          if (reply != null && reply.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _surface,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Text(
+                'Nhà xe phản hồi: $reply',
+                style: const TextStyle(color: _muted, fontSize: 13),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

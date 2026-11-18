@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Check, Copy, Printer, Clock, QrCode } from "lucide-react";
+import { Check, Copy, Printer, Clock, QrCode, Mail } from "lucide-react";
 import { formatVnd } from "../../lib/format";
+import { resendTicketEmail } from "../../lib/data/booking";
 import { BookingPaymentResultData } from "../../lib/data/types";
 
 /**
@@ -19,6 +20,19 @@ export interface PaymentSuccessViewProps {
  */
 export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
   const [isCopied, setIsCopied] = useState(false);
+  const [emailState, setEmailState] = useState<{ readonly busy: boolean; readonly message?: string; readonly error?: boolean }>({ busy: false });
+
+  // Gửi lại email vé (SCR-PSG-22): máy chủ gửi tới email liên hệ của đơn, không nhập email khác.
+  const handleResendEmail = async () => {
+    setEmailState({ busy: true });
+    try {
+      const res = await resendTicketEmail(result.bookingId);
+      if (res.status === "ok") setEmailState({ busy: false, message: `Đã gửi lại vé tới ${res.data.sentTo}.` });
+      else setEmailState({ busy: false, error: true, message: res.status === "error" && res.message ? res.message : "Chưa gửi lại được email vé. Vui lòng thử lại sau." });
+    } catch {
+      setEmailState({ busy: false, error: true, message: "Chưa gửi lại được email vé. Vui lòng thử lại sau." });
+    }
+  };
 
   const handleCopyCode = async () => {
     try {
@@ -76,6 +90,11 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
                 </strong>
                 . Bạn có thể mở hoặc in vé bên dưới.{result.isGuestBooking && " Khách đặt không đăng nhập nên giữ mã đặt vé để tra cứu lại."}
               </p>
+              {emailState.message && (
+                <p role={emailState.error ? "alert" : "status"} className={`text-xs sm:text-sm ${emailState.error ? "text-rose-700" : "text-emerald-700"}`}>
+                  {emailState.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -96,6 +115,17 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
               <Printer className="h-4 w-4 text-neutral-500" />
               <span>In vé</span>
             </button>
+            {result.customerEmail && (
+              <button
+                type="button"
+                onClick={handleResendEmail}
+                disabled={emailState.busy}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.99] cursor-pointer disabled:cursor-wait disabled:opacity-60"
+              >
+                <Mail className="h-4 w-4 text-neutral-500" />
+                <span>{emailState.busy ? "Đang gửi…" : "Gửi lại email vé"}</span>
+              </button>
+            )}
           </div>
         </div>
 

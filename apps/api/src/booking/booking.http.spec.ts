@@ -12,6 +12,7 @@ import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import { BookingController } from "./booking.controller";
 import { BookingService } from "./booking.service";
+import { TicketEmailService } from "./ticket-email.service";
 
 /** Guard thật "khách vãng lai hoặc hành khách" + kiểm body trên `/bookings` (TASK-BTP-002); nghiệp vụ ở `.int.spec.ts`. */
 describe("Đặt vé — HTTP", () => {
@@ -46,6 +47,7 @@ describe("Đặt vé — HTTP", () => {
     create: vi.fn(async () => ({ ...booking, accessToken: "ma-truy-cap" })),
     get: vi.fn(async () => booking),
   };
+  const ticketEmails = { resend: vi.fn(async () => ({ sentTo: "a***@example.com", resendAfterSeconds: 60 })) };
   const assertActive = vi.fn(async () => undefined);
   let app: INestApplication;
   let base: string;
@@ -59,6 +61,7 @@ describe("Đặt vé — HTTP", () => {
       TokenService,
       GuestOrPassengerGuard,
       { provide: BookingService, useValue: service },
+      { provide: TicketEmailService, useValue: ticketEmails },
       { provide: SessionService, useValue: { assertActive, assertOperatorAccountCurrent: async () => undefined } },
     ],
   })
@@ -140,6 +143,14 @@ describe("Đặt vé — HTTP", () => {
     expect((await call("GET", `/${bookingId}`, null, undefined, { "X-Booking-Token": "ma-truy-cap" })).status).toBe(200);
     expect(service.get.mock.calls[0]).toEqual([null, bookingId, "ma-truy-cap"]);
     expect((await call("GET", "/khong-phai", null)).status).toBe(400);
+  });
+
+  // PASSENGER-PARITY giai đoạn 4: gửi lại email vé điện tử (SCR-PSG-22).
+  it("gửi lại email vé: 202 kèm email đã che; mã truy cập khách vãng lai tới service", async () => {
+    const response = await call("POST", `/${bookingId}/tickets/email`, null, undefined, { "X-Booking-Token": "ma-truy-cap" });
+    expect(response).toMatchObject({ status: 202, body: { sentTo: "a***@example.com", resendAfterSeconds: 60 } });
+    expect(ticketEmails.resend).toHaveBeenCalledWith(null, bookingId, "ma-truy-cap");
+    expect((await call("POST", "/khong-phai/tickets/email", null)).status).toBe(400);
   });
 
   it.each([

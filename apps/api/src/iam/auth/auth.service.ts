@@ -10,7 +10,7 @@ import { isOperatorAccountRole, requiresMfa } from "../role/role";
 import { sessionExpired } from "../session/session.errors";
 import { SessionService, type SessionSubject } from "../session/session.service";
 import { type Auth } from "./auth.config";
-import { BETTER_AUTH, PASSENGER_ROLE } from "./auth.constants";
+import { BETTER_AUTH, OTP_ALLOWED_ATTEMPTS, PASSENGER_ROLE } from "./auth.constants";
 import {
   accountLocked,
   AuthException,
@@ -146,10 +146,31 @@ export class AuthService {
         reason: "otp_invalid",
         ...ctx
       });
-      throw invalidCredentials();
+      throw invalidCredentials(await this.otpFailureDetail(email, error));
     }
 
     return this.issuePassengerToken(userId, ctx);
+  }
+
+  /**
+   * Câu báo OTP đăng nhập sai (PASSENGER-PARITY A21), như tra cứu vé: số lần thử còn lại đọc từ bản ghi Better Auth
+   * (`sign-in-otp-{email}`, giá trị `{otp}:{số lần sai}`, `allowedAttempts` = 3). Không có bản ghi (email chưa xin mã)
+   * thì giữ câu chung — không lộ thêm gì so với trước.
+   */
+  private async otpFailureDetail(email: string, error: unknown): Promise<string | undefined> {
+    const code = (error as { body?: { code?: unknown } } | null)?.body?.code;
+    const renew = "Mã xác minh đã hết hạn hoặc hết lượt thử. Vui lòng gửi lại mã mới.";
+    if (code === "OTP_EXPIRED" || code === "TOO_MANY_ATTEMPTS") return renew;
+    if (code !== "INVALID_OTP") return undefined;
+    const row = await this.prisma.verification
+      .findFirst({ where: { identifier: `sign-in-otp-${email.toLowerCase()}` }, select: { value: true } })
+      .catch(() => null);
+    const separator = row?.value.lastIndexOf(":") ?? -1;
+    if (!row || separator < 0) return undefined;
+    const used = Number.parseInt(row.value.slice(separator + 1), 10);
+    if (!Number.isInteger(used)) return undefined;
+    const left = OTP_ALLOWED_ATTEMPTS - used;
+    return left > 0 ? `Mã xác minh không đúng. Còn ${left} lần thử.` : renew;
   }
 
   // ── Operator / Employee (custom, `{slug}/{username}` + password) ──

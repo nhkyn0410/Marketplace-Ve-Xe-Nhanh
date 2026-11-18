@@ -59,7 +59,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **publicTripControllerSearch**
-> TripSearchResponseDtoOutput publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit)
+> TripSearchResponseDtoOutput publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, pickupPoint, dropoffPoint, minRating, sort, page, limit)
 
 
 
@@ -86,12 +86,15 @@ final String departureTo = departureTo_example; // String |
 final int priceMin = 56; // int | 
 final int priceMax = 56; // int | 
 final String amenityIds = amenityIds_example; // String | 
+final String pickupPoint = pickupPoint_example; // String | 
+final String dropoffPoint = dropoffPoint_example; // String | 
+final num minRating = 8.14; // num | 
 final String sort = sort_example; // String | 
 final int page = 56; // int | 
 final int limit = 56; // int | 
 
 try {
-    final response = api.publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit);
+    final response = api.publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, pickupPoint, dropoffPoint, minRating, sort, page, limit);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling TripsApi->publicTripControllerSearch: $e\n');
@@ -120,6 +123,9 @@ Name | Type | Description  | Notes
  **priceMin** | **int**|  | [optional] 
  **priceMax** | **int**|  | [optional] 
  **amenityIds** | **String**|  | [optional] 
+ **pickupPoint** | **String**|  | [optional] 
+ **dropoffPoint** | **String**|  | [optional] 
+ **minRating** | **num**|  | [optional] 
  **sort** | **String**|  | [optional] [default to 'departure']
  **page** | **int**|  | [optional] [default to 1]
  **limit** | **int**|  | [optional] [default to 20]

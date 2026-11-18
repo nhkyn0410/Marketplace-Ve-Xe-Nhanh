@@ -31,6 +31,32 @@ describe("ticket API integration", () => {
     expect(result.status === "ok" && result.data.supportHref).toBe(`/support/guest?bookingId=${booking.bookingId}`);
   });
 
+  it("xem bằng tài khoản: kèm trạng thái đánh giá; đọc đánh giá lỗi vẫn mở vé, không có khối đánh giá (W15)", async () => {
+    const booking = bookingFixture();
+    const ticket = { status: "ok", data: { bookingId: booking.bookingId } };
+    request.mockResolvedValueOnce(ticket).mockResolvedValueOnce({ status: "ok", data: booking })
+      .mockResolvedValueOnce({ status: "ok", data: { review: { rating: 4, comment: null, status: "HELD" }, canReview: false } });
+    const reviewed = await getTicketDetail(booking.tickets[0]!.ticketId);
+    expect(request.mock.calls[2]![0]).toBe(`/bookings/${booking.bookingId}/review`);
+    expect(reviewed.status === "ok" && reviewed.data.review).toEqual({ review: { rating: 4, comment: "", status: "HELD" }, canReview: false });
+
+    request.mockReset();
+    request.mockResolvedValueOnce(ticket).mockResolvedValueOnce({ status: "ok", data: booking })
+      .mockResolvedValueOnce({ status: "error", endpoint: "GET /bookings/{id}/review", httpStatus: 403 });
+    const denied = await getTicketDetail(booking.tickets[0]!.ticketId);
+    expect(denied.status).toBe("ok");
+    expect(denied.status === "ok" && "review" in denied.data).toBe(false);
+  });
+
+  it("khách tra cứu bằng token đơn: không gọi đánh giá", async () => {
+    const booking = bookingFixture();
+    values.set(`vxn_booking_${booking.bookingId}`, "private-token");
+    request.mockResolvedValueOnce({ status: "ok", data: { bookingId: booking.bookingId } }).mockResolvedValueOnce({ status: "ok", data: booking });
+    const result = await getTicketDetail(booking.tickets[0]!.ticketId, booking.bookingId);
+    expect(result.status).toBe("ok");
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
   it("lấy báo giá thật và gửi nguyên mức hoàn đã được người dùng xác nhận", async () => {
     request.mockResolvedValueOnce({ status: "ok", data: { tickets: [{ cancellable: true, reason: null }], refundAmount: 80000, nonRefundable: 20001, selectedTotal: 100001, refundPercent: 80 } });
     const quote = await getCancellationQuote("booking-id", ["ticket-id"]);

@@ -18,6 +18,26 @@ enum VoucherSource { loyaltyRedemption, savedPromotion }
 
 enum VoucherArtwork { star, route, gift }
 
+/// Trạng thái voucher trong ví (`AVAILABLE` / `RESERVED` / `USED` / `EXPIRED`), mỗi trạng thái một tab.
+enum VoucherStatus {
+  available('Khả dụng'),
+  reserved('Đang giữ'),
+  used('Đã dùng'),
+  expired('Hết hạn');
+
+  const VoucherStatus(this.label);
+
+  final String label;
+
+  /// Mã trạng thái của API; lạ thì coi như khả dụng.
+  static VoucherStatus fromApi(String value) => switch (value) {
+    'RESERVED' => reserved,
+    'USED' => used,
+    'EXPIRED' => expired,
+    _ => available,
+  };
+}
+
 class VoucherWalletItem {
   const VoucherWalletItem({
     required this.id,
@@ -33,6 +53,7 @@ class VoucherWalletItem {
     this.displayValue,
     this.conditionLabel,
     this.artwork,
+    this.status = VoucherStatus.available,
   });
 
   final String id;
@@ -50,6 +71,9 @@ class VoucherWalletItem {
   final String? displayValue;
   final String? conditionLabel;
   final VoucherArtwork? artwork;
+
+  /// Đang giữ = đã áp vào một đơn chờ thanh toán; đơn hết hạn / hủy thì voucher trở lại Khả dụng.
+  final VoucherStatus status;
 }
 
 final figmaVoucherSamples = <VoucherWalletItem>[
@@ -117,6 +141,9 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
   bool _saving = false;
   String? _validationMessage;
 
+  /// Tab đang xem (SCR-PSG-36); mặc định Khả dụng như web.
+  VoucherStatus _tab = VoucherStatus.available;
+
   @override
   void dispose() {
     _codeController.dispose();
@@ -180,7 +207,11 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
                     if (snapshot.hasError || !snapshot.hasData) {
                       return _LoadError(onRetry: _reload);
                     }
-                    final vouchers = snapshot.requireData;
+                    final all = snapshot.requireData;
+                    final vouchers = [
+                      for (final voucher in all)
+                        if (voucher.status == _tab) voucher,
+                    ];
                     return RefreshIndicator(
                       color: _primary,
                       onRefresh: _reload,
@@ -202,10 +233,33 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
                             },
                             onSave: _saveCode,
                           ),
-                          const SizedBox(height: 18),
-                          if (vouchers.isEmpty)
+                          const SizedBox(height: 14),
+                          _VoucherTabs(
+                            selected: _tab,
+                            counts: {
+                              for (final status in VoucherStatus.values)
+                                status: all
+                                    .where((voucher) => voucher.status == status)
+                                    .length,
+                            },
+                            onSelected: (status) =>
+                                setState(() => _tab = status),
+                          ),
+                          const SizedBox(height: 14),
+                          if (vouchers.isEmpty && _tab == VoucherStatus.available)
                             const _VoucherEmpty()
+                          else if (vouchers.isEmpty)
+                            const Padding(
+                              key: Key('voucher-wallet-tab-empty'),
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                'Chưa có voucher ở trạng thái này.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: _muted, fontSize: 14),
+                              ),
+                            )
                           else ...[
+                            if (_tab == VoucherStatus.available)
                             Padding(
                               padding: const EdgeInsets.only(left: 3),
                               child: Text.rich(
@@ -260,6 +314,55 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
   }
 }
 
+/// Tab trạng thái có số đếm (SCR-PSG-36), như web.
+class _VoucherTabs extends StatelessWidget {
+  const _VoucherTabs({
+    required this.selected,
+    required this.counts,
+    required this.onSelected,
+  });
+
+  final VoucherStatus selected;
+  final Map<VoucherStatus, int> counts;
+  final ValueChanged<VoucherStatus> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final status in VoucherStatus.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                key: Key('voucher-tab-${status.name}'),
+                label: Text('${status.label} (${counts[status] ?? 0})'),
+                selected: selected == status,
+                showCheckmark: false,
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                onSelected: (_) => onSelected(status),
+                labelStyle: TextStyle(
+                  color: selected == status ? Colors.white : _ink,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
+                selectedColor: _primary,
+                backgroundColor: Colors.white,
+                side: BorderSide(
+                  color: selected == status
+                      ? _primary
+                      : const Color(0xFFDCE6F2),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class VoucherCard extends StatelessWidget {
   const VoucherCard({required this.voucher, super.key});
 
@@ -272,7 +375,34 @@ class VoucherCard extends StatelessWidget {
         (voucher.source == VoucherSource.loyaltyRedemption
             ? VoucherArtwork.star
             : VoucherArtwork.route);
-    return SizedBox(
+    final (badgeText, badgeColor, badgeBackground) = switch (voucher.status) {
+      VoucherStatus.available => (
+        'Khả dụng',
+        const Color(0xFF007C50),
+        const Color(0xFFE0FAEB),
+      ),
+      VoucherStatus.reserved => (
+        'Đang giữ cho đơn chờ thanh toán',
+        const Color(0xFFB54708),
+        const Color(0xFFFFF4E0),
+      ),
+      VoucherStatus.used => (
+        'Đã dùng',
+        _muted,
+        const Color(0xFFEFF2F6),
+      ),
+      VoucherStatus.expired => (
+        'Hết hạn',
+        _muted,
+        const Color(0xFFEFF2F6),
+      ),
+    };
+    final inactive =
+        voucher.status == VoucherStatus.used ||
+        voucher.status == VoucherStatus.expired;
+    return Opacity(
+      opacity: inactive ? 0.6 : 1,
+      child: SizedBox(
       key: Key('voucher-card-${voucher.id}'),
       height: 166,
       child: Stack(
@@ -316,25 +446,28 @@ class VoucherCard extends StatelessWidget {
             left: 16,
             top: 12,
             child: Container(
+              key: Key('voucher-status-${voucher.id}'),
               height: 23,
               padding: const EdgeInsets.symmetric(horizontal: 7),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0FAEB),
+                color: badgeBackground,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SvgPicture.asset(
-                    '$_assetRoot/check.svg',
-                    width: 14,
-                    height: 14,
-                  ),
-                  const SizedBox(width: 5),
-                  const Text(
-                    'Khả dụng',
+                  if (voucher.status == VoucherStatus.available) ...[
+                    SvgPicture.asset(
+                      '$_assetRoot/check.svg',
+                      width: 14,
+                      height: 14,
+                    ),
+                    const SizedBox(width: 5),
+                  ],
+                  Text(
+                    badgeText,
                     style: TextStyle(
-                      color: Color(0xFF007C50),
+                      color: badgeColor,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
@@ -449,6 +582,7 @@ class VoucherCard extends StatelessWidget {
             child: SvgPicture.asset('$_assetRoot/notch.svg'),
           ),
         ],
+      ),
       ),
     );
   }

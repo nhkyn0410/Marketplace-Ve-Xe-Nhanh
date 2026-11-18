@@ -148,7 +148,8 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
             )}
           </div>
           <p className="font-mono text-[13px]/[19.5px] font-semibold text-vxn-ink">{currentTicket?.ticketCode ?? trip.operatorCode}</p>
-          {currentTicket?.status !== "cancelled" && <p className="text-xs/[18px] font-medium text-[#9e6410]">Lên xe quét mã</p>}
+          {/* Chỉ nhắc quét mã với vé còn hiệu lực; vé đã dùng / đã lên xe / vắng mặt / đã hủy thì không. */}
+          {currentTicket?.status === "valid" && <p className="text-xs/[18px] font-medium text-[#9e6410]">Lên xe quét mã</p>}
         </div>
 
         {/* Khía răng cưa trên/dưới đường cắt cuống vé */}

@@ -48,6 +48,14 @@ export const TripSearchQuerySchema = z
       .max(1000)
       .optional()
       .transform((value) => (value ? value.split(",").map((item) => item.trim()).filter(Boolean) : [])),
+    /**
+     * Lọc theo tên điểm đón / trả khách chọn trong `facets.pickupPoints` / `facets.dropoffPoints` (FR-MKT-03; PASSENGER-PARITY
+     * giai đoạn 4 — chờ duyệt). Theo tên để gộp cùng một bến của nhiều nhà xe.
+     */
+    pickupPoint: z.string().trim().min(1).max(200).optional(),
+    dropoffPoint: z.string().trim().min(1).max(200).optional(),
+    /** Điểm đánh giá nhà xe tối thiểu (1–5, FR-MKT-03 — chờ duyệt); nhà xe chưa có đánh giá bị loại. */
+    minRating: z.coerce.number().min(1).max(5).optional(),
     sort: z.enum(SEARCH_SORTS).default("departure"),
     page: z.coerce.number().int().min(1).max(100).default(1),
     limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -116,6 +124,9 @@ export const TripSearchResponseSchema = z.object({
   /** Gợi ý bộ lọc từ toàn bộ kết quả trước khi lọc thêm. */
   facets: z.object({
     operators: z.array(z.object({ id: z.uuid(), name: z.string(), count: z.int() })),
+    /** Điểm đón / trả có trong kết quả (theo tên, kèm số chuyến) để lọc — chờ duyệt. */
+    pickupPoints: z.array(z.object({ name: z.string(), count: z.int() })),
+    dropoffPoints: z.array(z.object({ name: z.string(), count: z.int() })),
     priceMin: z.int().nullable(),
     priceMax: z.int().nullable(),
   }),

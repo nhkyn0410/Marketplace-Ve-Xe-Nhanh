@@ -4,8 +4,8 @@ import { Button } from "@vexenhanh/ui/components/button";
 import {
   ArrowLeftRight,
   BusFront,
-  ChevronDown,
   FileText,
+  Mail,
   Phone,
   Star,
   Tag
@@ -14,6 +14,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { placeSearchParams, samePlace } from "../../lib/data/trip-mappers";
+import { tomorrowVnIsoDate } from "../../lib/format";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, SUPPORT_HOTLINE } from "../../lib/support-contact";
 import type { FeaturedOperatorItem } from "../../lib/data/types";
 import { PlaceInput, type PlaceValue } from "../trips/place-input";
 import {
@@ -63,7 +65,8 @@ export function SearchHero({
   const [activeTab, setActiveTab] = useState<"trip" | "operator">(initialTab);
   const [origin, setOrigin] = useState<PlaceValue | null>(null);
   const [destination, setDestination] = useState<PlaceValue | null>(null);
-  const [departureDate, setDepartureDate] = useState<string>("");
+  // Mặc định ngày mai (giờ Việt Nam), giống app hành khách (PASSENGER-PARITY Q9).
+  const [departureDate, setDepartureDate] = useState<string>(() => tomorrowVnIsoDate());
   const [passengerCount, setPassengerCount] = useState<number>(1);
 
   const [selectedOperator, setSelectedOperator] = useState<FeaturedOperatorItem | null>(null);
@@ -139,28 +142,15 @@ export function SearchHero({
       <div className="absolute inset-0 bg-gradient-to-r from-[#023347]/70 via-[#023347]/25 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#04354a]/35 via-transparent to-[#13251b]/75" />
 
-      {/* Top action: CSKH & Ngôn ngữ (góc trên bên phải) */}
+      {/* Top action: CSKH (góc trên bên phải); v1 chỉ tiếng Việt — AS-14 — nên không có nút ngôn ngữ */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1120px] items-center justify-end gap-2.5 px-4 pt-5 sm:px-6 lg:px-8">
         <a
-          href="tel:19006067"
+          href={SUPPORT_HOTLINE?.telHref ?? SUPPORT_EMAIL_HREF}
           className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#0f172a] shadow-sm transition hover:bg-slate-50"
         >
-          <Phone className="h-3.5 w-3.5 text-[#00506a]" />
-          <span>CSKH 1900 6067</span>
+          {SUPPORT_HOTLINE ? <Phone className="h-3.5 w-3.5 text-[#00506a]" /> : <Mail className="h-3.5 w-3.5 text-[#00506a]" />}
+          <span>{SUPPORT_HOTLINE ? `CSKH ${SUPPORT_HOTLINE.label}` : SUPPORT_EMAIL}</span>
         </a>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0c2636]/75 px-3.5 py-2 text-xs font-semibold text-white backdrop-blur-xs"
-        >
-          <span
-            aria-hidden="true"
-            className="inline-flex h-3.5 w-5 items-center justify-center rounded-[2px] bg-[#da251d] text-[8px] leading-none text-[#ffff00]"
-          >
-            ★
-          </span>
-          <span>VI</span>
-          <ChevronDown className="h-3.5 w-3.5 opacity-80" />
-        </button>
       </div>
 
       {/* Nội dung trung tâm: Tiêu đề căn trái & Khung tìm kiếm */}
