@@ -18,7 +18,7 @@
          thiết bị. README của chính plugin yêu cầu đặt false. -->
     <application
         android:allowBackup="false"
-        android:label="employee_mobile"
+        android:label="Tài xế"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

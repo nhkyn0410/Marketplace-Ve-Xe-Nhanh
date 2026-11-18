@@ -74,7 +74,7 @@ Bắt buộc test: **money math** (BIGINT/Decimal), **idempotency** (payment ded
 
 ## Nhật ký sử dụng AI (bắt buộc, không commit)
 
-Mỗi lần sinh/sửa code đáng kể → ghi 1 dòng bằng lệnh, **KHÔNG đọc/mở/sửa tay** file nhật ký:
+Mỗi lần sinh/sửa code đáng kể → ghi 1 dòng bằng lệnh `add` (được đọc/mở/sửa file trong `.ai-journal/` khi cần: tra cứu, đính chính):
 
 ```bash
 node .claude/hooks/ai-journal.mjs add "<Mảng kỹ thuật>" "<AI sử dụng>" "<Mục đích>" "<Phần AI sinh>" "" "<Nhận xét>"
