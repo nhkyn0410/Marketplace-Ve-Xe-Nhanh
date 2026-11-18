@@ -97,18 +97,13 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       return;
     }
 
-    // Nếu dán chuỗi nhiều số
-    if (clean.length > 1) {
-      const next = [...digits];
-      for (let i = 0; i < 6; i++) {
-        if (clean[i]) next[i] = clean[i];
-      }
-      setDigits(next);
-      const focusTarget = Math.min(clean.length, 5);
-      inputRefs.current[focusTarget]?.focus();
+    // Nhiều số cùng lúc (bàn phím điện thoại tự điền mã) → rải từ ô 0
+    if (clean.length > 2) {
+      fillFrom(clean);
       return;
     }
 
+    // Gõ đè lên ô đã có số: lấy số vừa gõ
     const next = [...digits];
     next[index] = clean.slice(-1);
     setDigits(next);
@@ -118,9 +113,29 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     }
   };
 
+  const fillFrom = (clean: string) => {
+    const next = ["", "", "", "", "", ""];
+    for (let i = 0; i < 6; i++) next[i] = clean[i] ?? "";
+    setDigits(next);
+    inputRefs.current[Math.min(clean.length, 5)]?.focus();
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const clean = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!clean) return;
+    e.preventDefault();
+    fillFrom(clean);
+  };
+
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -208,8 +223,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       </div>
 
       <form onSubmit={handleVerify} className="flex w-full flex-col gap-4">
-        {/* Ô nhập 6 số OTP (hộp 406×64 bo góc) */}
-        <div className="mx-auto flex h-16 w-full max-w-[406px] items-center justify-around rounded-2xl border border-[#e4e5e7] bg-white px-2 transition-all focus-within:border-vxn-teal-500 focus-within:ring-2 focus-within:ring-vxn-teal-500/20">
+        {/* 6 ô OTP riêng, ô đang nhập được viền + vòng focus */}
+        <div className="mx-auto flex w-full max-w-[406px] items-center justify-between gap-2">
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -219,12 +234,17 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
               type="text"
               aria-label={`Chữ số xác minh ${index + 1}`}
               autoComplete={index === 0 ? "one-time-code" : "off"}
+              autoFocus={index === 0 && !isPreview}
               inputMode="numeric"
-              maxLength={1}
+              pattern="[0-9]*"
               value={digit}
               onChange={(e) => handleDigitChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="h-12 w-12 bg-transparent text-center text-[28px] font-semibold text-vxn-teal-500 focus:outline-none"
+              onPaste={handlePaste}
+              onFocus={(e) => e.target.select()}
+              className={`h-14 min-w-0 flex-1 rounded-xl border bg-white text-center text-[26px] font-semibold text-vxn-teal-500 transition-all focus:border-vxn-teal-500 focus:outline-none focus:ring-2 focus:ring-vxn-teal-500/20 sm:h-16 sm:max-w-14 ${
+                digit ? "border-vxn-teal-500/60" : "border-[#e4e5e7]"
+              }`}
             />
           ))}
         </div>

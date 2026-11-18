@@ -308,12 +308,16 @@ export function SearchHero({
                               operator.id === selectedOperator?.id ? "bg-[#eef6f9]" : "hover:bg-[#eef6f9]"
                             }`}
                           >
-                            <div
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-                              style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
-                            >
-                              {operator.shortCode}
-                            </div>
+                            {operator.logoUrl ? (
+                              <img src={operator.logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-slate-100 bg-white object-contain" />
+                            ) : (
+                              <div
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                                style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
+                              >
+                                {operator.shortCode}
+                              </div>
+                            )}
                             <div className="min-w-0 flex-1">
                               <div className="truncate text-sm font-bold text-[#0f172a]">
                                 {operator.name}
