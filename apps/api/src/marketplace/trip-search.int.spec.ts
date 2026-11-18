@@ -270,7 +270,18 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     });
     expect(main.onlineSaleClosesAt).toBe(new Date(DAY0 + 7 * HOUR).toISOString());
     expect(result.items.find((item) => item.tripId === ids.cheap)).toMatchObject({ availableSeats: 2, minPrice: 250_000 });
-    expect(result.facets).toEqual({ operators: [{ id: opA, name: `Nhà xe A ${tag}`, count: 4 }], priceMin: 250_000, priceMax: 350_000 });
+    // Bộ lọc điểm đón / trả (FR-MKT-03): đếm theo tên điểm, nhiều chuyến trước.
+    expect(result.facets).toEqual({
+      operators: [{ id: opA, name: `Nhà xe A ${tag}`, count: 4 }],
+      priceMin: 250_000,
+      priceMax: 350_000,
+      pickupPoints: [
+        { name: `Bến đi ${tag}`, count: 2 },
+        { name: `Bến xa ${tag}`, count: 1 },
+        { name: `Văn phòng gần ${tag}`, count: 1 },
+      ],
+      dropoffPoints: [{ name: `Bến đến ${tag}`, count: 4 }],
+    });
     expect((await search.search(query({ fromProvinceId: provinceB, toProvinceId: provinceA }))).items).toEqual([]);
     expect((await search.search(query({ date: "2031-05-11" }))).items).toEqual([]);
   });
