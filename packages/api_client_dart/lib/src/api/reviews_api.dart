@@ -10,6 +10,7 @@ import 'package:dio/dio.dart';
 
 import 'package:api_client_dart/src/api_util.dart';
 import 'package:api_client_dart/src/model/customer_review_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output.dart';
 import 'package:api_client_dart/src/model/problem_details_dto.dart';
 import 'package:api_client_dart/src/model/review_dto_output.dart';
 import 'package:api_client_dart/src/model/review_input_dto.dart';
@@ -195,6 +196,98 @@ class ReviewsApi {
     }
 
     return Response<CustomerReviewDtoOutput>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// passengerReviewControllerList
+  /// 
+  ///
+  /// Parameters:
+  /// * [pendingCursor] 
+  /// * [reviewedCursor] 
+  /// * [limit] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [PassengerReviewsDtoOutput] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<PassengerReviewsDtoOutput>> passengerReviewControllerList({ 
+    String? pendingCursor,
+    String? reviewedCursor,
+    num? limit = 20,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/me/reviews';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'bearer',
+          },
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (pendingCursor != null) r'pendingCursor': encodeQueryParameter(_serializers, pendingCursor, const FullType(String)),
+      if (reviewedCursor != null) r'reviewedCursor': encodeQueryParameter(_serializers, reviewedCursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    PassengerReviewsDtoOutput? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerReviewsDtoOutput),
+      ) as PassengerReviewsDtoOutput;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<PassengerReviewsDtoOutput>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

@@ -56,9 +56,12 @@ import { SeatHoldController } from "../seat-hold/seat-hold.controller";
 import { SeatHoldService } from "../seat-hold/seat-hold.service";
 import { BookingController } from "../booking/booking.controller";
 import { BookingService } from "../booking/booking.service";
+import { TicketEmailService } from "../booking/ticket-email.service";
 import { OperatorBookingController } from "../booking/operator-booking.controller";
 import { OperatorBookingService } from "../booking/operator-booking.service";
+import { PAYMENT_GATEWAYS } from "../external/payment/payment-gateway";
 import { PaymentController } from "../payment/payment.controller";
+import { PaymentProviderController } from "../payment/payment-provider.controller";
 import { PaymentService } from "../payment/payment.service";
 import { AdminPaymentController } from "../payment/admin-payment.controller";
 import { AdminPaymentService } from "../payment/admin-payment.service";
@@ -81,7 +84,7 @@ import { OperatorSupportController } from "../support/operator-support.controlle
 import { SupportService } from "../support/support.service";
 import { AdminDisputeController, CustomerDisputeController, OperatorDisputeController } from "../dispute/dispute.controller";
 import { DisputeService } from "../dispute/dispute.service";
-import { AdminReviewController, CustomerReviewController, OperatorReviewController } from "../review/review.controller";
+import { AdminReviewController, CustomerReviewController, OperatorReviewController, PassengerReviewController } from "../review/review.controller";
 import { ReviewService } from "../review/review.service";
 import { AdminPromotionController, OperatorPromotionController, PublicPromotionController } from "../promotion/promotion.controller";
 import { PromotionService } from "../promotion/promotion.service";
@@ -110,6 +113,7 @@ import { SystemStatusService } from "../admin/system-status.service";
 import { AdminAccountService } from "../iam/user/admin-account.service";
 import {
   AdminEmployeeController,
+  AdminOperatorAccountController,
   AdminPassengerController,
   AdminPlatformAccountController,
 } from "../iam/user/admin-user.controller";
@@ -126,6 +130,8 @@ import { VehicleController } from "../vehicle/vehicle.controller";
 import { VehicleService } from "../vehicle/vehicle.service";
 import { AdminNotificationController, PreferenceController } from "../notification/preference.controller";
 import { PreferenceService } from "../notification/preference.service";
+import { JourneyDemoController } from "../notification/journey-demo.controller";
+import { JourneyDemoService } from "../notification/journey-demo.service";
 import { InboxController } from "../notification/inbox.controller";
 import { InboxService } from "../notification/inbox.service";
 import { AdminNotificationCampaignController } from "../notification/campaign/notification-campaign.controller";
@@ -164,6 +170,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     AdminNotificationCampaignController,
     AdminReconciliationController,
     PreferenceController,
+    JourneyDemoController,
     InboxController,
     EmployeeIncidentController,
     OperatorIncidentController,
@@ -204,6 +211,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     BookingController,
     OperatorBookingController,
     PaymentController,
+    PaymentProviderController,
     AdminPaymentController,
     TicketController,
     CancellationController,
@@ -220,6 +228,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     OperatorDisputeController,
     CustomerDisputeController,
     CustomerReviewController,
+    PassengerReviewController,
     OperatorReviewController,
     AdminReviewController,
     AdminPromotionController,
@@ -240,6 +249,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     SystemStatusController,
     AdminPassengerController,
     AdminEmployeeController,
+    AdminOperatorAccountController,
     AdminPlatformAccountController,
   ],
   providers: [
@@ -260,6 +270,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },
+    { provide: JourneyDemoService, useValue: {} },
     { provide: CatalogService, useValue: {} },
     { provide: AdminCatalogService, useValue: {} },
     { provide: VehicleService, useValue: {} },
@@ -293,8 +304,10 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: TripSearchService, useValue: {} },
     { provide: SeatHoldService, useValue: {} },
     { provide: BookingService, useValue: {} },
+    { provide: TicketEmailService, useValue: {} },
     { provide: OperatorBookingService, useValue: {} },
     { provide: PaymentService, useValue: {} },
+    { provide: PAYMENT_GATEWAYS, useValue: new Map() },
     { provide: AdminPaymentService, useValue: {} },
     { provide: TicketService, useValue: {} },
     { provide: CancellationService, useValue: {} },

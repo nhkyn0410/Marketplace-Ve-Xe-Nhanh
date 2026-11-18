@@ -144,6 +144,7 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backTo
               canManageBooking={data.canManageBooking}
               canUnlock={canUnlock}
               bookedWithAccount={bookedWithAccount}
+              hasAccount={Boolean(loginPrompt) || bookedWithAccount}
               ticketId={data.tickets[0]?.ticketId}
               payment={data.payment}
               onPrintOrder={() => window.print()}

@@ -9,6 +9,7 @@ import { QueueModule } from "../queue/queue.module";
 import { AdminPaymentController } from "./admin-payment.controller";
 import { AdminPaymentService } from "./admin-payment.service";
 import { PaymentController } from "./payment.controller";
+import { PaymentProviderController } from "./payment-provider.controller";
 import { PaymentService } from "./payment.service";
 import { PaymentWebhookController } from "./payment-webhook.controller";
 import { PaymentWebhookService } from "./payment-webhook.service";
@@ -19,7 +20,7 @@ import { PaymentWebhookService } from "./payment-webhook.service";
  */
 @Module({
   imports: [DatabaseModule, IamModule, QueueModule, PaymentGatewayModule, AuditModule],
-  controllers: [PaymentController, PaymentWebhookController, AdminPaymentController, AdminReconciliationController],
+  controllers: [PaymentController, PaymentProviderController, PaymentWebhookController, AdminPaymentController, AdminReconciliationController],
   providers: [PaymentService, PaymentWebhookService, AdminPaymentService, AdminReconciliationService],
 })
 export class PaymentModule {}

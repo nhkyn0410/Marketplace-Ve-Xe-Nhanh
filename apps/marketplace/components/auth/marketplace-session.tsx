@@ -45,8 +45,8 @@ export function MarketplaceSessionProvider({ children }: { readonly children: Re
     if (result.status === "ok") {
       setUser(null);
       setError(null);
+      // Không gọi router.refresh() ngay sau push: lệnh refresh hủy điều hướng đang chờ.
       router.push("/login");
-      router.refresh();
     } else {
       setError(result.status === "error" ? result.message ?? "Không thể đăng xuất." : "Chưa thể đăng xuất.");
     }

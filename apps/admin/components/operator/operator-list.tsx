@@ -15,18 +15,19 @@ import {
   useDebouncedValue
 } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON, ListLoadMoreFooter, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
-import { Building2, CircleAlert, CircleCheck, Landmark, Lock, LockOpen, Mail, RefreshCw } from "lucide-react";
+import { Building2, CircleAlert, CircleCheck, KeyRound, Landmark, Lock, LockOpen, RefreshCw, TriangleAlert, Users } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { listOperators, suspendOperator, unsuspendOperator, type AdminOperator, type OperatorStatus } from "../../lib/user/user-api";
 import { formatDate, OPERATOR_STATUS, openSaleLabel } from "../../lib/user/user-format";
 import { AccountActionDialog, type AccountAction } from "../user/account-dialogs";
+import { operatorPasswordAction } from "../user/operator-account-actions";
 import { BankChangeDialog } from "./bank-change-dialog";
 
 /**
  * Tab "Nhà xe" của màn Nhà xe & KYC (Figma ADM-02e/f; FR-ADM-02/03, UC-23 A6): nhà xe đã duyệt, tìm tên / mã / chủ nhà
- * xe, lọc trạng thái; bấm tên mở chi tiết nhà xe; tạm khóa (lý do + TOTP) / mở khóa; "Gửi lại" mở hồ sơ để gửi lại mật khẩu tạm cho chủ nhà xe;
+ * xe, lọc trạng thái; bấm tên mở chi tiết; tạm khóa / mở khóa; xem tài khoản và cấp lại mật khẩu chủ nhà xe (lý do + TOTP);
  * nhà xe gửi yêu cầu đổi tài khoản nhận tiền thì có nút "Xác minh TK" (TASK-OPR-001b).
  */
 export function OperatorList() {
@@ -36,7 +37,7 @@ export function OperatorList() {
   const [bankChange, setBankChange] = useState<string>(ALL);
   const [verifying, setVerifying] = useState<AdminOperator | null>(null);
   const [action, setAction] = useState<AccountAction | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ text: string; tone: "success" | "warning" } | null>(null);
   const q = useDebouncedValue(search.trim());
   const filters = useMemo(
     () => ({ q: q || undefined, status: status === ALL ? undefined : status, bankChange: bankChange === ALL ? undefined : bankChange }),
@@ -51,7 +52,11 @@ export function OperatorList() {
   const rows = pages.data?.pages.flatMap((page) => page.items) ?? [];
   const total = pages.data?.pages[0]?.total ?? 0;
   const filtered = q !== "" || status !== ALL || bankChange !== ALL;
-  const refresh = () => void queryClient.invalidateQueries({ queryKey: ["admin-operators"] });
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ["admin-operators"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operator"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operator-accounts"] });
+  };
 
   function openSuspend(operator: AdminOperator) {
     setAction({
@@ -106,7 +111,7 @@ export function OperatorList() {
       />
     );
   } else {
-    body = <OperatorTable rows={rows} onSuspend={openSuspend} onUnsuspend={openUnsuspend} onVerifyBank={setVerifying} />;
+    body = <OperatorTable rows={rows} onSuspend={openSuspend} onUnsuspend={openUnsuspend} onVerifyBank={setVerifying} onResetPassword={(operator) => operator.owner && setAction(operatorPasswordAction(operator.owner))} />;
     footer = (
       <ListLoadMoreFooter
         hasMore={pages.hasNextPage}
@@ -123,9 +128,9 @@ export function OperatorList() {
   return (
     <>
       {notice && (
-        <div role="status" className="flex items-center gap-3 rounded-lg bg-success-50 px-5 py-3 text-sm leading-5 text-success-700">
-          <CircleCheck className="size-5 shrink-0" />
-          {notice}
+        <div role="status" className={`flex items-center gap-3 rounded-lg px-5 py-3 text-sm leading-5 ${notice.tone === "success" ? "bg-success-50 text-success-700" : "bg-warning-50 text-warning-700"}`}>
+          {notice.tone === "success" ? <CircleCheck className="size-5 shrink-0" /> : <TriangleAlert className="size-5 shrink-0" />}
+          {notice.text}
         </div>
       )}
       <section aria-label="Danh sách nhà xe" className="flex flex-col rounded-xl border bg-card p-6">
@@ -158,15 +163,15 @@ export function OperatorList() {
           kèm lý do.
         </p>
       </div>
-      <AccountActionDialog action={action} onClose={() => setAction(null)} onDone={(message) => {
-        setNotice(message);
+      <AccountActionDialog action={action} onClose={() => setAction(null)} onDone={(message, tone = "success") => {
+        setNotice({ text: message, tone });
         refresh();
       }} onStale={refresh} />
       <BankChangeDialog
         operator={verifying}
         onClose={() => setVerifying(null)}
         onDone={(message) => {
-          setNotice(message);
+          setNotice({ text: message, tone: "success" });
           refresh();
         }}
         onStale={refresh}
@@ -176,7 +181,7 @@ export function OperatorList() {
 }
 
 // Độ rộng cột theo Figma ADM-02e (co giãn ở cột Nhà xe).
-const COLUMNS = ["", "w-[20%]", "w-[15%]", "w-[17%]", "w-[11%]", "w-[11%]"];
+const COLUMNS = ["", "w-[20%]", "w-[15%]", "w-[17%]", "w-[11%]", "w-[18%]"];
 const HEADINGS = ["Nhà xe", "Chủ nhà xe", "Đang mở bán", "Trạng thái", "Duyệt ngày", ""];
 const SUBLINE = "truncate text-xs leading-[18px] text-muted-foreground";
 
@@ -184,12 +189,14 @@ function OperatorTable({
   rows,
   onSuspend,
   onUnsuspend,
-  onVerifyBank
+  onVerifyBank,
+  onResetPassword
 }: {
   rows: AdminOperator[];
   onSuspend: (operator: AdminOperator) => void;
   onUnsuspend: (operator: AdminOperator) => void;
   onVerifyBank: (operator: AdminOperator) => void;
+  onResetPassword: (operator: AdminOperator) => void;
 }) {
   return (
     <div className="relative overflow-x-auto">
@@ -258,24 +265,29 @@ function OperatorTable({
                 </td>
                 <td className={TABLE_CELL}>{formatDate(row.approvedAt)}</td>
                 <td className={TABLE_CELL}>
-                  {row.status === "SUSPENDED" ? (
-                    <Button variant="ghost" className="h-8 px-2 font-semibold" aria-label={`Mở khóa nhà xe ${row.name}`} onClick={() => onUnsuspend(row)}>
-                      Mở khóa
-                      <LockOpen className="size-4" />
-                    </Button>
-                  ) : row.owner?.credentialDeliveryPending && row.applicationId ? (
-                    <Button asChild variant="ghost" className="h-8 px-2 font-semibold">
-                      <Link href={`/operators/applications/${row.applicationId}`} aria-label={`Gửi lại mật khẩu tạm cho ${row.name}`}>
-                        Gửi lại
-                        <Mail className="size-4" />
+                  <div className="flex items-center gap-1">
+                    <Button asChild variant="ghost" size="icon">
+                      <Link href={`/operators/${row.id}?tab=accounts`} aria-label={`Xem tài khoản nhà xe ${row.name}`} title="Tài khoản nhà xe">
+                        <Users className="size-4" />
                       </Link>
                     </Button>
-                  ) : (
-                    <Button variant="ghost" className="h-8 px-2 font-semibold" aria-label={`Tạm khóa nhà xe ${row.name}`} onClick={() => onSuspend(row)}>
-                      Tạm khóa
-                      <Lock className="size-4" />
-                    </Button>
-                  )}
+                    {row.owner && (
+                      <Button variant="ghost" size="icon" aria-label={`Cấp lại mật khẩu cho ${row.owner.username}`} title="Cấp lại mật khẩu tạm cho chủ nhà xe" disabled={row.owner.status !== "ACTIVE" || !row.owner.email} onClick={() => onResetPassword(row)}>
+                        <KeyRound className="size-4" />
+                      </Button>
+                    )}
+                    {row.status === "SUSPENDED" ? (
+                      <Button variant="ghost" className="h-8 px-2 font-semibold" aria-label={`Mở khóa nhà xe ${row.name}`} onClick={() => onUnsuspend(row)}>
+                        Mở khóa
+                        <LockOpen className="size-4" />
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" className="h-8 px-2 font-semibold" aria-label={`Tạm khóa nhà xe ${row.name}`} onClick={() => onSuspend(row)}>
+                        Tạm khóa
+                        <Lock className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             );

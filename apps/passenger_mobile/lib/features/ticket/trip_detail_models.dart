@@ -9,6 +9,8 @@ class TripStop {
     required this.allowPickup,
     required this.allowDropoff,
     this.pickupOpen = true,
+    this.latitude,
+    this.longitude,
   });
 
   /// Thứ tự điểm trong chuyến — gửi khi giữ chỗ.
@@ -24,6 +26,10 @@ class TripStop {
 
   /// Điểm đón còn bán online — giờ ngừng bán tính theo giờ xe tới điểm này (3.3).
   final bool pickupOpen;
+
+  /// Toạ độ WGS84 để vẽ bản đồ điểm dừng (A30); `null` = không có.
+  final double? latitude;
+  final double? longitude;
 }
 
 /// Một chỗ trên sơ đồ của chuyến.

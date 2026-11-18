@@ -162,6 +162,8 @@ export const envSchema = z
     // Email OTP delivery (Resend required for delivery; dev fallback never prints OTP).
     RESEND_API_KEY: optionalString,
     FCM_PROJECT_ID: optionalString,
+    // Chỉ chạy trong dev/sandbox; service vẫn chặn tuyệt đối NODE_ENV=production.
+    JOURNEY_DEMO_ENABLED: z.enum(["true", "false"]).default("false"),
     FCM_CLIENT_EMAIL: z.preprocess(emptyToUndefined, z.email().optional()),
     FCM_PRIVATE_KEY: optionalString,
     APNS_TEAM_ID: optionalString,

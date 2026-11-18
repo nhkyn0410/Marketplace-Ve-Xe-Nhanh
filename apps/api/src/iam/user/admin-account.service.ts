@@ -20,6 +20,9 @@ import { accountGrants, checkPermissionChange, effectiveAssignable, grantableFor
 import { generateTemporaryPassword, TEMPORARY_PASSWORD_TTL_MS } from "./account-provisioning.service";
 import type {
   AdminEmployee,
+  AdminOperatorAccount,
+  OperatorAccountListQuery,
+  OperatorAccountPage,
   AdminPassenger,
   AdminPassengerBookingPage,
   AdminPassengerDetail,
@@ -35,6 +38,7 @@ import type {
   PlatformPermissionsUpdate,
 } from "./dto/admin-user.dto";
 import { TemporaryCredentialEmailLimiter } from "./temporary-credential-email-limiter";
+import { requireAccountReason } from "./account.types";
 
 type Actor = Pick<VerifiedAccessToken, "sub" | "role" | "scope" | "perms">;
 
@@ -73,6 +77,35 @@ const PLATFORM_SELECT = {
   lockedReason: true,
   lockedAt: true,
 } as const;
+
+const OPERATOR_ACCOUNT_SELECT = {
+  id: true,
+  username: true,
+  operatorId: true,
+  contactEmail: true,
+  role: true,
+  status: true,
+  passwordChangeRequired: true,
+  credentialDeliveryPending: true,
+  temporaryPasswordExpiresAt: true,
+  createdAt: true,
+  version: true,
+  operator: { select: { displayName: true, operatorSlug: true, status: true } },
+} as const;
+type OperatorAccountRow = {
+  id: string;
+  username: string;
+  operatorId: string;
+  contactEmail: string | null;
+  role: AdminOperatorAccount["role"];
+  status: AccountStatus;
+  passwordChangeRequired: boolean;
+  credentialDeliveryPending: boolean;
+  temporaryPasswordExpiresAt: Date | null;
+  createdAt: Date;
+  version: number;
+  operator: { displayName: string; operatorSlug: string; status: AdminOperatorAccount["operatorStatus"] };
+};
 type PlatformRow = {
   id: string;
   username: string;
@@ -89,7 +122,7 @@ type PlatformRow = {
 
 /**
  * Admin quản lý người dùng (FR-ADM-02/03, FR-IAM-08; Figma ADM-03a…03d): hành khách (xem, khóa / mở khóa), nhân viên
- * nhà xe (chỉ xem — tạo / khóa do chủ nhà xe), tài khoản quản trị (cấp mới bằng mật khẩu tạm, cấp lại mật khẩu, đặt
+ * nhà xe (chỉ xem — tạo / khóa do chủ nhà xe), chủ / quản lý nhà xe (xem, cấp lại mật khẩu), tài khoản quản trị (cấp mới bằng mật khẩu tạm, cấp lại mật khẩu, đặt
  * lại xác thực hai lớp, khóa / mở khóa). Mọi thay đổi ghi audit TRONG transaction (lỗi → 503, không đổi gì) và thu
  * hồi phiên của tài khoản bị tác động.
  */
@@ -361,6 +394,141 @@ export class AdminAccountService {
       total: page.total,
       operators: page.operators.map((operator) => ({ id: operator.id, name: operator.displayName })),
     };
+  }
+
+  /** Danh sách tài khoản chủ / quản lý nhà xe với phân trang và trạng thái giao mật khẩu tạm. */
+  async listOperatorAccounts(authz: Authorization, query: OperatorAccountListQuery): Promise<OperatorAccountPage> {
+    const page = await this.prisma.withScope(platformDb(authz), async (tx) => {
+      const contains = like(query.q);
+      const [slug, username] = query.q?.split("/") ?? [];
+      const where = {
+        operatorId: query.operatorId,
+        role: query.role,
+        status: query.status,
+        ...(contains ? { OR: [
+          { username: contains },
+          { contactEmail: contains },
+          { operator: { OR: [{ displayName: contains }, { operatorSlug: contains }] } },
+          ...(slug && username ? [{ AND: [{ operatorSlug: like(slug) }, { username: like(username) }] }] : []),
+        ] } : {}),
+      };
+      const after = query.cursor ? decodeTimeCursor(query.cursor) : null;
+      const [rows, total, operators] = await Promise.all([
+        tx.operatorAccount.findMany({
+          where: { AND: [where, after ? { OR: [{ createdAt: { lt: after.at } }, { createdAt: after.at, id: { lt: after.id } }] } : {}] },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: query.limit + 1,
+          select: OPERATOR_ACCOUNT_SELECT,
+        }),
+        tx.operatorAccount.count({ where }),
+        tx.operatorProfile.findMany({
+          where: { operatorAccounts: { some: {} } },
+          orderBy: [{ displayName: "asc" }, { id: "asc" }],
+          select: { id: true, displayName: true },
+        }),
+      ]);
+      return { rows, total, operators };
+    });
+    const kept = page.rows.slice(0, query.limit);
+    const items = await this.presentOperatorAccounts(kept);
+    const last = kept.at(-1);
+    return {
+      items,
+      total: page.total,
+      nextCursor: page.rows.length > query.limit && last ? encodeTimeCursor(last.createdAt, last.id) : null,
+      operators: page.operators.map((operator) => ({ id: operator.id, name: operator.displayName })),
+    };
+  }
+
+  /** Cấp mật khẩu tạm cho chủ / quản lý nhà xe, thu hồi phiên và chống ghi đè thao tác đồng thời. */
+  async resetOperatorPassword(authz: Authorization, actor: Actor, id: string, inputReason: string): Promise<AdminOperatorAccount> {
+    const reason = requireAccountReason(inputReason);
+    const current = await this.prisma.withScope(platformDb(authz), (tx) =>
+      tx.operatorAccount.findUnique({ where: { id }, select: OPERATOR_ACCOUNT_SELECT }),
+    );
+    if (!current) {
+      throw accountNotFound();
+    }
+    if (current.status !== AccountStatus.ACTIVE || !current.contactEmail) {
+      throw accountStateConflict();
+    }
+    const event = { actorId: actor.sub, actorRole: actor.role, targetType: "operator_account", targetId: id, operatorId: current.operatorId, reason };
+    // Audit phải sẵn sàng trước cả bước thu hồi phiên.
+    await this.write(authz, async (_tx, deadline) => {
+      await this.audit.recordAuditEvent({ ...event, action: "iam.operator_account.password_reset.intent", after: { passwordChangeRequired: true } }, { timeoutMs: AUDIT_TIMEOUT_MS, deadline });
+    });
+    await this.emailLimiter.reserve({ operatorId: current.operatorId, actorType: actor.scope, actorId: actor.sub, operatorAccountId: id });
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await this.credentials.hash(temporaryPassword);
+    const expiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
+    await this.sessions.revokeAllForSubject(SubjectType.OPERATOR, id, SessionRevokeReason.PASSWORD_RESET);
+    const updated = await this.write(authz, async (tx, deadline) => {
+      const [row] = await tx.operatorAccount.updateManyAndReturn({
+        where: { id, operatorId: current.operatorId, status: AccountStatus.ACTIVE, version: current.version },
+        data: {
+          passwordHash,
+          authEpoch: { increment: 1 },
+          version: { increment: 1 },
+          passwordChangeRequired: true,
+          credentialDeliveryPending: true,
+          temporaryPasswordExpiresAt: expiresAt,
+        },
+        select: OPERATOR_ACCOUNT_SELECT,
+      });
+      if (!row) {
+        throw accountStateConflict();
+      }
+      await this.audit.recordAuditEvent({ ...event, action: "iam.operator_account.password_reset", after: { passwordChangeRequired: true, credentialDeliveryPending: true } }, { timeoutMs: AUDIT_TIMEOUT_MS, deadline });
+      return row;
+    });
+    await this.sessions.revokeAllForSubject(SubjectType.OPERATOR, id, SessionRevokeReason.PASSWORD_RESET);
+    const delivered = await this.deliverOperatorPassword(authz, updated, temporaryPassword, expiresAt);
+    const [account] = await this.presentOperatorAccounts([{ ...updated, credentialDeliveryPending: !delivered }]);
+    return account!;
+  }
+
+  private async deliverOperatorPassword(authz: Authorization, row: OperatorAccountRow, temporaryPassword: string, expiresAt: Date): Promise<boolean> {
+    try {
+      if (!this.email.sendTemporaryPassword || !row.contactEmail) {
+        throw new Error("Temporary password delivery is not configured.");
+      }
+      await this.email.sendTemporaryPassword({ email: row.contactEmail, temporaryPassword, loginIdentifier: `${row.operator.operatorSlug}/${row.username}`, expiresAt });
+    } catch {
+      this.logger.warn({ event: "iam.operator_account.delivery_failed", accountId: row.id });
+      return false;
+    }
+    const delivered = await this.prisma.withScope(platformDb(authz), (tx) => tx.operatorAccount.updateMany({
+      where: { id: row.id, operatorId: row.operatorId, version: row.version, credentialDeliveryPending: true },
+      data: { credentialDeliveryPending: false, version: { increment: 1 } },
+    }));
+    if (delivered.count !== 1) {
+      throw accountStateConflict();
+    }
+    return true;
+  }
+
+  private async presentOperatorAccounts(rows: OperatorAccountRow[]): Promise<AdminOperatorAccount[]> {
+    const ids = rows.map((row) => row.id);
+    const [mfa, lastLogin] = await Promise.all([
+      this.mfa.enabledSubjects(SubjectType.OPERATOR, ids),
+      this.sessions.lastLoginAt(SubjectType.OPERATOR, ids),
+    ]);
+    return rows.map((row) => ({
+      id: row.id,
+      username: `${row.operator.operatorSlug}/${row.username}`,
+      email: row.contactEmail,
+      operatorId: row.operatorId,
+      operatorName: row.operator.displayName,
+      operatorStatus: row.operator.status,
+      role: row.role,
+      status: row.status,
+      mfaEnabled: mfa.has(row.id),
+      passwordChangeRequired: row.passwordChangeRequired,
+      credentialDeliveryPending: row.credentialDeliveryPending,
+      temporaryPasswordExpiresAt: row.temporaryPasswordExpiresAt?.toISOString() ?? null,
+      createdAt: row.createdAt.toISOString(),
+      lastLoginAt: lastLogin.get(row.id)?.toISOString() ?? null,
+    }));
   }
 
   // ── Tài khoản quản trị ──────────────────────────────────────────────────────────────────────────────

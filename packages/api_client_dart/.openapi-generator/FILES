@@ -49,6 +49,9 @@ doc/AdminLoyaltyApi.md
 doc/AdminMessageInputDto.md
 doc/AdminNotificationApi.md
 doc/AdminNotificationCampaignsApi.md
+doc/AdminOperatorAccountDtoOutput.md
+doc/AdminOperatorAccountPageDtoOutput.md
+doc/AdminOperatorAccountPageDtoOutputItemsInner.md
 doc/AdminOperatorApplicationsApi.md
 doc/AdminOperatorDetailDtoOutput.md
 doc/AdminOperatorDetailDtoOutputBankAccount.md
@@ -351,6 +354,10 @@ doc/IncidentPageDtoOutput.md
 doc/IncidentPageDtoOutputItemsInner.md
 doc/IncidentResolutionDto.md
 doc/IncidentsApi.md
+doc/JourneyDemoApi.md
+doc/JourneyDemoCurrentDtoOutput.md
+doc/JourneyDemoSnapshotDtoOutput.md
+doc/JourneyDemoStartDto.md
 doc/JourneyLogDtoOutput.md
 doc/JourneyLogInputDto.md
 doc/JourneyLogPageDtoOutput.md
@@ -454,6 +461,11 @@ doc/PassengerLoyaltyTransactionsDtoOutputTotals.md
 doc/PassengerProfileApi.md
 doc/PassengerProfileDtoOutput.md
 doc/PassengerProfileUpdateDto.md
+doc/PassengerReviewsDtoOutput.md
+doc/PassengerReviewsDtoOutputPending.md
+doc/PassengerReviewsDtoOutputPendingItemsInner.md
+doc/PassengerReviewsDtoOutputReviewed.md
+doc/PassengerReviewsDtoOutputReviewedItemsInner.md
 doc/PassengerSupportPageDtoOutput.md
 doc/PassengerSupportPageDtoOutputItemsInner.md
 doc/PassengerTicketPageDtoOutput.md
@@ -461,6 +473,8 @@ doc/PassengerTicketPageDtoOutputItemsInner.md
 doc/PasswordChangeChallengeResponse.md
 doc/PasswordChangeRequiredDto.md
 doc/PaymentInputDto.md
+doc/PaymentProviderListDtoOutput.md
+doc/PaymentProviderListDtoOutputItemsInner.md
 doc/PaymentResponseDtoOutput.md
 doc/PaymentResponseDtoOutputTransfer.md
 doc/PaymentsApi.md
@@ -621,6 +635,7 @@ doc/TicketDetailDtoOutputDispute.md
 doc/TicketDetailDtoOutputMessagesInner.md
 doc/TicketDetailDtoOutputMessagesInnerAttachmentsInner.md
 doc/TicketDetailDtoOutputPaymentsInner.md
+doc/TicketEmailResponseDtoOutput.md
 doc/TicketLookupAccessDtoOutput.md
 doc/TicketLookupBookingListDtoOutput.md
 doc/TicketLookupBookingListDtoOutputItemsInner.md
@@ -653,6 +668,7 @@ doc/TripListResponseDtoOutputItemsInner.md
 doc/TripManifestDtoOutput.md
 doc/TripManifestDtoOutputPassengersInner.md
 doc/TripManifestDtoOutputPassengersInnerPickup.md
+doc/TripManifestDtoOutputSeatsInner.md
 doc/TripOperationInputDto.md
 doc/TripPassengerListDtoOutput.md
 doc/TripPassengerListDtoOutputItemsInner.md
@@ -676,6 +692,7 @@ doc/TripScheduleResponseDtoOutput.md
 doc/TripSearchResponseDtoOutput.md
 doc/TripSearchResponseDtoOutputFacets.md
 doc/TripSearchResponseDtoOutputFacetsOperatorsInner.md
+doc/TripSearchResponseDtoOutputFacetsPickupPointsInner.md
 doc/TripSearchResponseDtoOutputItemsInner.md
 doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md
 doc/TripSearchResponseDtoOutputItemsInnerOperator.md
@@ -743,6 +760,7 @@ lib/src/api/disputes_api.dart
 lib/src/api/employee_operations_api.dart
 lib/src/api/health_api.dart
 lib/src/api/incidents_api.dart
+lib/src/api/journey_demo_api.dart
 lib/src/api/journey_logs_api.dart
 lib/src/api/notification_api.dart
 lib/src/api/operator_applications_api.dart
@@ -821,6 +839,9 @@ lib/src/model/admin_catalog_rename_dto.dart
 lib/src/model/admin_employee_page_dto_output.dart
 lib/src/model/admin_employee_page_dto_output_items_inner.dart
 lib/src/model/admin_message_input_dto.dart
+lib/src/model/admin_operator_account_dto_output.dart
+lib/src/model/admin_operator_account_page_dto_output.dart
+lib/src/model/admin_operator_account_page_dto_output_items_inner.dart
 lib/src/model/admin_operator_detail_dto_output.dart
 lib/src/model/admin_operator_detail_dto_output_bank_account.dart
 lib/src/model/admin_operator_detail_dto_output_stats.dart
@@ -1097,6 +1118,9 @@ lib/src/model/incident_input_dto_evidence_inner.dart
 lib/src/model/incident_page_dto_output.dart
 lib/src/model/incident_page_dto_output_items_inner.dart
 lib/src/model/incident_resolution_dto.dart
+lib/src/model/journey_demo_current_dto_output.dart
+lib/src/model/journey_demo_snapshot_dto_output.dart
+lib/src/model/journey_demo_start_dto.dart
 lib/src/model/journey_log_dto_output.dart
 lib/src/model/journey_log_input_dto.dart
 lib/src/model/journey_log_page_dto_output.dart
@@ -1175,6 +1199,11 @@ lib/src/model/passenger_loyalty_transactions_dto_output_items_inner.dart
 lib/src/model/passenger_loyalty_transactions_dto_output_totals.dart
 lib/src/model/passenger_profile_dto_output.dart
 lib/src/model/passenger_profile_update_dto.dart
+lib/src/model/passenger_reviews_dto_output.dart
+lib/src/model/passenger_reviews_dto_output_pending.dart
+lib/src/model/passenger_reviews_dto_output_pending_items_inner.dart
+lib/src/model/passenger_reviews_dto_output_reviewed.dart
+lib/src/model/passenger_reviews_dto_output_reviewed_items_inner.dart
 lib/src/model/passenger_support_page_dto_output.dart
 lib/src/model/passenger_support_page_dto_output_items_inner.dart
 lib/src/model/passenger_ticket_page_dto_output.dart
@@ -1182,6 +1211,8 @@ lib/src/model/passenger_ticket_page_dto_output_items_inner.dart
 lib/src/model/password_change_challenge_response.dart
 lib/src/model/password_change_required_dto.dart
 lib/src/model/payment_input_dto.dart
+lib/src/model/payment_provider_list_dto_output.dart
+lib/src/model/payment_provider_list_dto_output_items_inner.dart
 lib/src/model/payment_response_dto_output.dart
 lib/src/model/payment_response_dto_output_transfer.dart
 lib/src/model/payout_bank_account_dto_output.dart
@@ -1336,6 +1367,7 @@ lib/src/model/ticket_detail_dto_output_dispute.dart
 lib/src/model/ticket_detail_dto_output_messages_inner.dart
 lib/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart
 lib/src/model/ticket_detail_dto_output_payments_inner.dart
+lib/src/model/ticket_email_response_dto_output.dart
 lib/src/model/ticket_lookup_access_dto_output.dart
 lib/src/model/ticket_lookup_booking_list_dto_output.dart
 lib/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart
@@ -1367,6 +1399,7 @@ lib/src/model/trip_list_response_dto_output_items_inner.dart
 lib/src/model/trip_manifest_dto_output.dart
 lib/src/model/trip_manifest_dto_output_passengers_inner.dart
 lib/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart
+lib/src/model/trip_manifest_dto_output_seats_inner.dart
 lib/src/model/trip_operation_input_dto.dart
 lib/src/model/trip_passenger_list_dto_output.dart
 lib/src/model/trip_passenger_list_dto_output_items_inner.dart
@@ -1390,6 +1423,7 @@ lib/src/model/trip_schedule_response_dto_output.dart
 lib/src/model/trip_search_response_dto_output.dart
 lib/src/model/trip_search_response_dto_output_facets.dart
 lib/src/model/trip_search_response_dto_output_facets_operators_inner.dart
+lib/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_operator.dart
@@ -1419,3 +1453,5 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/ticket_email_response_dto_output_test.dart
+test/trip_search_response_dto_output_facets_pickup_points_inner_test.dart

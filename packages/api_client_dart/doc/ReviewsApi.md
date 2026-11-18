@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**customerReviewControllerCreate**](ReviewsApi.md#customerreviewcontrollercreate) | **POST** /v1/bookings/{bookingId}/review | 
 [**customerReviewControllerGet**](ReviewsApi.md#customerreviewcontrollerget) | **GET** /v1/bookings/{bookingId}/review | 
+[**passengerReviewControllerList**](ReviewsApi.md#passengerreviewcontrollerlist) | **GET** /v1/me/reviews | 
 
 
 # **customerReviewControllerCreate**
@@ -85,6 +86,51 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**CustomerReviewDtoOutput**](CustomerReviewDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **passengerReviewControllerList**
+> PassengerReviewsDtoOutput passengerReviewControllerList(pendingCursor, reviewedCursor, limit)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getReviewsApi();
+final String pendingCursor = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final String reviewedCursor = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final num limit = 8.14; // num | 
+
+try {
+    final response = api.passengerReviewControllerList(pendingCursor, reviewedCursor, limit);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling ReviewsApi->passengerReviewControllerList: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **pendingCursor** | **String**|  | [optional] 
+ **reviewedCursor** | **String**|  | [optional] 
+ **limit** | **num**|  | [optional] [default to 20]
+
+### Return type
+
+[**PassengerReviewsDtoOutput**](PassengerReviewsDtoOutput.md)
 
 ### Authorization
 

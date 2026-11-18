@@ -1,7 +1,7 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { TimeCursorField } from "../../../common/time-cursor";
-import { AccountStatus, EmployeeRole, PlatformRole } from "../../../database/prisma.types";
+import { AccountStatus, EmployeeRole, OperatorRole, OperatorStatus, PlatformRole } from "../../../database/prisma.types";
 import { PERMISSIONS } from "../../role/permissions";
 
 // API §7.5 — Admin quản lý người dùng (FR-ADM-02/03, FR-IAM-08; Figma ADM-03a…03d). Quyền `user:manage`; tài khoản quản
@@ -132,6 +132,52 @@ export const EmployeePageSchema = z.object({
 });
 export type EmployeePage = z.infer<typeof EmployeePageSchema>;
 export class AdminEmployeePageDto extends createZodDto(EmployeePageSchema) {}
+
+// ── Tài khoản chủ / quản lý nhà xe ───────────────────────────────────────────────────────────────────────
+
+/** Bộ lọc tài khoản đăng nhập Operator OS dành cho Admin. */
+export const OperatorAccountListQuerySchema = z.object({
+  q: search,
+  operatorId: z.uuid().optional(),
+  role: z.enum(OperatorRole).optional(),
+  status: z.enum(AccountStatus).optional(),
+  ...page,
+});
+export type OperatorAccountListQuery = z.infer<typeof OperatorAccountListQuerySchema>;
+/** Tham số danh sách tài khoản nhà xe. */
+export class AdminOperatorAccountListQueryDto extends createZodDto(OperatorAccountListQuerySchema) {}
+
+/** Thông tin tài khoản nhà xe, không chứa thông tin xác thực bí mật. */
+export const AdminOperatorAccountSchema = z.object({
+  id: z.uuid(),
+  username: z.string(),
+  email: z.string().nullable(),
+  operatorId: z.uuid(),
+  operatorName: z.string(),
+  operatorStatus: z.enum(OperatorStatus),
+  role: z.enum(OperatorRole),
+  status: z.enum(AccountStatus),
+  mfaEnabled: z.boolean(),
+  passwordChangeRequired: z.boolean(),
+  credentialDeliveryPending: z.boolean(),
+  temporaryPasswordExpiresAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  lastLoginAt: z.iso.datetime().nullable(),
+});
+export type AdminOperatorAccount = z.infer<typeof AdminOperatorAccountSchema>;
+/** Kết quả thao tác trên tài khoản nhà xe. */
+export class AdminOperatorAccountDto extends createZodDto(AdminOperatorAccountSchema) {}
+
+/** Một trang tài khoản chủ / quản lý và lựa chọn bộ lọc nhà xe. */
+export const OperatorAccountPageSchema = z.object({
+  items: z.array(AdminOperatorAccountSchema),
+  nextCursor: z.string().nullable(),
+  total: z.int(),
+  operators: z.array(z.object({ id: z.uuid(), name: z.string() })),
+});
+export type OperatorAccountPage = z.infer<typeof OperatorAccountPageSchema>;
+/** Kết quả danh sách tài khoản nhà xe. */
+export class AdminOperatorAccountPageDto extends createZodDto(OperatorAccountPageSchema) {}
 
 // ── Tài khoản quản trị ──────────────────────────────────────────────────────────────────────────────────
 

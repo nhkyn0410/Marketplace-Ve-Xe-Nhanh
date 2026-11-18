@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest, ACCESS_COOKIE } from "./api";
@@ -37,14 +38,42 @@ export async function registerAccount(payload: RegisterPayload): Promise<DataRes
   return ok({ email: parsed.data.email });
 }
 
-/** Xác minh OTP, lưu token vào cookie httpOnly rồi trả metadata không chứa credential. */
-export async function verifyOtp(payload: VerifyOtpPayload): Promise<DataResult<{ authenticated: boolean }>> {
+/** Trang được phép chuyển tới sau khi xác minh OTP (danh sách cố định, không nhận URL tùy ý). */
+const AFTER_VERIFY_PATHS = ["/account", "/register/profile"] as const;
+
+/**
+ * Xác minh OTP, lưu token vào cookie httpOnly rồi trả metadata không chứa credential.
+ * Có `next` thì chuyển trang ngay trong Server Action: modal OTP là route bị chặn (`@modal/(.)verify-email`), Server
+ * Action ghi cookie ở đó làm router tải lại cứng chính trang modal và hủy router.push / location.assign phía client.
+ */
+export async function verifyOtp(payload: VerifyOtpPayload, next?: (typeof AFTER_VERIFY_PATHS)[number]): Promise<DataResult<{ authenticated: boolean }>> {
   const parsed = z.object({ email: z.email(), otp: z.string().regex(/^\d{6}$/) }).safeParse(payload);
   if (!parsed.success) return failed("POST /auth/otp/verify", "Vui lòng nhập email hợp lệ và mã OTP gồm 6 chữ số.");
   const result = await apiRequest<TokenPair>("/auth/otp/verify", { method: "POST", body: JSON.stringify(parsed.data) });
   if (result.status !== "ok") return result;
   if (result.data.scope !== "passenger") return failed("POST /auth/otp/verify", "Tài khoản không thuộc cổng hành khách.");
   await saveSession(result.data);
+  if (next && AFTER_VERIFY_PATHS.includes(next)) redirect(next);
+  return ok({ authenticated: true });
+}
+
+const googleCredentialSchema = z.object({ credential: z.string().max(4096).regex(/^[\w-]+\.[\w-]+\.[\w-]+$/) });
+
+/**
+ * Đăng nhập Google (SCR-PSG-07): Google Identity Services trên trình duyệt trả ID token, Server Action đổi lấy phiên
+ * qua `POST /auth/oauth/google/id-token` — cùng endpoint app dùng — rồi lưu cookie httpOnly như OTP. Có `next` thì
+ * chuyển trang ngay trong Server Action (cùng lý do với `verifyOtp`).
+ */
+export async function loginWithGoogle(payload: { credential: string }, next?: (typeof AFTER_VERIFY_PATHS)[number]): Promise<DataResult<{ authenticated: boolean }>> {
+  const endpoint = "POST /auth/oauth/google/id-token";
+  const parsed = googleCredentialSchema.safeParse(payload);
+  if (!parsed.success) return failed(endpoint, "Không nhận được thông tin đăng nhập Google. Vui lòng thử lại.");
+  const result = await apiRequest<TokenPair>("/auth/oauth/google/id-token", { method: "POST", body: JSON.stringify({ idToken: parsed.data.credential }) });
+  if (result.status === "error" && result.httpStatus === 401) return failed(endpoint, "Không xác minh được tài khoản Google. Vui lòng thử lại.", 401);
+  if (result.status !== "ok") return result;
+  if (result.data.scope !== "passenger") return failed(endpoint, "Tài khoản không thuộc cổng hành khách.");
+  await saveSession(result.data);
+  if (next && AFTER_VERIFY_PATHS.includes(next)) redirect(next);
   return ok({ authenticated: true });
 }
 

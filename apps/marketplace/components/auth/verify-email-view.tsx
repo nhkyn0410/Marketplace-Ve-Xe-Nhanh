@@ -9,6 +9,15 @@ import { requestLoginOtp, verifyOtp } from "../../lib/data/auth";
 import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
 import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
+/** Mã OTP email có hiệu lực 5 phút (07 Security, cùng hằng số với app). */
+export const OTP_LIFETIME_SECONDS = 300;
+
+/** 272 → "04:32". */
+export function formatCountdown(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+}
+
 /**
  * Dữ liệu cấu hình cho VerifyEmailView (SCR-PSG-09)
  */
@@ -53,6 +62,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   });
 
   const [resendCooldown, setResendCooldown] = useState<number>(initialData.resendCountdownSeconds ?? 60);
+  // Hiệu lực mã đếm ngược 5 phút, gửi mã mới thì đếm lại (SCR-PSG-09: "đếm ngược hiệu lực").
+  const [expiresIn, setExpiresIn] = useState<number>(initialData.expiresInSeconds ?? OTP_LIFETIME_SECONDS);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -67,6 +78,15 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
+  // Đếm ngược hiệu lực mã
+  useEffect(() => {
+    if (expiresIn <= 0) return;
+    const timer = setInterval(() => {
+      setExpiresIn((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [expiresIn]);
+
   const handleDigitChange = (index: number, val: string) => {
     // Chỉ nhận chữ số
     const clean = val.replace(/\D/g, "");
@@ -77,18 +97,13 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       return;
     }
 
-    // Nếu dán chuỗi nhiều số
-    if (clean.length > 1) {
-      const next = [...digits];
-      for (let i = 0; i < 6; i++) {
-        if (clean[i]) next[i] = clean[i];
-      }
-      setDigits(next);
-      const focusTarget = Math.min(clean.length, 5);
-      inputRefs.current[focusTarget]?.focus();
+    // Nhiều số cùng lúc (bàn phím điện thoại tự điền mã) → rải từ ô 0
+    if (clean.length > 2) {
+      fillFrom(clean);
       return;
     }
 
+    // Gõ đè lên ô đã có số: lấy số vừa gõ
     const next = [...digits];
     next[index] = clean.slice(-1);
     setDigits(next);
@@ -98,9 +113,29 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     }
   };
 
+  const fillFrom = (clean: string) => {
+    const next = ["", "", "", "", "", ""];
+    for (let i = 0; i < 6; i++) next[i] = clean[i] ?? "";
+    setDigits(next);
+    inputRefs.current[Math.min(clean.length, 5)]?.focus();
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const clean = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!clean) return;
+    e.preventDefault();
+    fillFrom(clean);
+  };
+
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -122,13 +157,15 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
 
     setIsSubmitting(true);
     try {
+      const target = flow === "register" ? "/register/profile" : "/account";
+      // Thành công thì Server Action tự redirect tới `target` (router.push sau Server Action ghi cookie trong modal bị hủy).
       const res = await verifyOtp({
         email,
         otp: digits.join("")
-      });
+      }, target);
+      if (!res) return;
       if (res.status === "ok") {
-        router.push(flow === "register" ? "/register/profile" : "/account");
-        router.refresh();
+        window.location.assign(target);
       } else if (res.status === "unavailable") {
         setErrorMessage("Chưa thể xác minh mã. Vui lòng thử lại sau.");
       } else if (res.status === "error") {
@@ -145,6 +182,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     if (resendCooldown > 0 || isSubmitting) return;
     if (isPreview) {
       setResendCooldown(60);
+      setExpiresIn(OTP_LIFETIME_SECONDS);
       return;
     }
     setIsSubmitting(true);
@@ -153,6 +191,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       const result = await requestLoginOtp({ email });
       if (result.status === "ok") {
         setResendCooldown(60);
+        setExpiresIn(OTP_LIFETIME_SECONDS);
         setDigits(["", "", "", "", "", ""]);
       } else {
         setErrorMessage(result.status === "error" ? result.message ?? "Không thể gửi lại mã OTP." : "Chức năng gửi mã chưa khả dụng.");
@@ -184,8 +223,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       </div>
 
       <form onSubmit={handleVerify} className="flex w-full flex-col gap-4">
-        {/* Ô nhập 6 số OTP (hộp 406×64 bo góc) */}
-        <div className="mx-auto flex h-16 w-full max-w-[406px] items-center justify-around rounded-2xl border border-[#e4e5e7] bg-white px-2 transition-all focus-within:border-vxn-teal-500 focus-within:ring-2 focus-within:ring-vxn-teal-500/20">
+        {/* 6 ô OTP riêng, ô đang nhập được viền + vòng focus */}
+        <div className="mx-auto flex w-full max-w-[406px] items-center justify-between gap-2">
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -195,19 +234,26 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
               type="text"
               aria-label={`Chữ số xác minh ${index + 1}`}
               autoComplete={index === 0 ? "one-time-code" : "off"}
+              autoFocus={index === 0 && !isPreview}
               inputMode="numeric"
-              maxLength={1}
+              pattern="[0-9]*"
               value={digit}
               onChange={(e) => handleDigitChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="h-12 w-12 bg-transparent text-center text-[28px] font-semibold text-vxn-teal-500 focus:outline-none"
+              onPaste={handlePaste}
+              onFocus={(e) => e.target.select()}
+              className={`h-14 min-w-0 flex-1 rounded-xl border bg-white text-center text-[26px] font-semibold text-vxn-teal-500 transition-all focus:border-vxn-teal-500 focus:outline-none focus:ring-2 focus:ring-vxn-teal-500/20 sm:h-16 sm:max-w-14 ${
+                digit ? "border-vxn-teal-500/60" : "border-[#e4e5e7]"
+              }`}
             />
           ))}
         </div>
 
-        <p className="flex items-center gap-1.5 text-xs/[18px] text-vxn-fg-5">
+        <p className={`flex items-center gap-1.5 text-xs/[18px] ${expiresIn > 0 ? "text-vxn-fg-5" : "text-destructive"}`} aria-live="polite">
           <Clock className="size-3.5 shrink-0" />
-          Mã có hiệu lực trong 5 phút kể từ khi được gửi. Vui lòng dùng mã mới nhất.
+          {expiresIn > 0
+            ? `Mã hết hạn sau ${formatCountdown(expiresIn)}. Vui lòng dùng mã mới nhất.`
+            : "Mã đã hết hạn. Hãy gửi lại mã mới."}
         </p>
 
         {errorMessage && (

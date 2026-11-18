@@ -420,6 +420,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/journey-demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["JourneyDemoController_current"];
+        put?: never;
+        post: operations["JourneyDemoController_start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/journey-demo/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["JourneyDemoController_stop"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/inbox": {
         parameters: {
             query?: never;
@@ -2500,6 +2532,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/bookings/{bookingId}/tickets/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BookingController_resendTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/bookings": {
         parameters: {
             query?: never;
@@ -2590,6 +2638,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["PaymentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/payment-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentProviderController_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3710,6 +3774,22 @@ export interface paths {
         get: operations["CustomerReviewController_get"];
         put?: never;
         post: operations["CustomerReviewController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PassengerReviewController_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5060,6 +5140,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/operator-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorAccountController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operator-accounts/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminOperatorAccountController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/platform-accounts": {
         parameters: {
             query?: never;
@@ -5840,6 +5952,56 @@ export interface components {
             provider: string;
             active: boolean;
         };
+        JourneyDemoStartDto: {
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: uuid */
+            deviceId: string;
+        };
+        JourneyDemoSnapshotDto_Output: {
+            /** @constant */
+            type: "journey_demo";
+            schemaVersion: number;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            bookingId: string;
+            revision: number;
+            /** @enum {string} */
+            stage: "approaching" | "travelling" | "arrived" | "stopped";
+            routeLabel: string;
+            provinceName: string;
+            /** Format: date-time */
+            etaAt: string;
+            progress: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            ended: boolean;
+        };
+        JourneyDemoCurrentDto_Output: {
+            /** @constant */
+            type: "journey_demo";
+            schemaVersion: number;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            bookingId: string;
+            revision: number;
+            /** @enum {string} */
+            stage: "approaching" | "travelling" | "arrived" | "stopped";
+            routeLabel: string;
+            provinceName: string;
+            /** Format: date-time */
+            etaAt: string;
+            progress: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            ended: boolean;
+        } | null;
         InboxPageDto_Output: {
             items: {
                 /** Format: uuid */
@@ -8288,6 +8450,14 @@ export interface components {
                     name: string;
                     count: number;
                 }[];
+                pickupPoints: {
+                    name: string;
+                    count: number;
+                }[];
+                dropoffPoints: {
+                    name: string;
+                    count: number;
+                }[];
                 priceMin: number | null;
                 priceMax: number | null;
             };
@@ -8669,6 +8839,10 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        TicketEmailResponseDto_Output: {
+            sentTo: string;
+            resendAfterSeconds: number;
+        };
         OperatorBookingPageDto_Output: {
             items: {
                 /** Format: uuid */
@@ -8832,6 +9006,8 @@ export interface components {
         PaymentInputDto: {
             /** @enum {string} */
             provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+            /** @enum {string} */
+            client?: "WEB" | "APP";
         };
         PaymentResponseDto_Output: {
             /** Format: uuid */
@@ -8854,6 +9030,13 @@ export interface components {
                 description: string;
                 paymentLinkId: string;
             };
+        };
+        PaymentProviderListDto_Output: {
+            items: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
+                enabled: boolean;
+            }[];
         };
         AdminPaymentPageDto_Output: {
             items: {
@@ -9536,6 +9719,12 @@ export interface components {
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 checkedInAt: string | null;
+            }[];
+            seats?: {
+                code: string;
+                deck: number;
+                row: number;
+                column: number;
             }[];
         };
         TicketVerifyInputDto: {
@@ -10255,6 +10444,50 @@ export interface components {
             signals: ("SPAM" | "OPERATOR_REPORTED" | "DISPUTED" | "REPEATED")[];
             /** Format: date-time */
             createdAt: string;
+        };
+        PassengerReviewsDto_Output: {
+            pending: {
+                items: {
+                    /** Format: uuid */
+                    bookingId: string;
+                    bookingCode: string;
+                    /** Format: uuid */
+                    operatorId: string;
+                    operatorName: string;
+                    routeName: string;
+                    vehicleTypeName: string | null;
+                    /** Format: date-time */
+                    departureAt: string;
+                }[];
+                nextCursor: string | null;
+                total: number;
+            };
+            reviewed: {
+                items: {
+                    /** Format: uuid */
+                    reviewId: string;
+                    /** Format: uuid */
+                    bookingId: string;
+                    bookingCode: string;
+                    /** Format: uuid */
+                    operatorId: string;
+                    operatorName: string;
+                    authorName: string;
+                    rating: number;
+                    comment: string | null;
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** @enum {string} */
+                    status: "VISIBLE" | "HELD" | "HIDDEN";
+                    operatorReply: string | null;
+                    operatorRepliedAt: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                nextCursor: string | null;
+                total: number;
+            };
         };
         ReviewPageDto_Output: {
             items: {
@@ -11117,6 +11350,8 @@ export interface components {
                     id: string;
                     username: string;
                     email: string | null;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "LOCKED" | "DISABLED";
                     credentialDeliveryPending: boolean;
                 } | null;
                 routeCount: number;
@@ -11143,6 +11378,8 @@ export interface components {
                 id: string;
                 username: string;
                 email: string | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
                 credentialDeliveryPending: boolean;
             } | null;
             routeCount: number;
@@ -11768,6 +12005,59 @@ export interface components {
                 id: string;
                 name: string;
             }[];
+        };
+        AdminOperatorAccountPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                operatorStatus: "ACTIVE" | "SUSPENDED";
+                /** @enum {string} */
+                role: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                mfaEnabled: boolean;
+                passwordChangeRequired: boolean;
+                credentialDeliveryPending: boolean;
+                temporaryPasswordExpiresAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                lastLoginAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            operators: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
+        AdminOperatorAccountDto_Output: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            email: string | null;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            operatorStatus: "ACTIVE" | "SUSPENDED";
+            /** @enum {string} */
+            role: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            mfaEnabled: boolean;
+            passwordChangeRequired: boolean;
+            credentialDeliveryPending: boolean;
+            temporaryPasswordExpiresAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            lastLoginAt: string | null;
         };
         AdminPlatformAccountListDto_Output: {
             items: {
@@ -13303,6 +13593,119 @@ export interface operations {
                     "application/json": components["schemas"]["NotificationLogDto_Output"];
                 };
             };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_current: {
+        parameters: {
+            query: {
+                deviceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Snapshot hiện tại hoặc null. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyDemoCurrentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JourneyDemoStartDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên mô phỏng hành trình Android. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyDemoSnapshotDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_stop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             /** @description Thiếu hoặc sai access token. */
             401: {
                 headers: {
@@ -21313,6 +21716,9 @@ export interface operations {
                 priceMin?: number;
                 priceMax?: number;
                 amenityIds?: string;
+                pickupPoint?: string;
+                dropoffPoint?: string;
+                minRating?: number;
                 sort?: "departure" | "price" | "price_desc" | "duration" | "rating";
                 page?: number;
                 limit?: number;
@@ -21636,6 +22042,67 @@ export interface operations {
             };
             /** @description `BOOKING_NOT_FOUND`. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_resendTickets: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã xếp hàng gửi lại vé điện tử. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketEmailResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_NOT_AVAILABLE` — đơn chưa có vé còn hiệu lực. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_EMAIL_RATE_LIMITED` — 1 lần / phút, 5 lần / ngày. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21996,6 +22463,26 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PaymentProviderController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Các cổng theo thứ tự hiển thị, kèm cờ đang bật. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentProviderListDto_Output"];
                 };
             };
         };
@@ -25915,6 +26402,48 @@ export interface operations {
             };
             /** @description `REVIEW_NOT_ALLOWED` — chuyến chưa hoàn thành / chưa đi / đã đánh giá. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PassengerReviewController_list: {
+        parameters: {
+            query?: {
+                pendingCursor?: string;
+                reviewedCursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chuyến chờ đánh giá + đánh giá đã gửi, mỗi danh sách phân trang riêng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassengerReviewsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -31419,6 +31948,131 @@ export interface operations {
             };
             /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorAccountController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                operatorId?: string;
+                role?: "OPERATOR_OWNER" | "OPERATOR_MANAGER";
+                status?: "ACTIVE" | "LOCKED" | "DISABLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang tài khoản nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorAccountPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorAccountController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountLockDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cấp lại; kiểm tra credentialDeliveryPending để biết kết quả gửi email. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description ACCOUNT_TEMP_EMAIL_RATE_LIMITED. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

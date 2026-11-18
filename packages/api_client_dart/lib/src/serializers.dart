@@ -52,6 +52,9 @@ import 'package:api_client_dart/src/model/admin_catalog_rename_dto.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_message_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_account_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_bank_account.dart';
 import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_stats.dart';
@@ -327,6 +330,9 @@ import 'package:api_client_dart/src/model/incident_input_dto_evidence_inner.dart
 import 'package:api_client_dart/src/model/incident_page_dto_output.dart';
 import 'package:api_client_dart/src/model/incident_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/incident_resolution_dto.dart';
+import 'package:api_client_dart/src/model/journey_demo_current_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_demo_snapshot_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_demo_start_dto.dart';
 import 'package:api_client_dart/src/model/journey_log_dto_output.dart';
 import 'package:api_client_dart/src/model/journey_log_input_dto.dart';
 import 'package:api_client_dart/src/model/journey_log_page_dto_output.dart';
@@ -405,6 +411,11 @@ import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_out
 import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_totals.dart';
 import 'package:api_client_dart/src/model/passenger_profile_dto_output.dart';
 import 'package:api_client_dart/src/model/passenger_profile_update_dto.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_pending_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed.dart';
+import 'package:api_client_dart/src/model/passenger_reviews_dto_output_reviewed_items_inner.dart';
 import 'package:api_client_dart/src/model/passenger_support_page_dto_output.dart';
 import 'package:api_client_dart/src/model/passenger_support_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output.dart';
@@ -412,6 +423,8 @@ import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output_items
 import 'package:api_client_dart/src/model/password_change_challenge_response.dart';
 import 'package:api_client_dart/src/model/password_change_required_dto.dart';
 import 'package:api_client_dart/src/model/payment_input_dto.dart';
+import 'package:api_client_dart/src/model/payment_provider_list_dto_output.dart';
+import 'package:api_client_dart/src/model/payment_provider_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/payment_response_dto_output.dart';
 import 'package:api_client_dart/src/model/payment_response_dto_output_transfer.dart';
 import 'package:api_client_dart/src/model/payout_bank_account_dto_output.dart';
@@ -566,6 +579,7 @@ import 'package:api_client_dart/src/model/ticket_detail_dto_output_dispute.dart'
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_payments_inner.dart';
+import 'package:api_client_dart/src/model/ticket_email_response_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_access_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart';
@@ -597,6 +611,7 @@ import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_in
 import 'package:api_client_dart/src/model/trip_manifest_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart';
+import 'package:api_client_dart/src/model/trip_manifest_dto_output_seats_inner.dart';
 import 'package:api_client_dart/src/model/trip_operation_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_items_inner.dart';
@@ -620,6 +635,7 @@ import 'package:api_client_dart/src/model/trip_schedule_response_dto_output.dart
 import 'package:api_client_dart/src/model/trip_search_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_operators_inner.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';
@@ -689,6 +705,9 @@ part 'serializers.g.dart';
   AdminEmployeePageDtoOutput,
   AdminEmployeePageDtoOutputItemsInner,
   AdminMessageInputDto,
+  AdminOperatorAccountDtoOutput,
+  AdminOperatorAccountPageDtoOutput,
+  AdminOperatorAccountPageDtoOutputItemsInner,
   AdminOperatorDetailDtoOutput,
   AdminOperatorDetailDtoOutputBankAccount,
   AdminOperatorDetailDtoOutputStats,
@@ -964,6 +983,9 @@ part 'serializers.g.dart';
   IncidentPageDtoOutput,
   IncidentPageDtoOutputItemsInner,
   IncidentResolutionDto,
+  JourneyDemoCurrentDtoOutput,
+  JourneyDemoSnapshotDtoOutput,
+  JourneyDemoStartDto,
   JourneyLogDtoOutput,
   JourneyLogInputDto,
   JourneyLogPageDtoOutput,
@@ -1042,6 +1064,11 @@ part 'serializers.g.dart';
   PassengerLoyaltyTransactionsDtoOutputTotals,
   PassengerProfileDtoOutput,
   PassengerProfileUpdateDto,
+  PassengerReviewsDtoOutput,
+  PassengerReviewsDtoOutputPending,
+  PassengerReviewsDtoOutputPendingItemsInner,
+  PassengerReviewsDtoOutputReviewed,
+  PassengerReviewsDtoOutputReviewedItemsInner,
   PassengerSupportPageDtoOutput,
   PassengerSupportPageDtoOutputItemsInner,
   PassengerTicketPageDtoOutput,
@@ -1049,6 +1076,8 @@ part 'serializers.g.dart';
   PasswordChangeChallengeResponse,
   PasswordChangeRequiredDto,
   PaymentInputDto,
+  PaymentProviderListDtoOutput,
+  PaymentProviderListDtoOutputItemsInner,
   PaymentResponseDtoOutput,
   PaymentResponseDtoOutputTransfer,
   PayoutBankAccountDtoOutput,
@@ -1203,6 +1232,7 @@ part 'serializers.g.dart';
   TicketDetailDtoOutputMessagesInner,
   TicketDetailDtoOutputMessagesInnerAttachmentsInner,
   TicketDetailDtoOutputPaymentsInner,
+  TicketEmailResponseDtoOutput,
   TicketLookupAccessDtoOutput,
   TicketLookupBookingListDtoOutput,
   TicketLookupBookingListDtoOutputItemsInner,
@@ -1234,6 +1264,7 @@ part 'serializers.g.dart';
   TripManifestDtoOutput,
   TripManifestDtoOutputPassengersInner,
   TripManifestDtoOutputPassengersInnerPickup,
+  TripManifestDtoOutputSeatsInner,
   TripOperationInputDto,
   TripPassengerListDtoOutput,
   TripPassengerListDtoOutputItemsInner,
@@ -1257,6 +1288,7 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutput,
   TripSearchResponseDtoOutputFacets,
   TripSearchResponseDtoOutputFacetsOperatorsInner,
+  TripSearchResponseDtoOutputFacetsPickupPointsInner,
   TripSearchResponseDtoOutputItemsInner,
   TripSearchResponseDtoOutputItemsInnerAmenitiesInner,
   TripSearchResponseDtoOutputItemsInnerOperator,
@@ -1415,6 +1447,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripManifestDtoOutputSeatsInner)]),
+        () => ListBuilder<TripManifestDtoOutputSeatsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CampaignOptionsDtoOutputPromotionsInner)]),
         () => ListBuilder<CampaignOptionsDtoOutputPromotionsInner>(),
       )
@@ -1505,6 +1541,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CounterTripListDtoOutputItemsInnerSeatsInner)]),
         () => ListBuilder<CounterTripListDtoOutputItemsInnerSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminOperatorAccountPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorAccountPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
@@ -1679,6 +1719,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<InboxPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
+        () => ListBuilder<TripSearchResponseDtoOutputFacetsPickupPointsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorBookingPageDtoOutputItemsInner)]),
         () => ListBuilder<OperatorBookingPageDtoOutputItemsInner>(),
       )
@@ -1831,6 +1875,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PassengerReviewsDtoOutputReviewedItemsInner)]),
+        () => ListBuilder<PassengerReviewsDtoOutputReviewedItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputTicketsInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputTicketsInner>(),
       )
@@ -1869,6 +1917,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminArticlePageDtoOutputItemsInner)]),
         () => ListBuilder<AdminArticlePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PassengerReviewsDtoOutputPendingItemsInner)]),
+        () => ListBuilder<PassengerReviewsDtoOutputPendingItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PromotionPageDtoOutputItemsInner)]),
@@ -2025,6 +2077,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FareRevisionListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PaymentProviderListDtoOutputItemsInner)]),
+        () => ListBuilder<PaymentProviderListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PayoutPageDtoOutputItemsInner)]),

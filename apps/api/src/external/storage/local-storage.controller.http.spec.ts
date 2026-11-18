@@ -8,6 +8,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ProblemDetailsExceptionFilter } from "../../common/errors/problem-details.filter";
 import { configureSecurityHeaders } from "../../common/security-headers";
+import { configureWebCors } from "../../common/web-cors";
 import { configureApiRoutes } from "../../openapi/openapi";
 import { LocalStorageController } from "./local-storage.controller";
 import { LocalStorageProvider } from "./local-storage-provider";
@@ -24,13 +25,14 @@ async function start(storage: unknown, privateStorage: unknown = null): Promise<
     ],
   })
   class HttpTestModule {}
-  // Dựng như `main.ts`: tắt body parser mặc định rồi bật JSON, có helmet — để chắc luồng ảnh còn nguyên.
+  // Dựng như `main.ts`: tắt body parser mặc định rồi bật JSON, có helmet + CORS — để chắc luồng ảnh còn nguyên.
   const app = await NestFactory.create<NestExpressApplication>(HttpTestModule, {
     logger: false,
     abortOnError: false,
     bodyParser: false,
   });
   configureSecurityHeaders(app, "test");
+  configureWebCors(app, { PAYMENT_RETURN_BASE_URL: "http://localhost:3001/thanh-toan" });
   app.useBodyParser("json");
   app.useBodyParser("urlencoded", { extended: true });
   app.useGlobalFilters(new ProblemDetailsExceptionFilter());
@@ -79,6 +81,37 @@ describe("Route kho ổ đĩa của dev — HTTP", () => {
     // helmet mặc định `same-origin` sẽ chặn thẻ <img> của Operator OS (khác cổng).
     expect(response.headers.get("cross-origin-resource-policy")).toBe("cross-origin");
     expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([...JPEG]);
+  });
+
+  it("Marketplace (origin ngoài danh sách credentialed) PUT được vào route tải lên; route khác vẫn đóng CORS", async () => {
+    const marketplace = "http://localhost:3001";
+    const key = "vehicles/op/veh/cors.jpg";
+    const url = await grant(key);
+    const preflight = await fetch(url, {
+      method: "OPTIONS",
+      headers: { origin: marketplace, "access-control-request-method": "PUT", "access-control-request-headers": "content-type" },
+    });
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(marketplace);
+    expect(preflight.headers.get("vary")).toMatch(/Origin/);
+    expect(preflight.headers.get("access-control-allow-methods")).toBe("PUT");
+    expect(preflight.headers.get("access-control-allow-headers")).toBe("Content-Type");
+    expect(preflight.headers.get("access-control-allow-credentials")).toBeNull();
+
+    const upload = await fetch(url, { method: "PUT", headers: { origin: marketplace, "content-type": "image/jpeg" }, body: JPEG });
+    expect(upload.status).toBe(200);
+    expect(upload.headers.get("access-control-allow-origin")).toBe(marketplace);
+    expect(await storage.head(key)).not.toBeNull();
+
+    // Không wildcard: origin lạ không nhận header CORS nào, kể cả ở route tải lên.
+    const foreign = await fetch(url, {
+      method: "OPTIONS",
+      headers: { origin: "https://evil.example", "access-control-request-method": "PUT", "access-control-request-headers": "content-type" },
+    });
+    expect(foreign.headers.get("access-control-allow-origin")).toBeNull();
+
+    const read = await fetch(local(storage.publicUrl(key)), { headers: { origin: marketplace } });
+    expect(read.headers.get("access-control-allow-origin")).toBeNull();
   });
 
   it("thiếu token, token sai, sai Content-Type → 403 và không ghi gì", async () => {

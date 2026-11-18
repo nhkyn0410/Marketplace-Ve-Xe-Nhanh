@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { components } from "@vexenhanh/api-client";
 import {
-  addDays, apiMoney, initialPlace, mapTripDetail, mapTripSearchItem, placeSearchParams, placeType, priceRange, readTripLeg, samePlace,
-  searchQuery, stripDates, tripLegQuery, vnToday
+  addDays, apiMoney, idList, initialPlace, mapTripDetail, mapTripSearchItem, placeSearchParams, placeType, priceRange, readTripLeg, samePlace,
+  searchQuery, stripDates, tripLegQuery, tripSortBy, vnToday
 } from "./trip-mappers";
 
 describe("API trip boundary", () => {
@@ -19,6 +19,21 @@ describe("API trip boundary", () => {
       priceMax: "9007199254740991", vehicleForm: "SLEEPER", vehicleClass: "LIMOUSINE", sort: "price",
       departureFrom: "18:00", departureTo: "23:59"
     });
+  });
+
+  it("tiện ích nối dấu phẩy, sắp xếp đánh giá → sort=rating; không chọn tiện ích thì không gửi", () => {
+    const query = searchQuery({ origin: "a", destination: "b", date: "2026-10-22", amenityIds: ["wifi", "usb"], sortBy: "rating" });
+    expect(query.get("amenityIds")).toBe("wifi,usb");
+    expect(query.get("sort")).toBe("rating");
+    expect(searchQuery({ origin: "a", destination: "b", amenityIds: [] }).has("amenityIds")).toBe(false);
+  });
+
+  it("đọc danh sách id từ URL (lặp khóa hoặc nối dấu phẩy) và sortBy lạ", () => {
+    expect(idList(["wifi", "usb,wifi", " "])).toEqual(["wifi", "usb"]);
+    expect(idList("a,b")).toEqual(["a", "b"]);
+    expect(idList(undefined)).toEqual([]);
+    expect(tripSortBy("rating")).toBe("rating");
+    expect(tripSortBy("x")).toBe("earliest");
   });
 
   it("khung giờ không chồng nhau ở mốc tròn giờ: 06-12 kết thúc 11:59, 00-06 kết thúc 05:59", () => {
@@ -74,6 +89,18 @@ describe("API trip boundary", () => {
     });
     expect(item(4.6, 12)).toMatchObject({ operatorRating: 4.6, operatorRatingCountText: "12 đánh giá" });
     expect(item(null, 0)).toMatchObject({ operatorRating: 0, operatorRatingCountText: "Chưa có đánh giá" });
+    // Logo nhà xe từ API; thiếu logo thì thẻ dùng chữ viết tắt.
+    expect(item(null, 0)).toMatchObject({ operatorCode: "NH", operatorLogoUrl: undefined });
+    const withLogo = mapTripSearchItem({
+      tripId: "trip", operator: { id: "op", name: "Nhà xe A", slug: "a", logoUrl: "https://cdn.test/logo.png", averageRating: null, reviewCount: 0 },
+      routeName: "A → B", segmentTitle: "A → B", vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" },
+      departureAt: "2026-10-30T01:00:00Z", arrivalAt: "2026-10-30T07:00:00Z",
+      pickup: { sequence: 1, name: "Bến A", address: "x", plannedAt: "2026-10-30T01:00:00Z" },
+      dropoff: { sequence: 3, name: "Bến B", address: "y", plannedAt: "2026-10-30T07:00:00Z" },
+      durationMinutes: 360, availableSeats: 4, minPrice: 300000, vehicleCoverImageUrl: null, amenities: [],
+      onlineSaleClosesAt: "2026-10-30T00:00:00Z"
+    });
+    expect(withLogo.operatorLogoUrl).toBe("https://cdn.test/logo.png");
   });
 
   it("điểm đi / đến theo loại: phường → fromWardId / toWardId, địa danh → StopPointId; thiếu hoặc lạ → tỉnh", () => {
@@ -124,6 +151,8 @@ describe("API trip boundary", () => {
     expect(mapped.departureTime).toBe("01:00");
     expect(mapped.timeline[0]).toMatchObject({ lat: 10.8, lng: 106.7, isRestStop: false, badges: ["Đón khách"] });
     expect(mapTripDetail({ ...trip, seats: [] }).priceSingleVnd).toBe("");
+    expect(mapped.operatorLogoUrl).toBeUndefined();
+    expect(mapTripDetail({ ...trip, operator: { ...trip.operator, logoUrl: "https://cdn.test/logo.png" } }).operatorLogoUrl).toBe("https://cdn.test/logo.png");
 
     // Chặng khách đi (3.3): tiêu đề theo chặng, tên tuyến thành dòng phụ, giờ + điểm theo điểm lên / xuống, đánh dấu hai điểm.
     const stop = trip.stops[0]!;
@@ -145,6 +174,18 @@ describe("API trip boundary", () => {
       durationText: "2 giờ 0 phút"
     });
     expect(segmented.routeMeta.startsWith("TP.HCM - Gia Nghĩa - BMT · ")).toBe(true);
+    // Ô "Ngày đi" ở khung đặt vé chỉ hiện ngày, không kèm tên tuyến.
+    expect(segmented.routeMeta.endsWith(` · ${segmented.departureDateText}`)).toBe(true);
+    expect(segmented.departureDateText).not.toContain("TP.HCM");
     expect(segmented.timeline.map((item) => item.badges)).toEqual([["Hết giờ bán online"], ["Bạn lên xe"], ["Bạn xuống xe"]]);
+  });
+
+  // FR-MKT-03: điểm đón / trả và đánh giá tối thiểu tới API; mức đánh giá ngoài danh sách bị bỏ.
+  it("gửi pickupPoint / dropoffPoint / minRating, bỏ minRating lạ", () => {
+    const query = searchQuery({ date: "2026-11-20", pickupPoint: "Bến xe Miền Đông", dropoffPoint: "Bến xe Đà Lạt", minRating: "4.5" });
+    expect(query.get("pickupPoint")).toBe("Bến xe Miền Đông");
+    expect(query.get("dropoffPoint")).toBe("Bến xe Đà Lạt");
+    expect(query.get("minRating")).toBe("4.5");
+    expect(searchQuery({ date: "2026-11-20", minRating: "9" }).has("minRating")).toBe(false);
   });
 });

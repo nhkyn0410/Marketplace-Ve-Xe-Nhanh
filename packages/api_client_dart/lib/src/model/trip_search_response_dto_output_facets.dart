@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_pickup_points_inner.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets_operators_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -14,12 +15,20 @@ part 'trip_search_response_dto_output_facets.g.dart';
 ///
 /// Properties:
 /// * [operators] 
+/// * [pickupPoints] 
+/// * [dropoffPoints] 
 /// * [priceMin] 
 /// * [priceMax] 
 @BuiltValue()
 abstract class TripSearchResponseDtoOutputFacets implements Built<TripSearchResponseDtoOutputFacets, TripSearchResponseDtoOutputFacetsBuilder> {
   @BuiltValueField(wireName: r'operators')
   BuiltList<TripSearchResponseDtoOutputFacetsOperatorsInner> get operators;
+
+  @BuiltValueField(wireName: r'pickupPoints')
+  BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner> get pickupPoints;
+
+  @BuiltValueField(wireName: r'dropoffPoints')
+  BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner> get dropoffPoints;
 
   @BuiltValueField(wireName: r'priceMin')
   int? get priceMin;
@@ -54,6 +63,16 @@ class _$TripSearchResponseDtoOutputFacetsSerializer implements PrimitiveSerializ
     yield serializers.serialize(
       object.operators,
       specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)]),
+    );
+    yield r'pickupPoints';
+    yield serializers.serialize(
+      object.pickupPoints,
+      specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
+    );
+    yield r'dropoffPoints';
+    yield serializers.serialize(
+      object.dropoffPoints,
+      specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
     );
     yield r'priceMin';
     yield object.priceMin == null ? null : serializers.serialize(
@@ -94,6 +113,20 @@ class _$TripSearchResponseDtoOutputFacetsSerializer implements PrimitiveSerializ
             specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)]),
           ) as BuiltList<TripSearchResponseDtoOutputFacetsOperatorsInner>;
           result.operators.replace(valueDes);
+          break;
+        case r'pickupPoints':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
+          ) as BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner>;
+          result.pickupPoints.replace(valueDes);
+          break;
+        case r'dropoffPoints':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsPickupPointsInner)]),
+          ) as BuiltList<TripSearchResponseDtoOutputFacetsPickupPointsInner>;
+          result.dropoffPoints.replace(valueDes);
           break;
         case r'priceMin':
           final valueDes = serializers.deserialize(

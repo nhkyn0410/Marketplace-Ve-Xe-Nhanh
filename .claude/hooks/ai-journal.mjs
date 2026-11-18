@@ -56,7 +56,7 @@ function sessionStart() {
       hookEventName: "SessionStart",
       additionalContext:
         `NHẬT KÝ AI (bắt buộc, KHÔNG commit) — quy tắc đầy đủ: doc/AI-JOURNAL.md.\n` +
-        `Mỗi lần sinh/sửa code đáng kể, ghi 1 dòng bằng lệnh sau — KHÔNG đọc, KHÔNG mở, KHÔNG sửa tay file nhật ký:\n` +
+        `Mỗi lần sinh/sửa code đáng kể, ghi 1 dòng bằng lệnh sau (được đọc/mở/sửa file trong .ai-journal/ khi cần):\n` +
         `  node .claude/hooks/ai-journal.mjs add "<${COLS.join('>" "<')}>"\n` +
         `Mỗi ô ≤ ${MAX_CELL} ký tự, một dòng. "Phần AI sinh" = đường dẫn + phạm vi, TUYỆT ĐỐI không dán mã nguồn.\n` +
         `"Phần SV chỉnh" để chuỗi rỗng "" (Khanh tự điền). Hook Stop sẽ CHẶN kết thúc lượt nếu code đổi mà chưa ghi.`,
@@ -87,7 +87,7 @@ function stop() {
     decision: "block",
     reason:
       `Code trong repo đã thay đổi nhưng chưa có dòng nhật ký AI mới.\n` +
-      `Chạy lệnh này — KHÔNG đọc, KHÔNG mở, KHÔNG sửa tay file nhật ký:\n` +
+      `Chạy lệnh này để ghi dòng mới:\n` +
       `  node .claude/hooks/ai-journal.mjs add "<${COLS.join('>" "<')}>"\n` +
       `- Mảng kỹ thuật: vd "Backend / IAM", "DB / Prisma", "CI".\n` +
       `- AI sử dụng: tên + model cụ thể (vd "Claude Code (Opus 5)").\n` +

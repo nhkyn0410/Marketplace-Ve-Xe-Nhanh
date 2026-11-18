@@ -22,10 +22,15 @@ export async function getArticles(category?: string, cursor?: string): Promise<D
   return ok({ categories: categories.data, articles: articles.data.items.map(mapArticle), nextCursor: articles.data.nextCursor });
 }
 
-/** Lấy nội dung bài viết theo slug công khai. */
+/** Lấy nội dung bài viết theo slug công khai, kèm bài cùng chuyên mục (SCR-PSG-37, PASSENGER-PARITY A29). */
 export async function getArticleBySlug(slug: string): Promise<DataResult<ArticleDetail>> {
   const result = await apiRequest<components["schemas"]["ArticleDto_Output"]>(`/articles/${encodeURIComponent(slug)}`);
-  return result.status === "ok" ? ok(mapArticleDetail(result.data)) : result;
+  if (result.status !== "ok") return result;
+  // Bài liên quan chỉ là phần phụ: tải lỗi thì để trống khối, không chặn trang bài viết.
+  const related = await apiRequest<components["schemas"]["ArticlePageDto_Output"]>(
+    `/articles?${new URLSearchParams({ category: result.data.category.slug, limit: "4" })}`
+  );
+  return ok(mapArticleDetail(result.data, related.status === "ok" ? related.data.items : []));
 }
 
 /** Lấy chuyên mục kèm số bài viết thật. */

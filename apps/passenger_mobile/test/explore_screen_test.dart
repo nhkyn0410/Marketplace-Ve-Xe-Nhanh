@@ -224,4 +224,105 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'Mẹo du lịch, $width dp');
     }
   });
+
+  testWidgets(
+    'chỉ có một bài thì hiện ở thẻ nổi bật, không báo "chưa có bài viết"',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(412, 1440);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExploreScreen(
+            onTabSelected: (_) {},
+            loadFeed: (category, query) async => ExploreFeed(
+              featured: ExploreArticle(
+                slug: 'huong-dan-ma-ve-qr',
+                title: 'Hướng dẫn sử dụng mã vé điện tử QR',
+                category: 'Kinh nghiệm đi xe khách',
+                publishedAt: DateTime.utc(2026, 4, 20),
+                fallbackAsset: 'assets/explore/featured_phu_yen.png',
+              ),
+              latest: const [],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('explore-featured-card')), findsOneWidget);
+      expect(find.text('Hướng dẫn sử dụng mã vé điện tử QR'), findsOneWidget);
+      expect(find.textContaining('Chưa có bài viết'), findsNothing);
+      expect(find.text('Bài viết mới nhất'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  // PASSENGER-PARITY A19 (4.7): chuyên mục lấy từ API kèm số bài, như web.
+  Future<List<String?>> pumpApiExplore(
+    WidgetTester tester,
+    Future<List<ExploreCategory>> Function() loadCategories,
+  ) async {
+    final requested = <String?>[];
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 1440);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ExploreScreen(
+          onTabSelected: (_) {},
+          loadCategories: loadCategories,
+          loadFeed: (category, query) async {
+            requested.add(category);
+            return const ExploreFeed(featured: null, latest: []);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return requested;
+  }
+
+  testWidgets('chế độ API: chuyên mục từ máy chủ kèm số bài, chọn thì tải đúng slug', (
+    tester,
+  ) async {
+    final requested = await pumpApiExplore(
+      tester,
+      () async => const [
+        ExploreCategory(slug: 'kinh-nghiem', name: 'Kinh nghiệm', count: 3),
+        ExploreCategory(slug: 'am-thuc', name: 'Ẩm thực', count: 2),
+      ],
+    );
+    expect(find.text('Tất cả (5)'), findsOneWidget);
+    expect(find.text('Kinh nghiệm (3)'), findsOneWidget);
+    expect(find.byKey(const Key('explore-category-guide')), findsNothing);
+
+    // Chuyên mục thứ ba nằm ngoài mép phải: vuốt ngang tới rồi chọn.
+    final dining = find.byKey(const Key('explore-category-am-thuc'));
+    await tester.scrollUntilVisible(
+      dining,
+      120,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('explore-categories-api')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.text('Ẩm thực (2)'), findsOneWidget);
+    await tester.tap(dining);
+    await tester.pumpAndSettle();
+    expect(requested, [null, 'am-thuc']);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tải chuyên mục lỗi: chỉ còn "Tất cả", không hiện chuyên mục mẫu', (
+    tester,
+  ) async {
+    await pumpApiExplore(tester, () async => throw StateError('offline'));
+    expect(find.text('Tất cả'), findsOneWidget);
+    expect(find.text('Cẩm nang'), findsNothing);
+    expect(find.text('Mẹo du lịch'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -47,7 +47,7 @@ void main() {
         const Key('contact-email-field'),
         'e2e+$stamp@example.com',
       );
-      // Chỗ đầu mặc định dùng thông tin liên hệ, không có ô tên hành khách riêng.
+      // Chỗ đầu điền sẵn tên người liên hệ (PASSENGER-PARITY Q4), không cần nhập lại.
       await _enter(tester, const Key('voucher-field'), 'KHONGCOMA');
       await _tap(tester, find.byKey(const Key('voucher-apply')));
       await _pumpUntil(

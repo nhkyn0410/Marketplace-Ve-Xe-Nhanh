@@ -130,6 +130,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
           contact: widget.draft.contact,
           passengers: widget.draft.passengers,
           promotion: _promotion,
+          note: widget.draft.note,
         ),
         expectedTotal: _total,
       );

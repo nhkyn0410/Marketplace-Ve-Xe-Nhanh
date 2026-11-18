@@ -23,6 +23,7 @@ import { QueueModule } from "./queue/queue.module";
 import { VehicleImageCleanupProcessor } from "./vehicle/vehicle-image-cleanup.processor";
 import { NotificationDispatcher } from "./notification/notification-dispatcher";
 import { NotificationProcessor } from "./notification/notification.processor";
+import { JourneyDemoService } from "./notification/journey-demo.service";
 
 @Module({
   imports: [SentryModule.forRoot(), AppConfigModule, DatabaseModule, AuditModule, QueueModule, NotificationModule],
@@ -43,6 +44,7 @@ import { NotificationProcessor } from "./notification/notification.processor";
     // Gửi email thông báo (TASK-NSR-001); dispatcher cho các processor ghi thông báo (vé điện tử, hoàn tiền).
     NotificationDispatcher,
     NotificationProcessor,
+    JourneyDemoService,
     // Đối soát với cổng mỗi 10 phút + xếp hàng lại refund đứng yên (FR-BTP-17).
     PaymentReconciliationProcessor,
     // Leo thang tranh chấp quá hạn phản hồi mỗi 15 phút (FR-DSP-05).

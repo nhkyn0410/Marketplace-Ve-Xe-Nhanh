@@ -8,7 +8,10 @@ const mocks = vi.hoisted(() => ({ cookie: undefined as string | undefined, searc
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => mocks.cookie ? { value: mocks.cookie } : undefined }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), redirect: vi.fn() }));
 vi.mock("../../components/passenger-topbar", () => ({ PassengerTopBar: () => null }));
-vi.mock("../../lib/data/catalog", () => ({ getProvinces: async () => ({ status: "ok", data: [] }) }));
+vi.mock("../../lib/data/catalog", () => ({
+  getProvinces: async () => ({ status: "ok", data: [] }),
+  getAmenities: async () => ({ status: "ok", data: [{ id: "wifi", name: "Wi-Fi" }] })
+}));
 vi.mock("../../lib/data/trips", () => ({ searchTrips: mocks.search }));
 
 const render = async (page: Awaited<ReturnType<typeof ExplorePage>>) =>
@@ -22,7 +25,8 @@ describe("khám phá và tìm chuyến chỉ theo ngày", () => {
     mocks.search.mockReset().mockResolvedValue({
       status: "ok", data: {
         trips: [], summary: { totalTrips: 0, departureDateText: "2026-11-02", departureDateShortText: "02/11/2026" },
-        pagination: { page: 1, limit: 20 }, widenedToProvince: { from: false, to: false }
+        pagination: { page: 1, limit: 20 }, widenedToProvince: { from: false, to: false },
+        operators: [{ id: "op-1", name: "Nhà xe Sao Mai", count: 3 }]
       }
     });
   });
@@ -56,5 +60,20 @@ describe("khám phá và tìm chuyến chỉ theo ngày", () => {
     expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ origin: undefined, destination: undefined, date: "2026-11-02", passengers: 2 }));
     expect(html).toContain("0 chuyến đang mở bán");
     expect(html).not.toContain("Chọn ngày để xem chuyến");
+  });
+
+  it("lọc nhà xe, tiện ích và sắp xếp đánh giá: gửi đúng tham số, link sắp xếp giữ tiện ích", async () => {
+    const html = await render(await TripsPage({
+      searchParams: Promise.resolve({ date: "2026-11-02", operatorId: "op-1", amenityIds: ["wifi", "usb"], sortBy: "rating" })
+    }));
+    expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ operatorId: "op-1", amenityIds: ["wifi", "usb"], sortBy: "rating" }));
+    expect(html).toContain("Đánh giá cao nhất");
+    expect(html).toContain("Nhà xe Sao Mai (3)");
+    expect(html).toContain("amenityIds=wifi%2Cusb");
+  });
+
+  it("chọn \"Tất cả nhà xe\" (operatorId rỗng) thì không lọc nhà xe; sortBy lạ coi như giờ đi sớm", async () => {
+    await render(await TripsPage({ searchParams: Promise.resolve({ date: "2026-11-02", operatorId: "", sortBy: "x" }) }));
+    expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ operatorId: undefined, amenityIds: undefined, sortBy: "earliest" }));
   });
 });

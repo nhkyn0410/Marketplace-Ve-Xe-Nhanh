@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                                    |
 | Người duyệt   | Nguyễn Hồng Khanh                                              |
 | Ngày tạo      | 05/05/2026                                                     |
-| Ngày cập nhật | 02/11/2026                                                     |
+| Ngày cập nhật | 16/11/2026                                                     |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -60,6 +60,7 @@
 | v1.38     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 6 — OTP của phiên tra cứu đủ cho hủy vé / hoàn tiền / khiếu nại của booking khách vãng lai trong phiên; booking đặt bằng tài khoản phải đăng nhập. Giữ trạng thái Review. |
 | v1.39     | 28/10/2026 | AI Agent | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt):** `BR-78` bổ sung — khai họ tên người đi cùng (không bắt buộc), chung một vé / QR. |
 | v1.40     | 02/11/2026 | AI Agent | **Chiến dịch thông báo và hộp thư (Khanh 02/11/2026 "theo đề xuất, không gửi email hàng loạt"; tự thiết kế — chờ duyệt):** §10.9 thêm `FR-NSR-16`, `FR-NSR-17`; §12 thêm `UC-41`, `UC-42`; §14 thêm `BR-82..85`; §15 thêm dòng phân quyền; §18.2 `NTF-20`, `NTF-21` bỏ email, thêm `NTF-27`; §18.3 + §20 thêm tiêu chí. Giữ trạng thái Review. |
+| v1.41     | 16/11/2026 | AI Agent | **Chốt `UC-35` bản 27/10/2026 (Khanh 16/11/2026 giao AI quyết):** bước 1 (email bắt buộc, mã vé / mã booking tùy chọn), bước 6 (OTP phiên tra cứu đủ để hủy vé / khiếu nại đơn khách vãng lai; đơn tài khoản phải đăng nhập), A1b (danh sách đơn 12 tháng, hỏi đăng nhập; không đăng nhập vẫn xem chi tiết chỉ đọc), A1c (mất email → CSKH). Web và app đã làm theo (PASSENGER-PARITY Q3). Giữ trạng thái Review. |
 
 ---
 
@@ -2489,19 +2490,19 @@ Luồng thay thế / ngoại lệ:
 
 Luồng chính:
 
-1. Guest nhập email liên hệ đã dùng khi tạo booking; mã vé / mã booking là tùy chọn (có thì chỉ tra đúng đơn đó). Chờ duyệt (27/10/2026): v1 chỉ tra bằng email vì SMS hoãn (ADR-020).
+1. Guest nhập email liên hệ đã dùng khi tạo booking; mã vé / mã booking là tùy chọn (có thì chỉ tra đúng đơn đó). Chốt 16/11/2026 (bản 27/10/2026): v1 chỉ tra bằng email vì SMS hoãn (ADR-020).
 2. Hệ thống gửi mã xác minh (OTP) về email đó nếu email có booking (khớp mã khi có nhập, ngược lại có đơn trong 12 tháng gần nhất); phản hồi như nhau dù có hay không. Guest nhập OTP để mở phiên tra cứu có thời hạn.
 3. Hệ thống kiểm tra định dạng mã tra cứu và thông tin liên hệ.
 4. Hệ thống đối chiếu mã tra cứu với booking / ticket và kiểm tra thông tin liên hệ có khớp dữ liệu đã lưu hay không.
 5. Hệ thống xác định mức dữ liệu được phép hiển thị cho Guest: thông tin chuyến, ghế, điểm đón / trả, trạng thái vé, trạng thái thanh toán và hướng dẫn lên xe.
-6. Nếu Guest yêu cầu thao tác nhạy cảm như hủy vé, yêu cầu hoàn tiền, gửi khiếu nại hoặc xem dữ liệu cá nhân chi tiết hơn, hệ thống yêu cầu xác minh bổ sung theo policy. Chờ duyệt (27/10/2026, Khanh): OTP của phiên tra cứu đủ để hủy vé / yêu cầu hoàn tiền và gửi khiếu nại cho booking khách vãng lai trong phiên (quyền hết cùng phiên); booking đặt bằng tài khoản phải đăng nhập tài khoản đó.
+6. Nếu Guest yêu cầu thao tác nhạy cảm như hủy vé, yêu cầu hoàn tiền, gửi khiếu nại hoặc xem dữ liệu cá nhân chi tiết hơn, hệ thống yêu cầu xác minh bổ sung theo policy. Chốt 16/11/2026 (bản 27/10/2026, Khanh): OTP của phiên tra cứu đủ để hủy vé / yêu cầu hoàn tiền và gửi khiếu nại cho booking khách vãng lai trong phiên (quyền hết cùng phiên); booking đặt bằng tài khoản phải đăng nhập tài khoản đó.
 7. Sau khi xác minh đủ, hệ thống cho Guest tiếp tục sang luồng phù hợp như xem vé điện tử, hủy / hoàn tiền hoặc liên hệ hỗ trợ trong phạm vi vé đã xác minh.
 8. Hệ thống gợi ý đăng ký / đăng nhập nếu Guest muốn quản lý lịch sử booking dài hạn hoặc lưu hồ sơ hành khách cho lần sau.
 
 Luồng thay thế / ngoại lệ:
 
 - A1: Mã vé / mã booking hoặc thông tin liên hệ không khớp, hoặc OTP sai / hết hạn → hệ thống từ chối hiển thị dữ liệu.
-- A1b: Guest không nhập mã → sau OTP thấy danh sách các booking dùng email đó trong 12 tháng gần nhất (gồm cả booking đặt khi đã đăng nhập) và chọn đơn để xem; email đã có tài khoản hoặc có booking đặt bằng tài khoản → hệ thống hỏi Guest có muốn đăng nhập không (chờ duyệt, Khanh 27/10/2026).
+- A1b: Guest không nhập mã → sau OTP thấy danh sách các booking dùng email đó trong 12 tháng gần nhất (gồm cả booking đặt khi đã đăng nhập) và chọn đơn để xem; email đã có tài khoản hoặc có booking đặt bằng tài khoản → hệ thống hỏi Guest có muốn đăng nhập không; không đăng nhập vẫn xem được chi tiết đơn ở chế độ chỉ đọc (chốt 16/11/2026, bản Khanh 27/10/2026).
 - A1c: Guest không còn dùng được email đặt vé → liên hệ CSKH để xác minh thủ công.
 - A2: Thao tác nhạy cảm chưa đủ xác minh → hệ thống yêu cầu xác minh bổ sung.
 - A3: Guest cố xem lịch sử booking dài hạn → hệ thống chỉ hiển thị dữ liệu thuộc vé đã xác minh.

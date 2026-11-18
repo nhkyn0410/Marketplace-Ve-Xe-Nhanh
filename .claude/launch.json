@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@vexenhanh/admin", "dev"],
       "port": 3003
+    },
+    {
+      "name": "marketplace",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vexenhanh/marketplace", "dev"],
+      "port": 3001
     }
   ]
 }

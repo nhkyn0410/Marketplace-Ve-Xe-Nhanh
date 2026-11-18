@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import 'booking_models.dart';
 import 'payment_models.dart';
+import 'trip_booking_api.dart';
 import 'trip_search_models.dart';
 
 const _completionAssets = 'assets/ticket/completion';
@@ -26,6 +27,7 @@ class PaymentCompletionScreen extends StatefulWidget {
     this.onBookingFinished,
     this.booking,
     this.issuedTickets,
+    this.resendTicketEmail,
   }) : assert(selectedSeats.length > 0),
        assert(selectedSeats.length == passengerNames.length),
        assert((booking == null) == (issuedTickets == null)),
@@ -40,6 +42,9 @@ class PaymentCompletionScreen extends StatefulWidget {
   final CreatedBooking? booking;
   final List<IssuedBookingTicket>? issuedTickets;
 
+  /// Gửi lại email vé (SCR-PSG-22); trả email đã che bớt. `null` = không có nút.
+  final Future<String> Function()? resendTicketEmail;
+
   @override
   State<PaymentCompletionScreen> createState() =>
       _PaymentCompletionScreenState();
@@ -48,6 +53,24 @@ class PaymentCompletionScreen extends StatefulWidget {
 class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _printController;
+  bool _sendingEmail = false;
+
+  Future<void> _resendEmail() async {
+    final resend = widget.resendTicketEmail;
+    if (resend == null || _sendingEmail) return;
+    setState(() => _sendingEmail = true);
+    String message;
+    try {
+      message = 'Đã gửi lại vé tới ${await resend()}.';
+    } catch (error) {
+      message = describeBookingFailure(error);
+    }
+    if (!mounted) return;
+    setState(() => _sendingEmail = false);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
   late final Animation<double> _printProgress;
   var _selectedIndex = 0;
   var _initialPrintScheduled = false;
@@ -133,18 +156,6 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
     );
     if (!mounted || selected == null) return;
     _selectTicket(selected);
-  }
-
-  void _showDownloadNotice() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Chưa hỗ trợ tải PDF. Bạn có thể xuất trình mã QR trên màn hình.',
-          ),
-        ),
-      );
   }
 
   void _finishBooking() {
@@ -246,33 +257,28 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
                           ? () => _selectTicket(_selectedIndex + 1)
                           : null,
                     ),
-                    const SizedBox(height: 17),
-                    SizedBox(
-                      height: 52,
-                      child: FilledButton.icon(
-                        key: const Key('download-ticket'),
-                        onPressed: _showDownloadNotice,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                        ),
-                        icon: SvgPicture.asset(
-                          '$_completionAssets/download.svg',
-                          width: 20,
-                          height: 20,
-                        ),
-                        label: const Text(
-                          'Tải vé này (PDF)',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                    // v1 chưa có tải vé PDF nên không đặt nút "Tải vé này (PDF)" ở đây (bấm vào chỉ báo "chưa hỗ
+                    // trợ"); vé lên xe là mã QR trong app.
+                    if (widget.resendTicketEmail != null) ...[
+                      const SizedBox(height: 10),
+                      Center(
+                        child: TextButton.icon(
+                          key: const Key('payment-completion-resend-email'),
+                          onPressed: _sendingEmail ? null : _resendEmail,
+                          icon: _sendingEmail
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.mail_outline, size: 18),
+                          label: Text(
+                            _sendingEmail ? 'Đang gửi…' : 'Gửi lại email vé',
                           ),
                         ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 18),
                   ],
                 ),

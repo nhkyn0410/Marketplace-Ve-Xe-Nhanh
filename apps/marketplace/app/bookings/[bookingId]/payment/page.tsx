@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getBookingPaymentData } from "../../../../lib/data/booking";
+import { getBookingPaymentData, getPaymentProviders } from "../../../../lib/data/booking";
 import { getPreview } from "../../../../lib/preview";
 import {
   bookingPaymentIdealFixture,
@@ -12,7 +12,7 @@ import { PaymentPageView } from "../../../../components/payment/payment-page-vie
 
 export const metadata: Metadata = {
   title: "Thanh toán vé xe",
-  description: "Chọn phương thức thanh toán VNPay, MoMo và hoàn tất mua vé trực tuyến an toàn."
+  description: "Chọn phương thức thanh toán và hoàn tất mua vé trực tuyến an toàn."
 };
 
 interface BookingPaymentPageProps {
@@ -60,8 +60,8 @@ export default async function BookingPaymentPage({
     );
   }
 
-  // Nhánh dữ liệu thật (gọi hàm data)
-  const result = await getBookingPaymentData(bookingId);
+  // Nhánh dữ liệu thật (gọi hàm data). Danh sách cổng lỗi tải thì trang dùng VNPay + MoMo như trước (Q5).
+  const [result, providers] = await Promise.all([getBookingPaymentData(bookingId), getPaymentProviders()]);
   if (result.status === "ok" && result.data.bookingStatus && !["PENDING_PAYMENT", "EXPIRED"].includes(result.data.bookingStatus)) {
     redirect(`/bookings/${bookingId}/payment/result`);
   }
@@ -98,7 +98,7 @@ export default async function BookingPaymentPage({
   return (
     <div className="flex-1 bg-neutral-50/40 pb-16">
       <PassengerTopBar breadcrumbs={breadcrumbs} />
-      <PaymentPageView paymentData={result.data} />
+      <PaymentPageView paymentData={result.data} {...(providers.status === "ok" ? { providers: providers.data } : {})} />
     </div>
   );
 }

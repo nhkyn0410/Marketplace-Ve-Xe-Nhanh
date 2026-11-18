@@ -10,6 +10,8 @@ import { deliverPushNotification } from "./push-delivery";
 import { prepareNotificationChannels } from "./notification-outbox";
 import { EMAIL_NOTIFIER, type EmailNotifier } from "../external/notification/email-notifier";
 import { QUEUE_NAMES } from "../queue/queue.constants";
+import { JourneyDemoService } from "./journey-demo.service";
+import { JOURNEY_DEMO_JOB } from "./journey-demo-snapshot";
 import { campaignBatchJobId, runCampaignBatch, startDueCampaigns } from "./campaign/campaign-fanout";
 import { pendingDeliveryIds } from "../database/notification-scope";
 import {
@@ -39,6 +41,7 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
     @Inject(AuditService) private readonly audit: AuditService,
     @InjectQueue(QUEUE_NAMES.notifications) private readonly queue: Queue,
     @Inject(PUSH_NOTIFIER) private readonly push: PushNotifier,
+    @Inject(JourneyDemoService) private readonly journeyDemo: JourneyDemoService,
   ) {
     super();
   }
@@ -53,7 +56,11 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
     return this.queue.add(CAMPAIGN_BATCH_JOB, { campaignId }, { ...NOTIFICATION_JOB_OPTIONS, jobId: campaignBatchJobId(campaignId, cursor, suffix) });
   }
 
-  async process(job: Job<{ deliveryId?: string; campaignId?: string }>): Promise<{ outcome?: DeliveryOutcome; requeued?: number }> {
+  async process(job: Job<{ deliveryId?: string; campaignId?: string; sessionId?: string; deviceId?: string; revision?: number }>): Promise<{ outcome?: DeliveryOutcome; requeued?: number }> {
+    if (job.name === JOURNEY_DEMO_JOB && job.data.sessionId && job.data.deviceId && Number.isInteger(job.data.revision)) {
+      await this.journeyDemo.tick({ sessionId: job.data.sessionId, deviceId: job.data.deviceId, revision: job.data.revision! });
+      return {};
+    }
     if (job.name === CAMPAIGN_SWEEP_JOB) {
       const campaigns = await startDueCampaigns(this.prisma);
       for (const campaign of campaigns) {

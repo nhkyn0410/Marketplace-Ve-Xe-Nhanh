@@ -335,6 +335,10 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     expect(link.searchParams.get("vnp_IpAddr")).toBe("10.1.1.1");
     expect(link.searchParams.get("vnp_ReturnUrl")).toBe(`http://localhost:3001/bookings/${created.bookingId}/payment/result`);
     expect(await payments.create(null, created.bookingId, created.accessToken, { provider: "VNPAY" }, "10.1.1.1")).toEqual(first);
+    // App (P4): cổng quay về đường dẫn App Link `/app/...` cùng origin web.
+    const fromApp = await booking();
+    const appLink = new URL((await payments.create(null, fromApp.bookingId, fromApp.accessToken, { provider: "VNPAY", client: "APP" }, "10.1.1.1")).paymentUrl);
+    expect(appLink.searchParams.get("vnp_ReturnUrl")).toBe(`http://localhost:3001/app/bookings/${fromApp.bookingId}/payment/result`);
 
     expect(await rejectionOf(payments.create(null, created.bookingId, undefined, { provider: "VNPAY" }, undefined))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
     expect(await rejectionOf(payments.create(rider, created.bookingId, "sai", { provider: "VNPAY" }, undefined))).toMatchObject({ code: "BOOKING_NOT_FOUND" });

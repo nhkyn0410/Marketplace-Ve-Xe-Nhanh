@@ -1,11 +1,13 @@
 # Hướng dẫn đưa API demo lên AWS Lightsail
 
-Khởi tạo: **29/10/2026**. Cập nhật: **02/11/2026**.
-Trạng thái: **Hướng dẫn chuẩn bị; chưa triển khai cloud**.
+Khởi tạo: **29/10/2026**. Cập nhật: **03/11/2026**.
+Trạng thái: **API đã chạy trên VM (Khanh xác nhận 03/11/2026)**. Redis chuyển vào VM theo
+[ADR-030](../SDLC/10-architecture-decision-record.md) (chờ duyệt); Khanh triển khai theo §5a.
 
 Làm [hướng dẫn tài khoản và credit](AWS-ACCOUNT-CREDITS-guide.md) trước. Phương án
 đang dùng: một VM Singapore, API thường trực, worker bật thủ công khi cần demo;
-giữ PostgreSQL, MongoDB, Redis và R2. Đây chưa phải cơ chế tự bật worker khi có request.
+giữ PostgreSQL, MongoDB và R2. Redis chạy trong Compose trên chính VM thay Upstash
+(ADR-030, từ 03/11/2026). Đây chưa phải cơ chế tự bật worker khi có request.
 
 Thông tin đã xác nhận ngày 02/11/2026:
 
@@ -123,7 +125,7 @@ Giữ nguyên các giá trị đang hoạt động, đặc biệt:
 
 | Nhóm | Tên biến cần đối chiếu |
 | --- | --- |
-| Runtime/data | `NODE_ENV=production`, `PORT=3000`, `DATABASE_URL`, `MONGODB_AUDIT_URI`, `REDIS_URL`, `BULLMQ_PREFIX` |
+| Runtime/data | `NODE_ENV=production`, `PORT=3000`, `DATABASE_URL`, `MONGODB_AUDIT_URI`, `REDIS_URL=redis://redis:6379` (Redis trong Compose ở mẫu dưới, không dùng URL Upstash cũ), `BULLMQ_PREFIX` giữ giá trị cũ |
 | Auth | `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `JWT_ACCESS_PRIVATE_KEY`, `JWT_ISSUER`, `MFA_ENCRYPTION_KEY`, `WEB_CSRF_SECRET`, `TICKET_QR_SECRET` |
 | Web | `OPERATOR_WEB_ORIGINS`, `ADMIN_WEB_ORIGINS`, `AUTH_ALLOWED_CALLBACK_ORIGINS` |
 | Email/routing | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `GOONG_API_KEY` |
@@ -156,6 +158,9 @@ services:
         format: raw
     ports:
       - "127.0.0.1:3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     init: true
     stop_grace_period: 60s
@@ -171,6 +176,9 @@ services:
       - path: ./api.env
         format: raw
     profiles: [worker]
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: "no"
     init: true
     stop_grace_period: 120s
@@ -179,6 +187,25 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  redis:
+    image: redis:7.4-alpine
+    # Không khai ports: Redis chỉ nằm trong mạng Compose (ADR-030).
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  redis-data:
 ```
 
 ```bash
@@ -186,10 +213,12 @@ chmod 600 .env api.env compose.yaml
 sudo docker compose config --quiet
 sudo docker compose up -d api
 sudo docker compose ps
+sudo docker compose exec redis redis-cli ping
 curl --fail --silent --show-error http://127.0.0.1:3000/v1/health
 curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/postgres
 curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/mongo
 curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/redis
+curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/queues
 ```
 
 Không chạy `docker compose config` thiếu `--quiet` khi có secret: cấu hình render
@@ -197,6 +226,45 @@ có thể chứa giá trị env. Nếu kiểm tra lỗi, xem log cục bộ và 
 Compose profile giữ worker ngoài lần khởi động mặc định; `restart: "no"` cũng tránh
 worker tự bật lại sau reboot. [Docker profiles](https://docs.docker.com/compose/how-tos/profiles/),
 [raw env-file](https://docs.docker.com/reference/compose-file/services/#env_file).
+
+`up -d api` tự bật `redis` trước nhờ `depends_on`. `/v1/health/redis` chỉ gọi `PING`;
+`/v1/health/queues` chạy script Lua của BullMQ nên kiểm được Redis thật sự nhận lệnh.
+Redis không mở port ra máy chủ hay Internet; chỉ `api` / `worker` trong cùng Compose nối được.
+`noeviction` là yêu cầu của BullMQ: đầy 256 MB thì lệnh ghi lỗi, theo dõi bằng
+`sudo docker compose exec redis redis-cli info memory`.
+
+### 5a. Chuyển Redis từ Upstash sang VM (một lần, ADR-030)
+
+Áp dụng cho VM đang chạy API với `REDIS_URL` Upstash. Dữ liệu trên Upstash (cache, giữ
+ghế, job đang chờ) **không chuyển**: Upstash đã hết quota tháng nên cũng không đọc ra được,
+và scheduler của worker tự tạo lại khi khởi động.
+
+1. Dừng worker nếu đang chạy: `sudo docker compose stop -t 120 worker`. Lịch bật/tắt worker
+   đang dùng (nếu có) không cần đổi lệnh.
+2. Sửa `compose.yaml` theo mẫu §5: thêm service `redis`, `depends_on` ở `api` / `worker`
+   và khối `volumes`.
+3. Trong `api.env`, đổi `REDIS_URL` thành `redis://redis:6379`; giữ `BULLMQ_PREFIX`.
+4. Chạy các lệnh dưới. `up -d api` tạo lại container API để nhận env mới (gián đoạn vài giây).
+5. Khi API và worker đã chạy ổn: xoá database Upstash trên console (thông tin đăng nhập cũ
+   đã lộ ngày 03/11/2026) và cập nhật `REDIS_URL` trong `apps/api/.env.production` ở máy
+   phát triển. Redis production giờ chỉ truy cập được từ trong VM.
+
+```bash
+cd /opt/vexenhanh-demo
+sudo docker compose config --quiet
+sudo docker compose up -d redis
+sudo docker compose exec redis redis-cli ping
+sudo docker compose up -d api
+curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/redis
+curl --fail --silent --show-error http://127.0.0.1:3000/v1/health/queues
+sudo docker compose --profile worker up -d worker
+sudo docker compose logs --tail 50 worker
+sudo docker compose exec redis redis-cli info memory | grep used_memory_human
+```
+
+Log worker phải có dòng `Worker bootstrap complete` và không có lỗi kết nối Redis. Redis
+trên VM không tính phí theo lệnh, nên worker có thể bật lâu hơn lịch hiện tại; giới hạn
+còn lại là RAM VM (§7 bước 4).
 
 ## 6. HTTPS và proxy giữ IP người dùng
 
@@ -303,7 +371,10 @@ Tắt container worker trên cùng VM không giảm tiền thuê VM, chỉ giả
 - Rollback image: chọn lại tag cũ trong `.env`, recreate API và kiểm health/auth.
 - Rollback hạ tầng: đưa origin DNS về Render, kiểm HTTPS/auth/proxy sau khi cache hội tụ.
   Worker AWS có thể giữ hoặc bàn giao lại theo thứ tự drain/dừng rồi mới bật worker cũ.
-- Giữ DB/Redis chung: không restore DB hay flush Redis chỉ để đổi nơi chạy API.
+  Từ ADR-030, Render không nối được Redis trong VM: quay về Render phải cấp Redis riêng
+  (Upstash sau khi quota reset hoặc gói trả phí) và chấp nhận mất dữ liệu Redis trên VM.
+- Giữ DB chung: không restore DB chỉ để đổi nơi chạy API. Cập nhật image API không đụng
+  container `redis`; không chạy `docker compose down -v` (lệnh này xoá volume `redis-data`).
 - VM một máy có thể gián đoạn ngắn khi deploy. API hiện chưa bật
   `enableShutdownHooks()`; phải bổ sung/kiểm chứng nếu triển khai cơ chế drain hoàn chỉnh,
   không coi mẫu này là rolling deploy zero downtime.

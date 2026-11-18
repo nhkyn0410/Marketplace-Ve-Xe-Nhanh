@@ -105,7 +105,7 @@ describe.skipIf(!url && !requireDb)("Admin nhà xe — Postgres thật, role app
         applicationId: null,
         routeCount: 0,
         openTripCount: 0,
-        owner: { id: ownerId, username: `${slug}/owner01`, email: `owner@${tag}.test`, credentialDeliveryPending: true },
+        owner: { id: ownerId, username: `${slug}/owner01`, email: `owner@${tag}.test`, status: "ACTIVE", credentialDeliveryPending: true },
       }),
     ]);
     expect((await list({ q: `owner@${tag}` })).items.map((item) => item.id)).toEqual([operatorId]);

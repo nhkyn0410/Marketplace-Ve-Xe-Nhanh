@@ -57,6 +57,60 @@ void main() {
     );
   });
 
+  // PASSENGER-PARITY A27 (SCR-PSG-36): tab Khả dụng / Đang giữ / Đã dùng / Hết hạn có đếm.
+  testWidgets('tab trạng thái có đếm; mặc định Khả dụng; tab trống thì báo', (
+    tester,
+  ) async {
+    VoucherWalletItem voucher(String id, VoucherStatus status) => VoucherWalletItem(
+      id: id,
+      name: 'Voucher $id',
+      discountType: VoucherDiscountType.amount,
+      discountValue: '20000',
+      minOrder: '0',
+      expiresAt: DateTime.utc(2026, 12, 31),
+      source: VoucherSource.savedPromotion,
+      status: status,
+    );
+    await _pumpScreen(
+      tester,
+      loader: () async => [
+        voucher('a1', VoucherStatus.available),
+        voucher('a2', VoucherStatus.available),
+        voucher('r1', VoucherStatus.reserved),
+        voucher('u1', VoucherStatus.used),
+      ],
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Khả dụng (2)'), findsOneWidget);
+    expect(find.text('Đang giữ (1)'), findsOneWidget);
+    expect(find.text('Đã dùng (1)'), findsOneWidget);
+    expect(find.text('Hết hạn (0)'), findsOneWidget);
+    expect(find.byKey(const Key('voucher-card-a1')), findsOneWidget);
+    expect(find.byKey(const Key('voucher-card-u1')), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const Key('voucher-tab-reserved')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('voucher-tab-reserved')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('voucher-card-r1')), findsOneWidget);
+    expect(find.text('Đang giữ cho đơn chờ thanh toán'), findsOneWidget);
+    expect(find.byKey(const Key('voucher-wallet-count')), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const Key('voucher-tab-expired')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('voucher-tab-expired')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('voucher-wallet-tab-empty')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('mã trạng thái API quy về tab', () {
+    expect(VoucherStatus.fromApi('RESERVED'), VoucherStatus.reserved);
+    expect(VoucherStatus.fromApi('USED'), VoucherStatus.used);
+    expect(VoucherStatus.fromApi('EXPIRED'), VoucherStatus.expired);
+    expect(VoucherStatus.fromApi('AVAILABLE'), VoucherStatus.available);
+  });
+
   testWidgets('khung voucher nhận dữ liệu và lưu mã qua callback', (
     tester,
   ) async {

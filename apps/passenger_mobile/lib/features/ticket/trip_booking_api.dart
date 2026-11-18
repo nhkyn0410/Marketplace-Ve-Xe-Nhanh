@@ -185,8 +185,8 @@ class TripBookingApi {
     TripSearchFilters filters,
     int page,
   ) async {
-    String? idOf(HomeLocation place, HomeLocationKind kind) =>
-        place.kind == kind ? place.id : null;
+    String? idOf(HomeLocation? place, HomeLocationKind kind) =>
+        place != null && place.kind == kind ? place.id : null;
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
@@ -208,6 +208,9 @@ class TripBookingApi {
         priceMin: filters.priceMin,
         priceMax: filters.priceMax,
         amenityIds: amenityIds.isEmpty ? null : amenityIds,
+        pickupPoint: filters.pickupPoint,
+        dropoffPoint: filters.dropoffPoint,
+        minRating: filters.minRating,
         sort: filters.sort.apiValue,
         page: page,
         limit: 20,
@@ -216,15 +219,30 @@ class TripBookingApi {
     return _tripPage(response.data!);
   }
 
-  /// Chuyến sắp chạy của mọi tuyến trong vài ngày tới — không gửi điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
+  /// Chuyến sắp chạy; chỉ gửi ngày / điểm đi / điểm đến khi người dùng đã chọn.
   Future<TripSearchPage> browseTrips(
     TripSearchFilters filters,
-    int page,
-  ) async {
+    int page, {
+    DateTime? date,
+    int? passengers,
+    HomeLocation? from,
+    HomeLocation? to,
+  }) async {
+    String? idOf(HomeLocation? place, HomeLocationKind kind) =>
+        place != null && place.kind == kind ? place.id : null;
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
-        passengers: 1,
+        date: date == null ? null : Date(date.year, date.month, date.day),
+        fromProvinceId: idOf(from, HomeLocationKind.province),
+        fromWardId: idOf(from, HomeLocationKind.ward),
+        fromAreaId: idOf(from, HomeLocationKind.area),
+        fromStopPointId: idOf(from, HomeLocationKind.stopPoint),
+        toProvinceId: idOf(to, HomeLocationKind.province),
+        toWardId: idOf(to, HomeLocationKind.ward),
+        toAreaId: idOf(to, HomeLocationKind.area),
+        toStopPointId: idOf(to, HomeLocationKind.stopPoint),
+        passengers: passengers ?? 1,
         operatorId: filters.operatorId,
         vehicleForm: filters.vehicleForm?.apiValue,
         vehicleClass: filters.vehicleClass?.apiValue,
@@ -233,6 +251,9 @@ class TripBookingApi {
         priceMin: filters.priceMin,
         priceMax: filters.priceMax,
         amenityIds: amenityIds.isEmpty ? null : amenityIds,
+        pickupPoint: filters.pickupPoint,
+        dropoffPoint: filters.dropoffPoint,
+        minRating: filters.minRating,
         sort: filters.sort.apiValue,
         page: page,
         limit: 20,
@@ -250,6 +271,14 @@ class TripBookingApi {
       priceMax: data.facets.priceMax,
       widenedFrom: data.widenedToProvince.from,
       widenedTo: data.widenedToProvince.to,
+      pickupPoints: [
+        for (final point in data.facets.pickupPoints)
+          TripPointFacet(name: point.name, count: point.count),
+      ],
+      dropoffPoints: [
+        for (final point in data.facets.dropoffPoints)
+          TripPointFacet(name: point.name, count: point.count),
+      ],
       operators: [
         for (final facet in data.facets.operators)
           TripOperatorFacet(id: facet.id, name: facet.name, count: facet.count),
@@ -372,6 +401,8 @@ class TripBookingApi {
             allowPickup: stop.allowPickup,
             allowDropoff: stop.allowDropoff,
             pickupOpen: stop.pickupOpen,
+            latitude: stop.latitude.toDouble(),
+            longitude: stop.longitude.toDouble(),
           ),
       ],
       seats: [
@@ -628,7 +659,7 @@ class TripBookingApi {
                 ..companionName = passenger.companionName,
             ),
         ])
-        ..note = null
+        ..note = draft.note
         ..expectedTotal = expectedTotal
         ..promotionCode = draft.promotion?.userVoucherId == null
             ? draft.promotion?.code
@@ -675,6 +706,20 @@ class TripBookingApi {
     );
   }
 
+  /// Cổng thanh toán theo thứ tự hiển thị và cổng nào máy chủ đang bật
+  /// (`GET /payment-providers`, PASSENGER-PARITY Q5); bỏ mã cổng lạ.
+  Future<List<PaymentProviderOption>> loadPaymentProviders() async {
+    final response = await _call(
+      () => _client.getPaymentsApi().paymentProviderControllerList(),
+    );
+    return [
+      for (final item in response.data!.items)
+        if (PassengerPaymentMethod.fromApi(item.provider.name)
+            case final method?)
+          PaymentProviderOption(method, enabled: item.enabled),
+    ];
+  }
+
   /// Tạo hoặc lấy lại link thanh toán; khách vãng lai dùng mã truy cập của đơn.
   Future<BookingPaymentSession> startPayment(
     CreatedBooking booking,
@@ -685,8 +730,10 @@ class TripBookingApi {
         bookingId: booking.bookingId,
         xBookingToken: booking.accessToken,
         paymentInputDto: PaymentInputDto(
-          (b) =>
-              b.provider = PaymentInputDtoProviderEnum.valueOf(method.apiValue),
+          (b) => b
+            ..provider = PaymentInputDtoProviderEnum.valueOf(method.apiValue)
+            // Cổng mở bằng trình duyệt quay về App Link `/app/...` để Android mở lại app (PASSENGER-PARITY P4).
+            ..client = PaymentInputDtoClientEnum.APP,
         ),
       ),
     );
@@ -707,6 +754,17 @@ class TripBookingApi {
               description: transfer.description,
             ),
     );
+  }
+
+  /// Gửi lại email vé điện tử tới email liên hệ của đơn (SCR-PSG-22); trả email đã che bớt.
+  Future<String> resendTicketEmail(CreatedBooking booking) async {
+    final response = await _call(
+      () => _client.getBookingsApi().bookingControllerResendTickets(
+        bookingId: booking.bookingId,
+        xBookingToken: booking.accessToken,
+      ),
+    );
+    return response.data!.sentTo;
   }
 
   /// Lấy kết quả thanh toán và vé từ máy chủ khi chờ hoặc quay lại ứng dụng.

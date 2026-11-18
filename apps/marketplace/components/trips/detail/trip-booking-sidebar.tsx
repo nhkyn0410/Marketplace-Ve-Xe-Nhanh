@@ -59,7 +59,7 @@ export function TripBookingSidebar({
           <div className="flex items-center justify-between">
             <span className="text-neutral-500">Ngày đi</span>
             <span className="font-semibold text-neutral-900">
-              {trip.routeMeta}
+              {trip.departureDateText}
             </span>
           </div>
           <div className="flex items-center justify-between">

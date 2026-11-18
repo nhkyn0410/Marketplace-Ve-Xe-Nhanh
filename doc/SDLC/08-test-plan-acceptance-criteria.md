@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 02/11/2026                       |
+| Ngày cập nhật | 03/11/2026                       |
 
 ### 1.2. Lịch sử thay đổi
+
+**v0.33 — 03/11/2026, AI Agent:** bổ sung tiêu chí demo thông báo hành trình Android theo yêu cầu Khanh, gồm tỉnh hiện tại và cập nhật nền; giữ trạng thái Draft.
 
 31/10/2026 — thêm phạm vi payOS **chờ duyệt** (ADR-029): vector HMAC đúng/sai/null/thiếu trường; kiểm chữ ký phản hồi; timeout/retry cùng orderCode; webhook trùng reference không ghi tiền/vé trùng; sai tiền / quá hạn kể cả trước job expiry → RECONCILING; tenant RLS; probe không tạo job; queue lỗi không ACK; DEMO tắt/khác provider; query khi mất webhook, hủy link lỗi. Flutter kiểm chọn cổng, QR/copy, mở URL, resume/poll, chặn nhấn lặp, lỗi mạng/hết hạn và vé thực. DB/HTTP/gateway và hồi quy chạy trên DB tạm / mock; lint/typecheck/test/build monorepo pass; client TS/Dart đã sinh. App hành khách Flutter analyze không có issue, 249 tests pass; package Dart sinh tự động không có lỗi analyze nhưng còn cảnh báo. Chưa thử điện thoại hay tiền thật, chưa review độc lập, không ghi đạt toàn bộ acceptance triển khai. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
@@ -294,6 +296,14 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 - Thu trực tiếp không tăng escrow/payout. Thu phí thủ công có unique reference/key, không vượt khoản phải thu; retry không thu thêm. Online payment/webhook/refund và mandatory HMAC/refresh reuse không hồi quy.
 
 Kết quả thực chạy ghi tại [COUNTER-SALES todo](../task-propreties/COUNTER-SALES-todo.md); checklist này không mặc nhiên chứng minh test đã chạy hay được review.
+
+### Demo thông báo hành trình Android — bổ sung 03/11/2026
+
+- `TC-NSR-DEMO-001`: cờ tắt/production chặn API; không nhận Guest; booking/FCM device phải thuộc Passenger hiện tại; kiểm transaction scope/tenant bằng integration khi có DB.
+- `TC-NSR-DEMO-002`: chạy demo → Home/khóa màn hình → worker gửi ít nhất hai mốc → cùng notification ID, có logo và tỉnh → chạm mở đúng booking.
+- `TC-NSR-DEMO-003`: revision cũ/trùng/sai session, TTL hết hạn, vuốt tắt, dừng và đăng xuất không hồi sinh thông báo; bắt cả race start/logout và token đổi.
+- `TC-NSR-DEMO-004`: Android 16 ProgressStyle và bản cũ fallback; từ chối quyền không chặn xem vé; chữ dài không tràn. Ghi rõ máy/OS và trường hợp chưa kiểm.
+- `TC-NSR-DEMO-005`: snapshot không ghi trạng thái booking/trip/ticket; tỉnh là dữ liệu mô phỏng; push giao dịch và hộp thư vẫn hoạt động như cũ.
 
 ## 10. Entry / Exit criteria
 

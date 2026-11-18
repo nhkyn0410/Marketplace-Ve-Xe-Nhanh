@@ -34,6 +34,8 @@ export type AccountAction = {
   run: (reason: string) => Promise<unknown>;
   /** Câu báo sau khi xong (hiện ở màn danh sách). */
   done: string;
+  /** Thông báo theo kết quả thực tế, ví dụ đã đổi mật khẩu nhưng chưa gửi được email. */
+  outcome?: (result: unknown) => { text: string; tone: "success" | "warning" };
 };
 
 /**
@@ -48,7 +50,7 @@ export function AccountActionDialog({
 }: {
   action: AccountAction | null;
   onClose: () => void;
-  onDone: (message: string) => void;
+  onDone: (message: string, tone?: "success" | "warning") => void;
   onStale: () => void;
 }) {
   const [pending, setPending] = useState(false);
@@ -70,7 +72,7 @@ function ActionForm({
 }: {
   action: AccountAction;
   onClose: () => void;
-  onDone: (message: string) => void;
+  onDone: (message: string, tone?: "success" | "warning") => void;
   onStale: () => void;
   onPendingChange: (pending: boolean) => void;
 }) {
@@ -82,8 +84,9 @@ function ActionForm({
     mutationFn: () => withReauth(identity.secret, () => action.run(reason.trim())),
     onMutate: () => onPendingChange(true),
     onSettled: () => onPendingChange(false),
-    onSuccess: () => {
-      onDone(action.done);
+    onSuccess: (result) => {
+      const notice = action.outcome?.(result) ?? { text: action.done, tone: "success" as const };
+      onDone(notice.text, notice.tone);
       onClose();
     },
     onError: (error) => {

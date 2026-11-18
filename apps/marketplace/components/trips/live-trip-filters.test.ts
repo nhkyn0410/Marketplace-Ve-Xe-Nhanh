@@ -32,4 +32,61 @@ describe("bộ lọc chuyến (form GET)", () => {
     const html = renderToStaticMarkup(createElement(LiveTripFilters, { query: "origin=a&destination=b" }));
     expect(html).toMatch(/name="timeRange" checked="" value=""/);
   });
+
+  // PASSENGER-PARITY W14 / Q18: lọc Nhà xe + Tiện ích như app.
+  describe("nhà xe và tiện ích", () => {
+    const operators = [{ id: "op-1", name: "Sao Mai", count: 3 }, { id: "op-2", name: "Thành Bưởi", count: 1 }];
+    const amenities = [{ id: "wifi", name: "Wi-Fi" }, { id: "usb", name: "Cổng sạc USB" }, { id: "water", name: "Nước uống" }];
+    const filtered = `${query}&operatorId=op-2&amenityIds=wifi,water`;
+
+    it("có danh sách nhà xe: chọn sẵn nhà xe đang lọc, không gửi trùng qua ô ẩn, Xóa lọc bỏ nhà xe + tiện ích", () => {
+      const html = renderToStaticMarkup(createElement(LiveTripFilters, { query: filtered, operators, amenities }));
+      expect(html).toContain("Tất cả nhà xe");
+      expect(html).toMatch(/<option value="op-2" selected="">Thành Bưởi \(1\)<\/option>/);
+      expect(hiddenInputs(html)).not.toHaveProperty("operatorId");
+      const reset = new URLSearchParams(/href="\/trips\?([^"]*)"/.exec(html)?.[1]?.replaceAll("&amp;", "&"));
+      expect(reset.has("operatorId")).toBe(false);
+      expect(reset.has("amenityIds")).toBe(false);
+      expect(html).toMatch(/name="amenityIds" checked="" value="wifi"/);
+      expect(html).toMatch(/name="amenityIds" checked="" value="water"/);
+      expect(html).toMatch(/name="amenityIds" value="usb"/);
+    });
+
+    it("nhà xe đang lọc không còn chuyến khớp vẫn giữ trong danh sách", () => {
+      const html = renderToStaticMarkup(createElement(LiveTripFilters, { query: `${query}&operatorId=op-9`, operators }));
+      expect(html).toMatch(/<option value="op-9" selected="">Nhà xe đang chọn \(0\)<\/option>/);
+    });
+
+    it("chưa có danh sách nhà xe (tìm lỗi): không hiện nhóm Nhà xe, giữ nhà xe đang lọc qua ô ẩn", () => {
+      const html = renderToStaticMarkup(createElement(LiveTripFilters, { query: `${query}&operatorId=op-2` }));
+      expect(html).not.toContain("Tất cả nhà xe");
+      expect(html).not.toContain("Tiện ích");
+      expect(hiddenInputs(html)).toMatchObject({ operatorId: "op-2" });
+    });
+  });
+
+  // FR-MKT-03 (PASSENGER-PARITY giai đoạn 4): lọc theo điểm đón / trả và đánh giá nhà xe.
+  it("điểm đón / trả lấy từ kết quả, giữ điểm đang lọc; có nhóm đánh giá nhà xe; Xóa lọc bỏ các lọc này", () => {
+    const filtered = `${query}&pickupPoint=${encodeURIComponent("Bến xe cũ")}&minRating=4`;
+    const html = renderToStaticMarkup(createElement(LiveTripFilters, {
+      query: filtered,
+      pickupPoints: [{ name: "Bến xe Miền Đông", count: 3 }],
+      dropoffPoints: [{ name: "Bến xe Đà Lạt", count: 2 }]
+    }));
+    expect(html).toContain('name="pickupPoint"');
+    expect(html).toContain("Bến xe Miền Đông (3)");
+    expect(html).toContain('<option value="Bến xe cũ" selected="">Bến xe cũ</option>');
+    expect(html).toContain("Bến xe Đà Lạt (2)");
+    expect(html).toContain("Đánh giá nhà xe");
+    expect(html).toContain('name="minRating" checked="" value="4"');
+    const reset = new URLSearchParams(/href="\/trips\?([^"]*)"/.exec(html)?.[1]?.replaceAll("&amp;", "&"));
+    expect(reset.has("pickupPoint")).toBe(false);
+    expect(reset.has("minRating")).toBe(false);
+  });
+
+  it("không có điểm trong kết quả và chưa lọc điểm: không hiện nhóm điểm đón / trả", () => {
+    const html = renderToStaticMarkup(createElement(LiveTripFilters, { query }));
+    expect(html).not.toContain('name="pickupPoint"');
+    expect(html).not.toContain('name="dropoffPoint"');
+  });
 });

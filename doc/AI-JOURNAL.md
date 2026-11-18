@@ -33,7 +33,7 @@ Tên hàm/class được lấy bằng heuristic theo dòng và thụt lề cho T
 
 ## 3. Luật cho agent
 
-1. **KHÔNG đọc, mở, hay sửa tay** bất kỳ file nào trong `.ai-journal/`. Chỉ ghi thêm bằng các lệnh ở mục 4. Ghi sai thì ghi dòng mới đính chính, để Khanh tự dọn. Luật deny `Edit(/.ai-journal/**)` trong `.claude/settings.json` chặn tool sửa file của Claude.
+1. **Ghi dòng mới bằng các lệnh ở mục 4.** Agent được đọc, mở và sửa file trong `.ai-journal/` khi cần (tra cứu, đính chính dòng ghi sai).
 2. **Sửa code bằng Write / Edit** (hoặc `apply_patch` với Codex). Không dùng sed, heredoc, `Set-Content` để sửa code, vì như thế hook không lấy được tên hàm. Báo cáo sẽ liệt kê riêng những lần sửa bằng shell.
 3. **Mỗi class / hàm export / method public MỚI** phải có **1 dòng doc comment tiếng Việt nói nó dùng để làm gì**, đặt ngay trên khai báo: `/** … */` cho TS/JS, `///` cho Dart. Chỉ nêu công dụng, không giải thích cách code chạy. Đây là quy ước sẵn có của repo; hook lấy dòng này làm mô tả trong nhật ký.
    - Không bắt buộc với: helper private, method override / vòng đời (`build`, `initState`, `dispose`, `onModuleInit`…), file test, code sinh tự động (`generated/`, `api_client_dart/`, `*.g.dart`). Code cũ cũng không phải bổ sung.

@@ -94,3 +94,35 @@ export const CustomerReviewSchema = z.object({ review: ReviewSchema.nullable(), 
 export type CustomerReview = z.infer<typeof CustomerReviewSchema>;
 /** Đánh giá của đơn (nếu có) và đơn có đủ điều kiện đánh giá không (BR-18). */
 export class CustomerReviewDto extends createZodDto(CustomerReviewSchema) {}
+
+// SCR-PSG-14 "Đánh giá của tôi": shape AI tự đề xuất, chờ Khanh duyệt.
+
+/** Phân trang riêng cho từng danh sách của `GET /me/reviews`. */
+export class PassengerReviewQueryDto extends createZodDto(
+  z.object({
+    /** Danh sách nào có cursor thì sang trang kế; danh sách còn lại trả trang đầu. */
+    pendingCursor: z.uuid().optional(),
+    reviewedCursor: z.uuid().optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  }),
+) {}
+
+export const PendingReviewSchema = z.object({
+  bookingId: z.uuid(),
+  bookingCode: z.string(),
+  operatorId: z.uuid(),
+  operatorName: z.string(),
+  routeName: z.string(),
+  vehicleTypeName: z.string().nullable(),
+  departureAt: z.iso.datetime(),
+});
+
+/** Đánh giá của chính hành khách: không có trường chỉ dành cho nhà xe / Admin. */
+export const PassengerReviewSchema = ReviewSchema.omit({ operatorReportedAt: true, operatorReportReason: true, moderationReason: true, signals: true });
+
+const pageOf = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item), nextCursor: z.uuid().nullable(), total: z.int() });
+
+export const PassengerReviewsSchema = z.object({ pending: pageOf(PendingReviewSchema), reviewed: pageOf(PassengerReviewSchema) });
+export type PassengerReviews = z.infer<typeof PassengerReviewsSchema>;
+/** Chuyến chờ đánh giá (BR-18) + đánh giá đã gửi của hành khách trên mọi nhà xe. */
+export class PassengerReviewsDto extends createZodDto(PassengerReviewsSchema) {}

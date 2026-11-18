@@ -1,6 +1,6 @@
 # Kế hoạch thông báo hành trình ngoài ứng dụng hành khách
 
-> Ngày: 31/10/2026. Trạng thái: **Draft — kế hoạch, chưa triển khai**.
+> Ngày: 31/10/2026; cập nhật 03/11/2026. Trạng thái: **Đã triển khai code theo yêu cầu Khanh — chờ nghiệm thu**.
 > Khanh đã chọn: **mô phỏng hành trình để demo trước**.
 > Phạm vi nền tảng: **chỉ Android** (Khanh chốt 31/10/2026).
 > Thiết kế: [Figma — thông báo có logo, hai dòng thông tin và thanh tiến độ](https://www.figma.com/design/6c81q3DdHVS0anfDw2sVVj/UI-UX?node-id=2629-1931).
@@ -10,7 +10,7 @@
 
 Hành khách bật bản demo từ ứng dụng Android, trở về màn hình chính hoặc khóa máy và vẫn thấy thông báo cập nhật qua ba giai đoạn: xe đến đón, đang di chuyển, đã đến nơi.
 
-- Giữ logo gốc Vé Xe Nhanh, nội dung ngắn, tuyến/điểm đón và đường tiến độ có biểu tượng xe.
+- Giữ logo gốc Vé Xe Nhanh, nội dung ngắn, tuyến/điểm đón, đường tiến độ có biểu tượng xe và **Đang qua {provinceName}** (Khanh bổ sung 03/11/2026).
 - Không thêm nhãn từng mốc, giờ trùng lặp, nút hành động hoặc lời chào thừa vào phần nội dung tùy biến.
 - Dữ liệu mô phỏng tách khỏi dữ liệu vận hành; không đổi `TripStatus`, `TicketStatus`, booking, check-in hoặc số liệu thanh toán.
 - Nghiệm thu trên thiết bị thật với push từ máy chủ. Bộ đếm Flutter chạy khi app mở chỉ phục vụ kiểm tra ban đầu, không chứng minh cập nhật nền.
@@ -65,11 +65,12 @@ Các điểm tích hợp chính:
 
 ### Snapshot và API — đề xuất, chưa là contract đã duyệt
 
-Snapshot tối thiểu: `schemaVersion`, `demoSessionId`, `bookingId`, `revision`, `displayStage`, `routeLabel`, `etaAt`, `progress`, `updatedAt`, `expiresAt`, `ended`.
+Contract đã hiện thực: `type:'journey_demo'`, `schemaVersion:1`, `sessionId`, `bookingId`, `revision`, `stage`, `routeLabel`, `provinceName`, `etaAt`, `progress`, `updatedAt`, `expiresAt`, `ended`. Xem Zod `packages/types/src/journey-demo.ts` và API §7.2.1.
 
 - `progress`: số nguyên trong miền cố định, ví dụ 0–1000. Đồng hồ và tiến độ lấy từ snapshot có hạn dùng; không tăng mãi khi thiếu cập nhật.
 - Dùng `etaAt` và giờ máy chủ để hiển thị thời gian còn lại; không giảm dần một con số phụ thuộc Timer Flutter.
-- `displayStage` chỉ phục vụ UI mô phỏng, không ghi vào trạng thái chuyến.
+- `stage` (`approaching/travelling/arrived/stopped`) chỉ phục vụ UI mô phỏng, không ghi vào trạng thái chuyến. `ended=true` chỉ khi stopped; arrived giữ hiển thị trước mốc dọn.
+- `provinceName` lấy theo các tỉnh của điểm dừng trong chặng đã đặt, phân bố theo tiến độ demo; không phải vị trí GPS thực tế.
 - API đề xuất thuộc module `notification/` hiện có: tạo/đọc/dừng phiên demo gắn booking và thiết bị FCM của hành khách. Tiền tố `/v1/me/...`; chốt đường dẫn cụ thể khi bổ sung API spec, không mở module tracking mới.
 - Phải kiểm `scope=passenger`, sở hữu booking và thiết bị cho cả tạo, đọc và dừng phiên; đăng ký token tiếp tục dùng API hiện có với kiểm quyền thiết bị. Không dùng endpoint chuyến công khai làm bằng chứng quyền theo dõi.
 - Ưu tiên session Redis có TTL cho demo, không thêm bảng DB/migration nếu không cần. FCM device token tiếp tục dùng `PushDevice`, bảo vệ như bí mật và không log.
@@ -107,7 +108,7 @@ Snapshot tối thiểu: `schemaVersion`, `demoSessionId`, `bookingId`, `revision
 - Phân biệt đưa app về nền, OS thu hồi process, vuốt khỏi recent apps và Force stop trong Settings. Không cam kết cập nhật sau người dùng cưỡng bức dừng; kiểm tra lại khi mở app.
 - Thông báo lỗi hoặc bị từ chối quyền không chặn xem vé, đặt vé hoặc đăng nhập.
 - Dùng Flutter `test`/`analyze`, native build/test, Vitest/Supertest liên quan; chạy kiểm tra OpenAPI/client sau thay đổi contract. Maestro/integration_test cho luồng app và bằng chứng native/thiết bị thật cho màn hình khóa.
-- Đây mới là kế hoạch: chưa chạy test tính năng, chưa qua `code-reviewer`/`security-auditor`; chỉ chạy các agent review khi Khanh yêu cầu.
+- Đã có unit test Flutter/native/backend; kết quả cụ thể và giới hạn ghi trong hướng dẫn triển khai. Chưa qua `code-reviewer`/`security-auditor`; chỉ chạy các agent review khi Khanh yêu cầu.
 
 ## 7. Tài liệu và bàn giao khi triển khai
 

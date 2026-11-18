@@ -7,7 +7,7 @@ import { Button } from "@vexenhanh/ui/components/button";
 import { TAB_TRIGGER, TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, TableSkeleton } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON } from "@vexenhanh/ui/components/list-parts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
-import { CircleCheck, FileText, Landmark, Lock, LockOpen } from "lucide-react";
+import { CircleCheck, FileText, KeyRound, Landmark, Lock, LockOpen, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -22,16 +22,18 @@ import { RouteList } from "../operation/route-list";
 import { TripList } from "../operation/trip-list";
 import { AccountActionDialog, type AccountAction } from "../user/account-dialogs";
 import { EmployeeList } from "../user/employee-list";
+import { OperatorAccountList } from "../user/operator-account-list";
+import { operatorPasswordAction } from "../user/operator-account-actions";
 import { BankChangeDialog } from "./bank-change-dialog";
 
-const TABS = ["info", "routes", "trips", "vehicles", "employees"] as const;
+const TABS = ["info", "routes", "trips", "vehicles", "accounts", "employees"] as const;
 type Tab = (typeof TABS)[number];
 const BACK = { href: "/operators?tab=operators", label: "Quay lại danh sách nhà xe" };
 
 /**
  * Chi tiết nhà xe (tự thiết kế 28/10/2026, chờ duyệt; chưa có Figma — FR-ADM-02 "giám sát", SRS ma trận quyền): thẻ số 30
- * ngày, tab Thông tin / Tuyến / Chuyến / Đội xe / Nhân viên (`?tab=`). Thao tác giữ như danh sách: tạm khóa / mở khóa, xác
- * minh tài khoản nhận tiền, mở hồ sơ KYC.
+ * ngày, tab Thông tin / Tuyến / Chuyến / Đội xe / Tài khoản / Nhân viên (`?tab=`). Thao tác giữ như danh sách: cấp lại
+ * mật khẩu tạm, tạm khóa / mở khóa, xác minh tài khoản nhận tiền, mở hồ sơ KYC.
  */
 export function OperatorDetailScreen({ operatorId }: { operatorId: string }) {
   const operator = useQuery({ queryKey: ["admin-operator", operatorId], queryFn: () => getOperator(operatorId), retry: retryUnlessFinal });
@@ -47,7 +49,7 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
   const showMoney = can("payment:monitor");
   const [action, setAction] = useState<AccountAction | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ text: string; tone: "success" | "warning" } | null>(null);
   const requested = params.get("tab") ?? "";
   const tab: Tab = (TABS as readonly string[]).includes(requested) ? (requested as Tab) : "info";
   const status = OPERATOR_STATUS[operator.status];
@@ -55,9 +57,10 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["admin-operator", operator.id] });
     void queryClient.invalidateQueries({ queryKey: ["admin-operators"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operator-accounts"] });
   };
-  const done = (message: string) => {
-    setNotice(message);
+  const done = (message: string, tone: "success" | "warning" = "success") => {
+    setNotice({ text: message, tone });
     refresh();
   };
 
@@ -94,6 +97,12 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
         subtitle={`Mã ${operator.slug} · duyệt ngày ${formatDate(operator.approvedAt)}`}
         actions={
           <>
+            {operator.owner && (
+              <Button variant="outline" className={`${BUTTON} bg-card`} disabled={operator.owner.status !== "ACTIVE" || !operator.owner.email} onClick={() => operator.owner && setAction(operatorPasswordAction(operator.owner))}>
+                <KeyRound className="size-[18px]" />
+                Cấp lại mật khẩu chủ nhà xe
+              </Button>
+            )}
             {operator.applicationId && can("kyc:review") && (
               <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
                 <Link href={`/operators/applications/${operator.applicationId}`}>
@@ -117,9 +126,9 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
         }
       />
       {notice && (
-        <div role="status" className="flex items-center gap-3 rounded-lg bg-success-50 px-5 py-3 text-sm leading-5 text-success-700">
-          <CircleCheck className="size-5 shrink-0" />
-          {notice}
+        <div role="status" className={`flex items-center gap-3 rounded-lg px-5 py-3 text-sm leading-5 ${notice.tone === "success" ? "bg-success-50 text-success-700" : "bg-warning-50 text-warning-700"}`}>
+          {notice.tone === "success" ? <CircleCheck className="size-5 shrink-0" /> : <TriangleAlert className="size-5 shrink-0" />}
+          {notice.text}
         </div>
       )}
       {operator.status === "SUSPENDED" && operator.suspendedReason && (
@@ -164,6 +173,9 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
           <TabsTrigger value="vehicles" className={TAB_TRIGGER}>
             Đội xe ({count(operator.vehicleCount)})
           </TabsTrigger>
+          <TabsTrigger value="accounts" className={TAB_TRIGGER}>
+            Tài khoản nhà xe
+          </TabsTrigger>
           <TabsTrigger value="employees" className={TAB_TRIGGER}>
             Nhân viên ({count(operator.employeeCount)})
           </TabsTrigger>
@@ -180,6 +192,9 @@ function OperatorBody({ operator }: { operator: OperatorDetail }) {
         <TabsContent value="vehicles">{tab === "vehicles" && <VehicleTab operatorId={operator.id} />}</TabsContent>
         <TabsContent value="employees" className="flex flex-col gap-6">
           {tab === "employees" && <EmployeeList operatorId={operator.id} />}
+        </TabsContent>
+        <TabsContent value="accounts" className="flex flex-col gap-6">
+          {tab === "accounts" && <OperatorAccountList operatorId={operator.id} onAction={setAction} />}
         </TabsContent>
       </Tabs>
       <AccountActionDialog action={action} onClose={() => setAction(null)} onDone={done} onStale={refresh} />
@@ -225,7 +240,7 @@ function InfoTab({ operator }: { operator: OperatorDetail }) {
           <Row label="Nhân viên" value={count(operator.employeeCount)} />
         </Rows>
         {operator.owner?.credentialDeliveryPending && (
-          <p className="text-xs leading-[18px] text-warning-700">Chưa gửi được mật khẩu tạm cho chủ nhà xe — gửi lại ở hồ sơ KYC.</p>
+          <p className="text-xs leading-[18px] text-warning-700">Chưa gửi được mật khẩu tạm cho chủ nhà xe — dùng nút Cấp lại mật khẩu để gửi lại.</p>
         )}
       </Card>
     </div>

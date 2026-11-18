@@ -248,6 +248,7 @@ export const ticketLookupResultFixture: TicketLookupResultData = {
     seatCount: 2,
     ticketPriceTotalVnd: "560000",
     serviceFeeVnd: "0",
+    discountVnd: "0",
     paidTotalVnd: "560000",
     methodLabel: "Ví MoMo",
     statusLabel: "Thành công"

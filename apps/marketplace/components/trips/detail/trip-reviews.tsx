@@ -93,9 +93,13 @@ export function TripReviews({ trip }: TripReviewsProps) {
       {/* Thẻ tóm tắt nhà xe ở chân trang */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#00506a] text-white flex items-center justify-center font-bold text-sm shrink-0">
-            {trip.operatorCode}
-          </div>
+          {trip.operatorLogoUrl ? (
+            <img src={trip.operatorLogoUrl} alt="" className="w-11 h-11 shrink-0 rounded-xl border border-slate-100 bg-white object-contain" />
+          ) : (
+            <div className="w-11 h-11 rounded-xl bg-[#00506a] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              {trip.operatorCode}
+            </div>
+          )}
           <div>
             <h4 className="text-sm font-semibold text-neutral-900">
               {trip.operatorName}

@@ -10,9 +10,11 @@ import {
   BookingInputDto,
   BookingResponseDto,
   CreatedBookingDto,
+  TicketEmailResponseDto,
   type BookingResponse,
   type CreatedBooking,
 } from "./dto/booking.dto";
+import { TicketEmailService, type TicketEmailResult } from "./ticket-email.service";
 
 const problemContent = {
   "application/problem+json": { schema: { $ref: getSchemaPath(ProblemDetailsDto) } },
@@ -23,7 +25,10 @@ const problemContent = {
 @Controller("bookings")
 /** Đặt vé (TASK-BTP-002). */
 export class BookingController {
-  constructor(@Inject(BookingService) private readonly bookings: BookingService) {}
+  constructor(
+    @Inject(BookingService) private readonly bookings: BookingService,
+    @Inject(TicketEmailService) private readonly ticketEmails: TicketEmailService,
+  ) {}
 
   /** Tạo booking chờ thanh toán từ phiên giữ chỗ còn hiệu lực; chỗ được giữ tới hạn thanh toán. */
   @Post()
@@ -56,5 +61,23 @@ export class BookingController {
     @Headers(BOOKING_TOKEN_HEADER) accessToken: string | undefined,
   ): Promise<BookingResponse> {
     return this.bookings.get(user, bookingId, accessToken);
+  }
+
+  /** Gửi lại email vé điện tử tới email liên hệ của đơn (SCR-PSG-22; chờ duyệt). */
+  @Post(":bookingId/tickets/email")
+  @HttpCode(202)
+  @GuestOrPassenger("booking:create")
+  @ApiParam({ name: "bookingId", type: String, format: "uuid" })
+  @ApiHeader({ name: "X-Booking-Token", required: false, description: "Mã truy cập trả lúc tạo booking (khách vãng lai)." })
+  @ZodResponse({ status: 202, description: "Đã xếp hàng gửi lại vé điện tử.", type: TicketEmailResponseDto })
+  @ApiResponse({ status: 404, description: "`BOOKING_NOT_FOUND`.", content: problemContent })
+  @ApiResponse({ status: 409, description: "`TICKET_EMAIL_NOT_AVAILABLE` — đơn chưa có vé còn hiệu lực.", content: problemContent })
+  @ApiResponse({ status: 429, description: "`TICKET_EMAIL_RATE_LIMITED` — 1 lần / phút, 5 lần / ngày.", content: problemContent })
+  resendTickets(
+    @OptionalPassenger() user: VerifiedAccessToken | null,
+    @Param("bookingId", new ParseUUIDPipe()) bookingId: string,
+    @Headers(BOOKING_TOKEN_HEADER) accessToken: string | undefined,
+  ): Promise<TicketEmailResult> {
+    return this.ticketEmails.resend(user, bookingId, accessToken);
   }
 }

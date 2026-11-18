@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { paidPrice } from "../refund/refund-policy";
 import { PromotionCheckInputSchema } from "./dto/promotion.dto";
-import { discountFor, MIN_PAYABLE, vnMonthStart } from "./promotion-apply";
+import { discountFor, MIN_PAYABLE, minOrderMessage, vnMonthStart } from "./promotion-apply";
 
 describe("Khuyến mãi — tính tiền (TASK-PROM-001, BIGINT VND)", () => {
   const percent = { discountType: "PERCENT" as const, discountValue: 10n, maxDiscount: 50_000n, minOrder: 300_000n };
@@ -11,6 +11,11 @@ describe("Khuyến mãi — tính tiền (TASK-PROM-001, BIGINT VND)", () => {
     expect(discountFor(percent, 333_333n)).toBe(33_333n);
     expect(discountFor(percent, 900_000n)).toBe(50_000n);
     expect(discountFor(percent, 299_999n)).toBe(0n);
+  });
+
+  it("thông báo chưa đạt mức tối thiểu viết tiền kiểu hành khách thấy: 300.000đ", () => {
+    expect(minOrderMessage(300_000n)).toBe("Đơn chưa đạt giá trị tối thiểu 300.000đ của mã.");
+    expect(minOrderMessage(1_250_000n)).toBe("Đơn chưa đạt giá trị tối thiểu 1.250.000đ của mã.");
   });
 
   it("số tiền cố định; không giảm để khách trả dưới mức tối thiểu của cổng", () => {

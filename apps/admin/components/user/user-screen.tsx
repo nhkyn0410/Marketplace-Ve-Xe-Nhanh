@@ -13,6 +13,7 @@ import { useState } from "react";
 import { PageHeader } from "../page-header";
 import { AccountActionDialog, type AccountAction } from "./account-dialogs";
 import { EmployeeList } from "./employee-list";
+import { OperatorAccountList } from "./operator-account-list";
 import { PassengerList } from "./passenger-list";
 import { PlatformAccountDialog } from "./platform-account-dialog";
 import { PlatformAccountList } from "./platform-account-list";
@@ -20,12 +21,12 @@ import { PlatformPermissionsDialog } from "./platform-permissions-dialog";
 import type { Permission } from "../../lib/user/permission-catalog";
 import type { PlatformAccount } from "../../lib/user/user-api";
 
-const TABS = ["passengers", "employees", "admins"] as const;
+const TABS = ["passengers", "operators", "employees", "admins"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
- * Màn Người dùng (Figma ADM-03a…03d): tab Tài khoản hành khách (đổi tên 28/10/2026, chờ duyệt) / Nhân viên nhà xe / Tài khoản quản trị (`?tab=`). Hai tab đầu cần
- * `user:manage`, tab cuối cần `access:manage` (TASK-IAM-007) — chỉ hiện tab được cấp.
+ * Màn Người dùng: hành khách / chủ và quản lý nhà xe / nhân viên / quản trị (`?tab=`).
+ * Các tab người dùng cần `user:manage`, quản trị cần `access:manage` — chỉ hiện tab được cấp.
  */
 export function UserScreen() {
   const router = useRouter();
@@ -43,13 +44,16 @@ export function UserScreen() {
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["admin-passengers"] });
     void queryClient.invalidateQueries({ queryKey: ["admin-platform-accounts"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operator-accounts"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operators"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-operator"] });
   };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Người dùng"
-        description="Tài khoản hành khách (người tự đăng ký — khách vãng lai không có tài khoản), nhân viên nhà xe (chỉ xem) và tài khoản quản trị nội bộ."
+        description="Quản lý tài khoản hành khách, chủ / quản lý nhà xe và quản trị nội bộ; xem tài khoản nhân viên nhà xe."
         actions={
           tab === "admins" ? (
             <Button className={`${BUTTON} min-w-52`} onClick={() => setCreating(true)}>
@@ -84,6 +88,11 @@ export function UserScreen() {
               Tài khoản hành khách
             </TabsTrigger>
           )}
+          {tabs.includes("operators") && (
+            <TabsTrigger value="operators" className={TAB_TRIGGER}>
+              Tài khoản nhà xe
+            </TabsTrigger>
+          )}
           {tabs.includes("employees") && (
             <TabsTrigger value="employees" className={TAB_TRIGGER}>
               Nhân viên nhà xe
@@ -101,6 +110,9 @@ export function UserScreen() {
         <TabsContent value="employees" className="flex flex-col gap-6">
           <EmployeeList />
         </TabsContent>
+        <TabsContent value="operators" className="flex flex-col gap-6">
+          <OperatorAccountList onAction={setAction} />
+        </TabsContent>
         <TabsContent value="admins" className="flex flex-col gap-6">
           <PlatformAccountList onAction={setAction} onEditPermissions={(account, grantable) => setEditing({ account, grantable })} />
         </TabsContent>
@@ -108,8 +120,8 @@ export function UserScreen() {
       <AccountActionDialog
         action={action}
         onClose={() => setAction(null)}
-        onDone={(text) => {
-          setNotice({ tone: "success", text });
+        onDone={(text, tone = "success") => {
+          setNotice({ tone, text });
           refresh();
         }}
         onStale={refresh}

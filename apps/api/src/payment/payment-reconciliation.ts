@@ -3,7 +3,7 @@ import type { Queue } from "bullmq";
 import { listPaymentsToReconcile, listStuckRefunds, withPaymentOperator } from "../database/marketplace-scope";
 import type { PrismaService } from "../database/prisma.service";
 import { PaymentStatus } from "../database/prisma.types";
-import type { PaymentGateways, TransactionStatus } from "../external/payment/payment-gateway";
+import { PaymentGatewayError, type PaymentGateways, type TransactionStatus } from "../external/payment/payment-gateway";
 import { REFUND_JOB, REFUND_JOB_OPTIONS } from "../refund/refund-processing";
 import type { TicketQrSigner } from "../ticket/ticket-qr";
 import { applyPaymentCallback, bookingConfirmedKey } from "./payment-callback";
@@ -23,7 +23,8 @@ const STUCK_REFUND_MS = 30 * 60_000;
 const BATCH = 100;
 const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
-export type ReconcileRun = { checked: number; confirmed: number; reconciling: number; failed: number; unchanged: number; errors: number; refundsRequeued: number; confirmedKeys: string[] };
+/** `errorCodes`: mã lỗi cổng trả khi tra cứu hỏng, dạng `VNPAY:99` (không trùng lặp) — để nhật ký đối soát chỉ ra nguyên nhân. */
+export type ReconcileRun = { checked: number; confirmed: number; reconciling: number; failed: number; unchanged: number; errors: number; refundsRequeued: number; confirmedKeys: string[]; errorCodes: string[] };
 
 export async function reconcilePayments(
   prisma: Pick<PrismaService, "withSystem" | "withTenant">,
@@ -32,7 +33,7 @@ export async function reconcilePayments(
   refunds: Pick<Queue, "add">,
   now: Date = new Date(),
 ): Promise<ReconcileRun> {
-  const run: ReconcileRun = { checked: 0, confirmed: 0, reconciling: 0, failed: 0, unchanged: 0, errors: 0, refundsRequeued: 0, confirmedKeys: [] };
+  const run: ReconcileRun = { checked: 0, confirmed: 0, reconciling: 0, failed: 0, unchanged: 0, errors: 0, refundsRequeued: 0, confirmedKeys: [], errorCodes: [] };
   const candidates = await listPaymentsToReconcile(prisma, {
     expiredBefore: now,
     createdAfter: new Date(now.getTime() - LOOKBACK_MS),
@@ -51,8 +52,12 @@ export async function reconcilePayments(
       if (result.status === "PENDING" && ["EXPIRED", "CANCELLED"].includes(payment.status) && payment.providerOrderCode != null) {
         await gateway.cancelCheckout?.(payment.providerOrderCode);
       }
-    } catch {
+    } catch (error) {
       run.errors += 1;
+      const code = `${payment.provider}:${error instanceof PaymentGatewayError ? (error.resultCode ?? "NO_CODE") : "UNEXPECTED"}`;
+      if (!run.errorCodes.includes(code)) {
+        run.errorCodes.push(code);
+      }
     }
     if (result?.status === "SUCCESS") {
       const outcome = await applyPaymentCallback(

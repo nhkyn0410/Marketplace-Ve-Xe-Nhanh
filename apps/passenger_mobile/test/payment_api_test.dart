@@ -139,7 +139,8 @@ void main() {
       final request = adapter.requests.single;
       expect(request.method, 'POST');
       expect(request.headers['X-Booking-Token'], 'token');
-      expect(request.data, {'provider': 'PAYOS'});
+      // App xin địa chỉ quay về App Link (P4).
+      expect(request.data, {'provider': 'PAYOS', 'client': 'APP'});
       expect(session.transfer!.qrCode, 'qr-from-signed-response');
       expect(session.transfer!.description, 'SERVER123');
       expect(session.transfer!.amount, '550000');

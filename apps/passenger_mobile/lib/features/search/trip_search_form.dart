@@ -26,6 +26,9 @@ class TripSearchCatalog {
   final Future<List<TripAmenityOption>> Function() loadAmenities;
 }
 
+/// Lựa chọn tìm mọi tuyến của một nhà xe.
+const allOperatorRoutesLabel = 'Tất cả tuyến';
+
 /// Ngày đi mặc định của form tìm chuyến: ngày mai.
 DateTime defaultSearchDate() {
   final now = DateTime.now();
@@ -47,6 +50,9 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
   HomeLocation? searchTo;
   HomeOperator? searchOperator;
   HomeOperatorRoute? searchOperatorRoute;
+
+  /// Đã chọn "Tất cả tuyến" của nhà xe (khi đó [searchOperatorRoute] là `null`).
+  bool searchOperatorAllRoutes = false;
   DateTime searchDate = defaultSearchDate();
   int searchPassengers = 1;
 
@@ -57,7 +63,11 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
     searchPassengers = query.passengers;
     if (query.mode == HomeSearchMode.operator) {
       searchOperator = query.operator;
-      searchOperatorRoute = HomeOperatorRoute(from: query.from, to: query.to);
+      final (from, to) = (query.from, query.to);
+      searchOperatorRoute = from != null && to != null
+          ? HomeOperatorRoute(from: from, to: to)
+          : null;
+      searchOperatorAllRoutes = searchOperatorRoute == null;
     } else {
       searchFrom = query.from;
       searchTo = query.to;
@@ -144,11 +154,19 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
       searchOperatorRoute = keepRoute
           ? current
           : (selected.routes.length == 1 ? selected.routes.single : null);
+      if (searchOperatorRoute != null) searchOperatorAllRoutes = false;
     });
-    if (searchOperatorRoute == null && selected.routes.isNotEmpty) {
+    if (searchOperatorRoute == null &&
+        !searchOperatorAllRoutes &&
+        selected.routes.isNotEmpty) {
       await pickSearchOperatorRoute();
     }
   }
+
+  /// Nhãn ô "Tuyến": tuyến đã chọn, "Tất cả tuyến", hoặc `null` (chưa chọn).
+  String? get searchOperatorRouteLabel =>
+      searchOperatorRoute?.label ??
+      (searchOperatorAllRoutes ? allOperatorRoutesLabel : null);
 
   /// Chọn một tuyến (điểm đi → điểm đến) của nhà xe đã chọn.
   Future<void> pickSearchOperatorRoute() async {
@@ -157,7 +175,8 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
       await pickSearchOperator();
       return;
     }
-    final selected = await showModalBottomSheet<HomeOperatorRoute>(
+    // `(route: null)` = "Tất cả tuyến"; đóng sheet (null) = giữ nguyên.
+    final selected = await showModalBottomSheet<({HomeOperatorRoute? route})>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -168,7 +187,10 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
       builder: (context) => _OperatorRoutePickerSheet(operator: operator),
     );
     if (selected == null || !mounted) return;
-    setState(() => searchOperatorRoute = selected);
+    setState(() {
+      searchOperatorRoute = selected.route;
+      searchOperatorAllRoutes = selected.route == null;
+    });
   }
 
   /// Chọn ngày đi; trả `true` khi ngày đổi.
@@ -181,6 +203,7 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
       firstDate: firstDate,
       lastDate: firstDate.add(const Duration(days: 365)),
       helpText: 'Chọn ngày đi',
+      cancelText: 'Hủy',
     );
     if (selected == null || !mounted) return false;
     setState(() => searchDate = selected);
@@ -272,14 +295,15 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
         showSearchMessage('Vui lòng chọn nhà xe.');
         return null;
       }
-      if (route == null) {
+      if (route == null && !searchOperatorAllRoutes) {
         showSearchMessage('Vui lòng chọn tuyến của nhà xe.');
         return null;
       }
+      // "Tất cả tuyến": chuyến của nhà xe trong ngày trên mọi tuyến (như web).
       return HomeSearchQuery(
         mode: searchMode,
-        from: route.from,
-        to: route.to,
+        from: route?.from,
+        to: route?.to,
         date: searchDate,
         passengers: searchPassengers,
         operator: operator,
@@ -679,16 +703,25 @@ class _OperatorRoutePickerSheet extends StatelessWidget {
       child: operator.routes.isEmpty
           ? const _SheetMessage('Nhà xe chưa có tuyến đang mở bán.')
           : ListView.separated(
-              itemCount: operator.routes.length,
+              // Dòng đầu "Tất cả tuyến" (như web).
+              itemCount: operator.routes.length + 1,
               separatorBuilder: (_, _) =>
                   const Divider(height: 1, color: _divider),
               itemBuilder: (context, index) {
-                final route = operator.routes[index];
+                if (index == 0) {
+                  return ListTile(
+                    key: const ValueKey('operator-route-option-all'),
+                    leading: const Icon(Icons.alt_route, color: _primary),
+                    title: const Text(allOperatorRoutesLabel),
+                    onTap: () => Navigator.pop(context, (route: null)),
+                  );
+                }
+                final route = operator.routes[index - 1];
                 return ListTile(
-                  key: ValueKey('operator-route-option-$index'),
+                  key: ValueKey('operator-route-option-${index - 1}'),
                   leading: const Icon(Icons.route_outlined, color: _primary),
                   title: Text(route.label),
-                  onTap: () => Navigator.pop(context, route),
+                  onTap: () => Navigator.pop(context, (route: route)),
                 );
               },
             ),

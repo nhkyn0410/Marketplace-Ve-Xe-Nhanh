@@ -19,6 +19,12 @@ export interface StopPointItem {
   readonly provinceId: string;
 }
 
+/** Tiện ích trong danh mục (`GET /catalog/amenities`) — lựa chọn của bộ lọc tìm chuyến. */
+export interface AmenityItem {
+  readonly id: string;
+  readonly name: string;
+}
+
 /**
  * Trạng thái hồ sơ người dùng tóm tắt trên thanh điều hướng.
  */
@@ -108,16 +114,16 @@ export interface TripSearchResultItem {
   readonly operatorId: string;
   readonly operatorName: string;
   readonly operatorCode: string;
+  /** Logo nhà xe từ API; không có thì thẻ dùng `operatorCode`. */
+  readonly operatorLogoUrl?: string;
   readonly operatorAccentColor?: string;
   readonly operatorRating: number;
   readonly operatorRatingCountText: string;
   readonly vehicleType: string;
   readonly seatType: string;
   readonly departureTime: string;
-  readonly departureCity: string;
   readonly departureStation: string;
   readonly arrivalTime: string;
-  readonly arrivalCity: string;
   readonly arrivalStation: string;
   readonly durationText: string;
   readonly stopCountText: string;
@@ -229,6 +235,8 @@ export interface TripDetailData {
   readonly operatorId: string;
   readonly operatorName: string;
   readonly operatorCode: string;
+  /** Logo nhà xe từ API; không có thì dùng `operatorCode`. */
+  readonly operatorLogoUrl?: string;
   readonly operatorRating: number;
   readonly operatorRatingCountText: string;
   readonly operatorPhone: string;
@@ -240,6 +248,8 @@ export interface TripDetailData {
   readonly statusBadge: string;
   readonly routeName: string;
   readonly routeMeta: string;
+  /** Ngày khách lên xe (theo điểm đón của chặng) — ô "Ngày đi" ở khung đặt vé. */
+  readonly departureDateText: string;
   readonly departureTime: string;
   readonly departureStation: string;
   readonly durationText: string;
@@ -511,9 +521,15 @@ export interface CheckoutHoldData {
 }
 
 /**
- * Phương thức thanh toán được hỗ trợ theo ADR-011 / A3 #2.
+ * Phương thức thanh toán (ADR-019, ADR-029 Proposed): payOS, MoMo, VNPay và cổng thử; cổng nào dùng được do máy chủ quyết.
  */
-export type SupportedPaymentMethod = "vnpay" | "momo";
+export type SupportedPaymentMethod = "payos" | "momo" | "vnpay" | "demo";
+
+/** Một cổng trong danh sách `GET /payment-providers`: thứ tự hiển thị và cổng đó đang bật hay chưa. */
+export interface PaymentProviderOption {
+  readonly method: SupportedPaymentMethod;
+  readonly enabled: boolean;
+}
 
 /**
  * Lựa chọn ngân hàng / loại thẻ con của VNPay.
@@ -545,7 +561,8 @@ export interface BookingPaymentData {
   readonly dropoffPoint: SeatLocationPoint;
   readonly contactInfo: CheckoutContactInfo;
   readonly passengers: readonly CheckoutPassengerItem[];
-  readonly selectedPaymentMethod: SupportedPaymentMethod;
+  /** Cổng của lần thanh toán trước (nếu có); không có thì trang chọn cổng đầu tiên đang bật. */
+  readonly selectedPaymentMethod?: SupportedPaymentMethod;
   readonly selectedBankOption: VNPayBankOption;
   readonly priceSummary: CheckoutPriceSummary;
   readonly isExpired?: boolean;
@@ -578,6 +595,8 @@ export interface BookingPaymentResultData {
   readonly customerEmail?: string;
   readonly failureReason?: string;
   readonly holdCountdownSeconds?: number;
+  /** Người xem không có phiên đăng nhập → hiện lời dặn giữ mã đặt vé để tra cứu. */
+  readonly isGuestBooking?: boolean;
   readonly tickets?: readonly IssuedTicketItem[];
   readonly trip?: {
     readonly operatorName: string;
@@ -610,6 +629,10 @@ export interface MyTicketItem {
   readonly bookingCode: string;
   readonly routeName: string;
   readonly status: "valid" | "pending_payment" | "completed" | "cancelled";
+  /** Nhãn cụ thể của đơn đã hủy / hết hạn: "Đã hủy", "Hết hạn thanh toán", trạng thái hoàn tiền (FR-MKT-11). */
+  readonly closedStatusLabel?: string;
+  /** Hoàn tiền chưa thành công: thẻ đơn tô màu cảnh báo. */
+  readonly refundFailed?: boolean;
   readonly departureDayOfWeek: string;
   readonly departureDay: string;
   readonly departureMonth: string;
@@ -723,6 +746,13 @@ export interface TicketDetailData {
     readonly methodLabel: string;
     readonly gatewayTxnId: string;
     readonly statusLabel: string;
+    /** Các lần hoàn tiền của đơn (FR-MKT-11): số tiền, mã hoàn, trạng thái. */
+    readonly refunds?: readonly {
+      readonly refundCode: string;
+      readonly amountVnd: string;
+      readonly statusLabel: string;
+      readonly failed: boolean;
+    }[];
   };
   readonly refundPolicy: {
     readonly savedAtText: string;
@@ -730,6 +760,21 @@ export interface TicketDetailData {
     readonly milestones: readonly TicketRefundPolicyMilestone[];
   };
   readonly boardingRules: readonly string[];
+  /** Khối đánh giá dưới thẻ vé — chỉ khi xem bằng tài khoản; không có thì không hiện khối. */
+  readonly review?: TicketReviewState;
+}
+
+/**
+ * Đánh giá của đơn ở chi tiết vé (`GET /bookings/{id}/review`). Máy chủ quyết định `canReview` (chuyến đã hoàn thành,
+ * vé đã lên xe, chưa đánh giá) — giống khối đánh giá của app (PASSENGER-PARITY Q20).
+ */
+export interface TicketReviewState {
+  readonly review: {
+    readonly rating: number;
+    readonly comment: string;
+    readonly status: "VISIBLE" | "HELD" | "HIDDEN";
+  } | null;
+  readonly canReview: boolean;
 }
 
 /**
@@ -842,6 +887,8 @@ export interface TicketLookupResultData {
     readonly seatCount: number;
     readonly ticketPriceTotalVnd: string;
     readonly serviceFeeVnd: string;
+    /** Tiền giảm của đơn; "0" khi không có ưu đãi. */
+    readonly discountVnd: string;
     readonly paidTotalVnd: string;
     readonly methodLabel: string;
     readonly statusLabel: string;

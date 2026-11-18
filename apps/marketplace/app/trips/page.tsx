@@ -11,10 +11,10 @@ import { TripListHeader } from "../../components/trips/trip-list-header";
 import { TripLoadingSkeleton } from "../../components/trips/trip-loading-skeleton";
 import { TripSearchBar } from "../../components/trips/trip-search-bar";
 import { searchTrips } from "../../lib/data/trips";
-import { JOURNEY_KEYS, placeType, priceRange, stripDates, vnToday } from "../../lib/data/trip-mappers";
+import { JOURNEY_KEYS, idList, placeType, priceRange, stripDates, tripSortBy, vnToday } from "../../lib/data/trip-mappers";
 import { RememberLastSearch } from "../../components/trips/remember-last-search";
 import { TripDateStrip } from "../../components/trips/trip-date-strip";
-import { getProvinces } from "../../lib/data/catalog";
+import { getAmenities, getProvinces } from "../../lib/data/catalog";
 import { LiveTripFilters } from "../../components/trips/live-trip-filters";
 import { CollapsibleFilters } from "../../components/trips/collapsible-filters";
 import { getPreview } from "../../lib/preview";
@@ -149,17 +149,23 @@ export default async function TripsPage(props: TripsPageProps) {
   // NHÁNH DỮ LIỆU THẬT (không có ?preview)
   const value = (key: string) => typeof resolvedParams?.[key] === "string" ? resolvedParams[key] as string : undefined;
   const price = priceRange(value("minPriceVnd"), value("maxPriceVnd"));
+  const sortBy = value("sortBy");
+  // Form lọc gửi mỗi tiện ích một khóa (`amenityIds=a&amenityIds=b`); link sắp xếp / trang mang dạng nối dấu phẩy.
+  const amenityIds = idList(resolvedParams?.amenityIds);
   const params = { origin: value("origin"), originType: placeType(value("originType")), originLabel: value("originLabel"),
     destination: value("destination"), destinationType: placeType(value("destinationType")), destinationLabel: value("destinationLabel"),
     date: value("date"),
     passengers: Math.min(10, Math.max(1, Math.trunc(Number(value("passengers")) || 1))),
-    operatorId: value("operatorId"), seatType: value("seatType"), vehicleType: value("vehicleType"),
+    operatorId: value("operatorId") || undefined, seatType: value("seatType"), vehicleType: value("vehicleType"),
     minPriceVnd: price.min, maxPriceVnd: price.max, timeRange: value("timeRange"),
-    sortBy: value("sortBy") as "earliest" | "price_asc" | "fastest" | undefined, page: value("page") };
+    amenityIds: amenityIds.length ? amenityIds : undefined,
+    pickupPoint: value("pickupPoint") || undefined, dropoffPoint: value("dropoffPoint") || undefined,
+    minRating: value("minRating") || undefined,
+    sortBy: sortBy === undefined ? undefined : tripSortBy(sortBy), page: value("page") };
   // Loại "province" là mặc định nên không ghi lên URL (giữ link cũ y nguyên).
   const query = new URLSearchParams(Object.entries(params)
     .filter(([k, v]) => v !== undefined && !(k.endsWith("Type") && v === "province"))
-    .map(([k, v]) => [k, String(v)]));
+    .map(([k, v]) => [k, Array.isArray(v) ? v.join(",") : String(v)]));
   const searchBarPlaces = { initialOrigin: params.origin, initialOriginType: params.originType, initialOriginLabel: params.originLabel,
     initialDestination: params.destination, initialDestinationType: params.destinationType, initialDestinationLabel: params.destinationLabel,
     operatorId: params.operatorId };
@@ -197,8 +203,9 @@ export default async function TripsPage(props: TripsPageProps) {
     );
   }
 
-  const [tripsResult, provincesResult] = await Promise.all([searchTrips(params), getProvinces()]);
+  const [tripsResult, provincesResult, amenitiesResult] = await Promise.all([searchTrips(params), getProvinces(), getAmenities()]);
   const provinces = provincesResult.status === "ok" ? provincesResult.data : [];
+  const amenities = amenitiesResult.status === "ok" ? amenitiesResult.data : [];
 
   if (tripsResult.status !== "ok") {
     // Lỗi 400 = điều kiện trên URL không hợp lệ: vẫn để cột lọc để người dùng sửa, không hiện câu kỹ thuật của API.
@@ -211,7 +218,7 @@ export default async function TripsPage(props: TripsPageProps) {
             initialDate={params.date} initialPassengers={params.passengers} provinces={provinces} />
           <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
             <CollapsibleFilters>
-              <LiveTripFilters query={query.toString()} />
+              <LiveTripFilters query={query.toString()} amenities={amenities} />
             </CollapsibleFilters>
             <div className="flex-1 min-w-0 w-full">
               <FeatureUnavailable
@@ -227,7 +234,7 @@ export default async function TripsPage(props: TripsPageProps) {
     );
   }
 
-  const { summary, trips, pagination, widenedToProvince } = tripsResult.data;
+  const { summary, trips, pagination, widenedToProvince, operators, pickupPoints, dropoffPoints } = tripsResult.data;
   const widenedSides = [widenedToProvince.from && "đón", widenedToProvince.to && "trả"].filter(Boolean).join(" / ");
   const pageHref = (page: number) => `/trips?${new URLSearchParams({ ...Object.fromEntries(query), page: String(page) })}`;
   const pagerClass = "inline-flex items-center gap-1.5 rounded-xl border border-vxn-border bg-white px-5 py-2.5 text-xs font-bold text-vxn-ink shadow-2xs transition hover:bg-vxn-bg-soft";
@@ -240,7 +247,8 @@ export default async function TripsPage(props: TripsPageProps) {
           initialDate={params.date ?? summary.departureDateText} initialPassengers={params.passengers} provinces={provinces} />
         <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
           <CollapsibleFilters>
-            <LiveTripFilters query={query.toString()} />
+            <LiveTripFilters query={query.toString()} operators={operators} amenities={amenities}
+              pickupPoints={pickupPoints} dropoffPoints={dropoffPoints} />
           </CollapsibleFilters>
           <div className="flex-1 min-w-0 w-full space-y-4">
             <RememberLastSearch query={new URLSearchParams([...query].filter(([key]) => (JOURNEY_KEYS as readonly string[]).includes(key))).toString()} />

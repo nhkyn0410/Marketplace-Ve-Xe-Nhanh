@@ -8,6 +8,7 @@ import { TicketPickupMap } from "./ticket-pickup-map";
 import { TicketBoardingRules } from "./ticket-boarding-rules";
 import { TicketPaymentSidebar } from "./ticket-payment-sidebar";
 import { TicketCancelDialog } from "./ticket-cancel-dialog";
+import { TicketReviewBlock } from "./ticket-review-block";
 import type { TicketDetailData } from "../../lib/data/types";
 import { PassengerTopBar } from "../passenger-topbar";
 
@@ -70,6 +71,11 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
         onSelectTicket={setActiveTicketIndex}
       />
 
+      {/* Đánh giá chuyến ngay dưới thẻ vé (như app) — chỉ tài khoản, máy chủ quyết định có được đánh giá */}
+      {ticketDetail.review && ticketDetail.bookingId && (
+        <TicketReviewBlock bookingId={ticketDetail.bookingId} initial={ticketDetail.review} />
+      )}
+
       {/* Lưới nội dung 2 cột: Cột trái (Hành trình, bản đồ, quy định), Cột phải (Thanh toán, chính sách, hỗ trợ) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Cột trái: 7 cột */}
@@ -79,7 +85,8 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
             pointName={ticketDetail.trip.departurePointName}
             address={ticketDetail.trip.departureAddress}
           />
-          <TicketBoardingRules rules={ticketDetail.boardingRules} />
+          {/* API chưa trả quy định lên xe (boardingRules rỗng) → ẩn khối thay vì hiện khung trống. */}
+          {ticketDetail.boardingRules.length > 0 && <TicketBoardingRules rules={ticketDetail.boardingRules} />}
         </div>
 
         {/* Cột phải: 5 cột */}

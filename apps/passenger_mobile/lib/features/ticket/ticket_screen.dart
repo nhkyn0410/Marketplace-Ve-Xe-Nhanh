@@ -86,6 +86,7 @@ class _TicketScreenState extends State<TicketScreen>
   HomeSearchMode _mode = HomeSearchMode.route;
 
   HomeSearchQuery? _query;
+  DateTime? _selectedDate;
 
   /// Đang xem chuyến sắp chạy (chưa có điểm đi / đến) — [_query] là `null`.
   bool _browsing = false;
@@ -203,8 +204,10 @@ class _TicketScreenState extends State<TicketScreen>
             Expanded(
               child: _ExploreChip(
                 key: const Key('explore-date-chip'),
-                label: formatSearchDate(searchDate),
-                onTap: () => _editContext(pickSearchDate),
+                label: _selectedDate == null
+                    ? 'Ngày đi'
+                    : formatSearchDate(searchDate),
+                onTap: () => _editContext(_pickDate),
               ),
             ),
             const SizedBox(width: 8),
@@ -329,7 +332,9 @@ class _TicketScreenState extends State<TicketScreen>
             message: filtered
                 ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
                 : _browsing
-                ? 'Chưa có chuyến sắp chạy trong 14 ngày tới.'
+                ? _selectedDate == null
+                      ? 'Chưa có chuyến phù hợp trong 14 ngày tới.'
+                      : 'Chưa có chuyến phù hợp vào ngày đã chọn.'
                 : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
             actionLabel: filtered ? 'Bỏ lọc' : null,
             onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
@@ -340,12 +345,14 @@ class _TicketScreenState extends State<TicketScreen>
     return [
       if (_browsing)
         _messageSliver(
-          const Padding(
-            key: Key('ticket-browse-hint'),
-            padding: EdgeInsets.symmetric(horizontal: 15),
+          Padding(
+            key: const Key('ticket-browse-hint'),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Text(
-              'Chuyến sắp chạy của mọi tuyến trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
-              style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
+              _selectedDate == null
+                  ? 'Chuyến sắp chạy trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.'
+                  : 'Chuyến khởi hành ngày ${formatSearchDate(searchDate)}. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
+              style: const TextStyle(color: Color(0xFF607A8E), fontSize: 13),
             ),
           ),
           bottom: 14,
@@ -359,8 +366,8 @@ class _TicketScreenState extends State<TicketScreen>
             return _TripCard(
               key: ValueKey('ticket-trip-${trip.tripId}'),
               trip: trip,
-              fromLabel: query?.from.name ?? trip.pickup.name,
-              toLabel: query?.to.name ?? trip.dropoff.name,
+              fromLabel: query?.from?.name ?? trip.pickup.name,
+              toLabel: query?.to?.name ?? trip.dropoff.name,
               // Danh sách sắp chạy gồm nhiều ngày: ghi ngày đi trên thẻ.
               dateLabel: _browsing ? formatVnDate(trip.pickup.plannedAt) : null,
               onOpenDetail: () => widget.onTripSelected?.call(trip, query),
@@ -483,14 +490,15 @@ class _TicketScreenState extends State<TicketScreen>
     searchFrom = query.from;
     searchTo = query.to;
     searchDate = query.date;
+    _selectedDate = query.date;
     searchPassengers = query.passengers;
   }
 
-  /// Điều kiện theo các chip; chưa có điểm đi hoặc điểm đến thì `null`.
+  /// Điều kiện tìm theo tuyến; thiếu điểm đi, điểm đến hoặc ngày thì dùng danh sách khám phá.
   HomeSearchQuery? _contextQuery() {
     final from = searchFrom;
     final to = searchTo;
-    if (from == null || to == null) return null;
+    if (from == null || to == null || _selectedDate == null) return null;
     return HomeSearchQuery(
       mode: HomeSearchMode.route,
       from: from,
@@ -526,28 +534,49 @@ class _TicketScreenState extends State<TicketScreen>
     }
   }
 
+  Future<void> _pickDate() async {
+    if (await pickSearchDate() && mounted) {
+      setState(() => _selectedDate = searchDate);
+    }
+  }
+
   /// Mở ô chọn của một chip (ngày, số khách, điểm đi / đến); điều kiện đổi thì
   /// tải lại danh sách chuyến.
   Future<void> _editContext(Future<void> Function() pick) async {
-    final before = _contextQuery();
+    final before = (
+      searchFrom?.id,
+      searchFrom?.kind,
+      searchTo?.id,
+      searchTo?.kind,
+      _selectedDate,
+      searchPassengers,
+    );
     await pick();
     if (!mounted) return;
-    final query = _contextQuery();
-    if (query == null || _sameContext(before, query)) return;
-    if (query.from.id == query.to.id && query.from.kind == query.to.kind) {
+    final after = (
+      searchFrom?.id,
+      searchFrom?.kind,
+      searchTo?.id,
+      searchTo?.kind,
+      _selectedDate,
+      searchPassengers,
+    );
+    if (before == after) return;
+    if (searchFrom != null &&
+        searchTo != null &&
+        searchFrom!.id == searchTo!.id &&
+        searchFrom!.kind == searchTo!.kind) {
       showSearchMessage('Điểm đi và điểm đến phải khác nhau.');
       return;
     }
-    widget.onQueryChanged?.call(query);
-    _search(query);
+    final query = _contextQuery();
+    if (query != null) {
+      widget.onQueryChanged?.call(query);
+      _search(query);
+    } else {
+      _browse();
+    }
   }
-
-  bool _sameContext(HomeSearchQuery? a, HomeSearchQuery b) =>
-      a != null &&
-      a.from.id == b.from.id &&
-      a.to.id == b.to.id &&
-      a.date == b.date &&
-      a.passengers == b.passengers;
 
   /// Xem mọi chuyến sắp chạy (chưa có điểm đi / đến).
   Future<void> _browse() async {
@@ -563,7 +592,14 @@ class _TicketScreenState extends State<TicketScreen>
       _trips = const [];
     });
     try {
-      final page = await runner(_filters, 1);
+      final page = await runner(
+        _filters,
+        1,
+        date: _selectedDate,
+        passengers: searchPassengers,
+        from: searchFrom,
+        to: searchTo,
+      );
       if (!mounted || request != _request) return;
       setState(() {
         _page = page;
@@ -633,7 +669,14 @@ class _TicketScreenState extends State<TicketScreen>
     try {
       final next = query != null
           ? await runner!(query, _filters, page.page + 1)
-          : await browse!(_filters, page.page + 1);
+          : await browse!(
+              _filters,
+              page.page + 1,
+              date: _selectedDate,
+              passengers: searchPassengers,
+              from: searchFrom,
+              to: searchTo,
+            );
       if (!mounted || request != _request) return;
       setState(() {
         _page = next;
@@ -670,6 +713,8 @@ class _TicketScreenState extends State<TicketScreen>
         priceMin: _page?.priceMin,
         priceMax: _page?.priceMax,
         loadAmenities: widget.searchCatalog?.loadAmenities,
+        pickupPoints: _page?.pickupPoints ?? const [],
+        dropoffPoints: _page?.dropoffPoints ?? const [],
       ),
     );
     if (result != null && mounted) _applyFilters(result);
@@ -850,8 +895,9 @@ Future<(HomeLocation?,)?> _pickArea(
       areas.putIfAbsent(route.to.id, () => route.to);
     }
   }
+  // Thứ tự bảng chữ cái tiếng Việt (Đắk Lắk đứng sau Cà Mau, không dồn xuống cuối như so mã ký tự).
   final options = areas.values.toList()
-    ..sort((a, b) => a.name.compareTo(b.name));
+    ..sort((a, b) => compareVietnamese(a.name, b.name));
   return showModalBottomSheet<(HomeLocation?,)>(
     context: context,
     isScrollControlled: true,
@@ -884,7 +930,7 @@ Future<(HomeOperatorRoute?,)?> _pickServedRoute(
     }
   }
   final options = routes.values.toList()
-    ..sort((a, b) => _routeLabel(a).compareTo(_routeLabel(b)));
+    ..sort((a, b) => compareVietnamese(_routeLabel(a), _routeLabel(b)));
   return showModalBottomSheet<(HomeOperatorRoute?,)>(
     context: context,
     isScrollControlled: true,
@@ -2572,10 +2618,16 @@ class _TripFilterSheet extends StatefulWidget {
     required this.priceMin,
     required this.priceMax,
     required this.loadAmenities,
+    this.pickupPoints = const [],
+    this.dropoffPoints = const [],
   });
 
   final TripSearchFilters initial;
   final List<TripOperatorFacet> operators;
+
+  /// Điểm đón / trả có trong kết quả (FR-MKT-03).
+  final List<TripPointFacet> pickupPoints;
+  final List<TripPointFacet> dropoffPoints;
   final int? priceMin;
   final int? priceMax;
   final Future<List<TripAmenityOption>> Function()? loadAmenities;
@@ -2590,6 +2642,33 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
   late TripDepartureSlot? _slot = widget.initial.departureSlot;
   late final Set<String> _amenityIds = {...widget.initial.amenityIds};
   late String? _operatorId = widget.initial.operatorId;
+  late String? _pickupPoint = widget.initial.pickupPoint;
+  late String? _dropoffPoint = widget.initial.dropoffPoint;
+  late double? _minRating = widget.initial.minRating;
+
+  /// Nhóm điểm đón / trả đã bấm "Xem thêm" (mặc định chỉ hiện [_pointPreviewCount] điểm nhiều chuyến nhất).
+  final _expandedPoints = <String>{};
+  static const _pointPreviewCount = 6;
+
+  /// Điểm hiện trong nhóm: rút gọn khi chưa mở rộng, luôn kèm điểm đang chọn (kể cả khi không còn trong kết quả).
+  List<TripPointFacet> _visiblePoints(
+    String group,
+    List<TripPointFacet> points,
+    String? current,
+  ) {
+    final shown = _expandedPoints.contains(group)
+        ? [...points]
+        : points.take(_pointPreviewCount).toList();
+    if (current != null && !shown.any((point) => point.name == current)) {
+      shown.add(
+        points.firstWhere(
+          (point) => point.name == current,
+          orElse: () => TripPointFacet(name: current, count: 0),
+        ),
+      );
+    }
+    return shown;
+  }
   late RangeValues? _price = _initialPrice();
 
   /// Chưa kéo thanh giá (hoặc khoảng giá của ngày này không đủ để hiện thanh)
@@ -2839,6 +2918,79 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                           );
                         },
                       ),
+                    const SizedBox(height: 24),
+                    const _FilterSectionTitle('Đánh giá nhà xe'),
+                    const SizedBox(height: 10),
+                    _FourColumnOptions(
+                      children: [
+                        _FilterOptionCard(
+                          icon: Icons.star_border_rounded,
+                          label: 'Tất cả',
+                          selected: _minRating == null,
+                          onTap: () => setState(() => _minRating = null),
+                        ),
+                        for (final rating in tripMinRatingOptions)
+                          _FilterOptionCard(
+                            key: ValueKey('ticket-filter-rating-$rating'),
+                            icon: Icons.star_rounded,
+                            label: formatMinRating(rating),
+                            selected: _minRating == rating,
+                            onTap: () => setState(
+                              () => _minRating = _minRating == rating
+                                  ? null
+                                  : rating,
+                            ),
+                          ),
+                      ],
+                    ),
+                    for (final (title, keyName, points, current, pick) in [
+                      (
+                        'Điểm đón',
+                        'pickup',
+                        widget.pickupPoints,
+                        _pickupPoint,
+                        (String? value) => _pickupPoint = value,
+                      ),
+                      (
+                        'Điểm trả',
+                        'dropoff',
+                        widget.dropoffPoints,
+                        _dropoffPoint,
+                        (String? value) => _dropoffPoint = value,
+                      ),
+                    ])
+                      if (points.isNotEmpty || current != null) ...[
+                        const SizedBox(height: 24),
+                        _FilterSectionTitle(title),
+                        const SizedBox(height: 8),
+                        for (final (index, point) in _visiblePoints(
+                          keyName,
+                          points,
+                          current,
+                        ).indexed)
+                          _OperatorFilterRow(
+                            key: ValueKey('ticket-filter-$keyName-$index'),
+                            label: point.name,
+                            count: point.count,
+                            selected: current == point.name,
+                            onChanged: () => setState(
+                              () => pick(current == point.name ? null : point.name),
+                            ),
+                          ),
+                        if (points.length > _pointPreviewCount &&
+                            !_expandedPoints.contains(keyName))
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                              key: ValueKey('ticket-filter-$keyName-more'),
+                              onPressed: () =>
+                                  setState(() => _expandedPoints.add(keyName)),
+                              child: Text(
+                                'Xem thêm ${points.length - _pointPreviewCount} điểm',
+                              ),
+                            ),
+                          ),
+                      ],
                     if (widget.operators.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       const _FilterSectionTitle('Nhà xe'),
@@ -2928,6 +3080,9 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
           : widget.initial.priceMax,
       amenityIds: {..._amenityIds},
       operatorId: _operatorId,
+      pickupPoint: _pickupPoint,
+      dropoffPoint: _dropoffPoint,
+      minRating: _minRating,
       sort: widget.initial.sort,
     );
   }
@@ -2939,6 +3094,9 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
       _slot = null;
       _amenityIds.clear();
       _operatorId = null;
+      _pickupPoint = null;
+      _dropoffPoint = null;
+      _minRating = null;
       _priceChanged = true;
       _price = _hasPriceRange
           ? RangeValues(

@@ -3,7 +3,7 @@ import { AuditService, AuditWriteError } from "../audit/audit.service";
 import { decodeTimeCursor, encodeTimeCursor } from "../common/time-cursor";
 import type { DbScope } from "../database/db-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
-import { BankAccountStatus, OperatorStatus, SessionRevokeReason, SubjectType, TripStatus } from "../database/prisma.types";
+import { AccountStatus, BankAccountStatus, OperatorStatus, SessionRevokeReason, SubjectType, TripStatus } from "../database/prisma.types";
 import { EMAIL_NOTIFIER, type EmailNotifier, maskEmail } from "../external/notification/email-notifier";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
@@ -34,7 +34,7 @@ type OperatorRowShape = {
   suspendedAt: Date | null;
   createdAt: Date;
   application: { id: string; reviewedAt: Date | null } | null;
-  operatorAccounts: { id: string; username: string; contactEmail: string | null; credentialDeliveryPending: boolean }[];
+  operatorAccounts: { id: string; username: string; contactEmail: string | null; status: AccountStatus; credentialDeliveryPending: boolean }[];
   bankAccounts: { id: string }[];
 };
 
@@ -67,7 +67,7 @@ const ROW_SELECT = {
     where: { role: "OPERATOR_OWNER" as const },
     orderBy: { createdAt: "asc" as const },
     take: 1,
-    select: { id: true, username: true, contactEmail: true, credentialDeliveryPending: true },
+    select: { id: true, username: true, contactEmail: true, status: true, credentialDeliveryPending: true },
   },
   bankAccounts: { where: { status: BankAccountStatus.PENDING }, take: 1, select: { id: true } },
 } as const;
@@ -540,6 +540,7 @@ function toAdminOperator(
           id: owner.id,
           username: `${row.operatorSlug}/${owner.username}`,
           email: owner.contactEmail,
+          status: owner.status,
           credentialDeliveryPending: owner.credentialDeliveryPending,
         }
       : null,

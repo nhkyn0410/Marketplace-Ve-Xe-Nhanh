@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
-type TripSort = "earliest" | "price_asc" | "fastest";
+import type { TripSortBy as TripSort } from "../../lib/data/trip-mappers";
 
 /**
  * Thuộc tính của thanh tiêu đề và nhóm tab sắp xếp danh sách chuyến xe.
@@ -48,14 +47,15 @@ export function TripListHeader({
         </p>
       </div>
 
-      {/* Tabs sắp xếp */}
-      <div className="flex items-center rounded-xl bg-[#f1f3fc] p-1 text-xs font-medium">
+      {/* Tabs sắp xếp (màn hẹp thì vuốt ngang) */}
+      <div className="flex max-w-full items-center overflow-x-auto rounded-xl bg-[#f1f3fc] p-1 text-xs font-medium">
         {[
           { id: "earliest", label: "Giờ đi sớm" },
           { id: "price_asc", label: "Giá thấp" },
-          { id: "fastest", label: "Đi nhanh nhất" }
+          { id: "fastest", label: "Đi nhanh nhất" },
+          { id: "rating", label: "Đánh giá cao nhất" }
         ].map((tab) => {
-          const className = `rounded-lg py-1.5 px-3 transition cursor-pointer ${
+          const className = `shrink-0 whitespace-nowrap rounded-lg py-1.5 px-3 transition cursor-pointer ${
             activeSort === tab.id
               ? "bg-white text-[#00506a] shadow-xs font-bold"
               : "text-slate-600 hover:text-slate-900"

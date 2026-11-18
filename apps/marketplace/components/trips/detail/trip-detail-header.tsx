@@ -20,9 +20,13 @@ export function TripDetailHeader({ trip }: TripDetailHeaderProps) {
       {/* Hàng 1: Nhà xe & Badges */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#006481] text-white flex items-center justify-center font-bold text-sm shadow-xs">
-            {trip.operatorCode}
-          </div>
+          {trip.operatorLogoUrl ? (
+            <img src={trip.operatorLogoUrl} alt="" className="w-10 h-10 shrink-0 rounded-xl border border-slate-100 bg-white object-contain shadow-xs" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-[#006481] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+              {trip.operatorCode}
+            </div>
+          )}
           <div>
             <h2 className="text-base font-bold text-slate-900">
               {trip.operatorName}

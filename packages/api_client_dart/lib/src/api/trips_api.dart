@@ -129,6 +129,9 @@ class TripsApi {
   /// * [priceMin] 
   /// * [priceMax] 
   /// * [amenityIds] 
+  /// * [pickupPoint] 
+  /// * [dropoffPoint] 
+  /// * [minRating] 
   /// * [sort] 
   /// * [page] 
   /// * [limit] 
@@ -160,6 +163,9 @@ class TripsApi {
     int? priceMin,
     int? priceMax,
     String? amenityIds,
+    String? pickupPoint,
+    String? dropoffPoint,
+    num? minRating,
     String? sort = 'departure',
     int? page = 1,
     int? limit = 20,
@@ -202,6 +208,9 @@ class TripsApi {
       if (priceMin != null) r'priceMin': encodeQueryParameter(_serializers, priceMin, const FullType(int)),
       if (priceMax != null) r'priceMax': encodeQueryParameter(_serializers, priceMax, const FullType(int)),
       if (amenityIds != null) r'amenityIds': encodeQueryParameter(_serializers, amenityIds, const FullType(String)),
+      if (pickupPoint != null) r'pickupPoint': encodeQueryParameter(_serializers, pickupPoint, const FullType(String)),
+      if (dropoffPoint != null) r'dropoffPoint': encodeQueryParameter(_serializers, dropoffPoint, const FullType(String)),
+      if (minRating != null) r'minRating': encodeQueryParameter(_serializers, minRating, const FullType(num)),
       if (sort != null) r'sort': encodeQueryParameter(_serializers, sort, const FullType(String)),
       if (page != null) r'page': encodeQueryParameter(_serializers, page, const FullType(int)),
       if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),

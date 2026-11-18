@@ -1,10 +1,13 @@
 import 'dart:async';
 
-import 'package:api_client_dart/api_client_dart.dart';
+import 'package:api_client_dart/api_client_dart.dart' hide JourneyDemoApi;
+import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:journey_notification/journey_notification.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
@@ -18,8 +21,13 @@ import 'package:passenger_mobile/features/account/login_sessions_screen.dart';
 import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
+import 'package:passenger_mobile/features/common/support_contact.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/journey/journey_models.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_activity_service.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_demo_api.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_demo_panel.dart';
 import 'package:passenger_mobile/features/notification/inbox_screen.dart';
 import 'package:passenger_mobile/features/notification/notification_center_api.dart';
 import 'package:passenger_mobile/features/notification/push_service.dart';
@@ -31,10 +39,14 @@ import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
 import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
 import 'package:passenger_mobile/features/operator/operator_profile_screen.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
+import 'package:passenger_mobile/features/support/support_api.dart';
+import 'package:passenger_mobile/features/support/support_models.dart';
+import 'package:passenger_mobile/features/support/support_screens.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+import 'package:passenger_mobile/features/ticket/payment_return_link.dart';
 import 'package:passenger_mobile/system_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -80,10 +92,16 @@ String describePassengerAuthFailure(ApiFailure failure) {
     return 'Bạn đã yêu cầu hoặc thử quá nhiều lần. Vui lòng thử lại sau.';
   }
   if (failure.code == 'AUTH_INVALID_CREDENTIALS') {
-    return 'Mã OTP không đúng hoặc đã hết hạn.';
+    // OTP sai: máy chủ ghi số lần thử còn lại hoặc nhắc gửi lại mã (A21); câu chung thì giữ câu cũ.
+    return failure.detail.startsWith('Mã xác minh')
+        ? failure.detail
+        : 'Mã OTP không đúng hoặc đã hết hạn.';
   }
   return failure.detail;
 }
+
+/// Ngôn ngữ duy nhất của app ở v1 (AS-14).
+const appLocale = Locale('vi');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,6 +117,10 @@ class PassengerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vé xe nhanh',
       debugShowCheckedModeBanner: false,
+      // v1 chỉ tiếng Việt (AS-14): lịch chọn ngày, nút Hủy / OK và nhãn trợ năng của Material hiện tiếng Việt.
+      locale: appLocale,
+      supportedLocales: const [appLocale],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) => PassengerSystemNavigation(child: child!),
       theme: ThemeData(
         useMaterial3: true,
@@ -138,6 +160,7 @@ enum _AccountView {
   reviews,
   notificationSettings,
   loginSessions,
+  support,
 }
 
 /// Số thẻ tuyến phổ biến ở Trang chủ.
@@ -200,7 +223,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   );
   late final _articleApi = ArticleApi(_api);
   late final _notificationCenter = NotificationCenterApi(_api);
-  late final _push = PushService(
+  late final PushService _push = PushService(
     registerDevice: (token) async {
       final response = await _api
           .getNotificationApi()
@@ -215,6 +238,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     },
     removeDevice: (id) =>
         _api.getNotificationApi().preferenceControllerRemove(id: id),
+    onJourneyData: (data) => _journeyActivity.acceptPush(data),
+  );
+  late final JourneyActivityService _journeyActivity = JourneyActivityService(
+    api: JourneyDemoApi(_api),
+    ensureDevice: () async {
+      await _push.enable();
+      return _push.registeredDeviceId;
+    },
+    registeredDevice: () => _push.registeredDeviceId,
   );
   final _pushSubscriptions = <StreamSubscription<PushMessage>>[];
   final _myJourneyKey = GlobalKey();
@@ -228,7 +260,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     super.initState();
     // Tin đến lúc app ở nền không chạy code Dart nên đồng bộ lại chuông khi mở lại app.
     _lifecycle = AppLifecycleListener(
-      onResume: () => unawaited(_refreshUnread()),
+      onResume: () => unawaited(_resumeNotifications()),
     );
     _pushSubscriptions
       ..add(_push.foregroundMessages.listen(_showPush))
@@ -254,6 +286,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _resetAccountView();
     });
     unawaited(_refreshUnread());
+    unawaited(_openPaymentReturnLink());
     try {
       final response = await _api
           .getPassengerProfileApi()
@@ -271,13 +304,36 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     } catch (_) {
       // Mất mạng hoặc máy chủ lỗi: vẫn giữ phiên, từng màn tự báo lỗi và cho thử lại.
     }
-    if (mounted && _step != _AuthStep.email) unawaited(_push.enable());
+    if (mounted && _step != _AuthStep.email) unawaited(_enablePush());
+  }
+
+  /// Hệ thống đóng app khi khách đang ở trình duyệt thanh toán, cổng mở lại app bằng App Link
+  /// `/app/bookings/{id}/payment/result` (PASSENGER-PARITY A25): mở đơn đó trong "Vé của tôi" để khách thấy trạng
+  /// thái mới. App còn chạy thì màn thanh toán tự kiểm tra lại khi được mở lại, không cần link.
+  Future<void> _openPaymentReturnLink() async {
+    final Uri? link;
+    try {
+      link = await AppLinks().getInitialLink();
+    } catch (_) {
+      return;
+    }
+    final bookingId = link == null ? null : paymentReturnBookingId(link);
+    if (bookingId == null || !mounted || _step != _AuthStep.signedIn) return;
+    _openJourneyTab();
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _step != _AuthStep.signedIn) return;
+    if (_myJourneyKey.currentState case final JourneyBookingOpener flow) {
+      await flow.openBooking(bookingId);
+    }
   }
 
   /// Refresh token hết hạn hoặc đã bị thu hồi (vd đăng xuất từ thiết bị khác).
   Future<void> _handleSessionExpired() async {
     if (!mounted) return;
     if (_step != _AuthStep.signedIn && _step != _AuthStep.profile) return;
+    if (journeyDemoAvailable) {
+      unawaited(_journeyActivity.stop(ignoreNetworkError: true));
+    }
     unawaited(_push.disable());
     Navigator.of(context).popUntil((route) => route.isFirst);
     setState(() {
@@ -370,6 +426,31 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     _selectMainTab(3);
   }
 
+  Future<void> _enablePush() async {
+    await _push.enable();
+    await _resumeNotifications();
+  }
+
+  Future<void> _resumeNotifications() async {
+    unawaited(_refreshUnread());
+    if (!journeyDemoAvailable || _step != _AuthStep.signedIn) return;
+    try {
+      final bookingId = await JourneyNotification.consumeOpenedBooking();
+      if (bookingId != null && mounted && _step == _AuthStep.signedIn) {
+        _openJourneyTab();
+        await WidgetsBinding.instance.endOfFrame;
+        if (mounted && _step == _AuthStep.signedIn) {
+          if (_myJourneyKey.currentState case final JourneyBookingOpener flow) {
+            await flow.openBooking(bookingId);
+          }
+        }
+      }
+      await _journeyActivity.restore();
+    } catch (_) {
+      // Mất mạng/không bật demo ở server không chặn tab vé hay thông báo thường.
+    }
+  }
+
   /// Số tin chưa đọc cho chuông; lỗi mạng thì giữ số cũ, chuông không đáng để báo lỗi.
   Future<void> _refreshUnread() async {
     if (_step != _AuthStep.signedIn) return;
@@ -419,7 +500,40 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         break;
     }
   }
+
   late final _journeyApi = JourneyApi(_api);
+  late final _supportApi = SupportTicketApi(_api);
+
+  /// Đơn để gửi khiếu nại từ Tài khoản (SCR-PSG-31).
+  Future<List<SupportBookingRef>> _loadSupportBookings() async {
+    final bookings = await _journeyApi.listMyBookings();
+    return [
+      for (final booking in bookings)
+        SupportBookingRef(
+          bookingId: booking.bookingId,
+          bookingCode: booking.bookingCode,
+          routeName: booking.routeName,
+          departureAt: booking.departureAt,
+        ),
+    ];
+  }
+
+  /// Khiếu nại của một đơn, mở từ chi tiết vé (SCR-PSG-30).
+  void _openBookingSupport(JourneyBooking booking) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (routeContext) => SupportTicketsScreen(
+          service: _supportApi,
+          booking: SupportBookingRef(
+            bookingId: booking.bookingId,
+            bookingCode: booking.bookingCode,
+            routeName: booking.routeName,
+          ),
+          onBack: () => Navigator.of(routeContext).pop(),
+        ),
+      ),
+    );
+  }
   late final _bookingApi = TripBookingApi(
     _api,
     isSignedIn: () => _step == _AuthStep.signedIn,
@@ -430,9 +544,6 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     loadOperators: _bookingApi.loadOperators,
     loadAmenities: _bookingApi.loadAmenities,
   );
-
-  /// Lần tìm chuyến gần nhất — giữ để quay lại tab Mua vé vẫn thấy danh sách.
-  HomeSearchQuery? _lastSearchQuery;
 
   _AuthStep _step = _AuthStep.email;
 
@@ -618,7 +729,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _error = null;
     });
     // Có phiên rồi mới đăng ký thiết bị nhận push; lỗi push không chặn đăng nhập.
-    unawaited(_push.enable());
+    unawaited(_enablePush());
     unawaited(_refreshUnread());
   }
 
@@ -802,18 +913,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   Future<List<VoucherWalletItem>> _loadVoucherWallet() async {
-    final response = await _api
-        .getPassengerLoyaltyApi()
-        .passengerLoyaltyControllerVouchers(
-          status: 'AVAILABLE',
-          offset: 0,
-          limit: 50,
-        );
-    final page = response.data;
-    if (page == null) {
-      throw StateError('Voucher response did not contain data.');
-    }
-    final vouchers = page.items
+    // Mọi trạng thái để chia tab Khả dụng / Đang giữ / Đã dùng / Hết hạn (SCR-PSG-36), như web.
+    final items = <UserVoucherPageDtoOutputItemsInner>[];
+    var total = 0;
+    do {
+      final response = await _api
+          .getPassengerLoyaltyApi()
+          .passengerLoyaltyControllerVouchers(offset: items.length, limit: 50);
+      final page = response.data;
+      if (page == null) {
+        throw StateError('Voucher response did not contain data.');
+      }
+      total = page.total;
+      if (page.items.isEmpty) break;
+      items.addAll(page.items);
+    } while (items.length < total);
+    final vouchers = items
         .map(
           (item) => VoucherWalletItem(
             id: item.userVoucherId,
@@ -830,6 +945,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
                 : VoucherSource.savedPromotion,
             promotionCode: item.promotionCode,
             appliesTo: item.appliesTo,
+            status: VoucherStatus.fromApi(item.status.name),
           ),
         )
         .toList(growable: false);
@@ -837,13 +953,51 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     return vouchers;
   }
 
-  Future<MyReviewsData> _loadMyReviews() async {
-    // API hiện chỉ hỗ trợ GET/POST đánh giá theo từng bookingId. Không gọi
-    // N+1 qua lịch sử booking. Fixture Figma chỉ hiển thị ở debug; release
-    // vẫn trả trạng thái rỗng cho đến khi có endpoint danh sách Passenger.
-    return kDebugMode
-        ? figmaMyReviewsSample
-        : const MyReviewsData(pending: [], reviewed: []);
+  Future<MyReviewsData> _loadMyReviews({
+    String? pendingCursor,
+    String? reviewedCursor,
+  }) async {
+    final response = await _api.getReviewsApi().passengerReviewControllerList(
+      pendingCursor: pendingCursor,
+      reviewedCursor: reviewedCursor,
+    );
+    final data = response.data;
+    if (data == null) {
+      throw StateError('Reviews response did not contain data.');
+    }
+    return MyReviewsData(
+      pending: [
+        for (final item in data.pending.items)
+          ReviewTripItem(
+            bookingId: item.bookingId,
+            routeName: item.routeName,
+            operatorName: item.operatorName,
+            departureAt: item.departureAt,
+            vehicleType: item.vehicleTypeName,
+          ),
+      ],
+      pendingTotal: data.pending.total,
+      pendingNextCursor: data.pending.nextCursor,
+      reviewed: [
+        for (final item in data.reviewed.items)
+          ReviewTripItem(
+            bookingId: item.bookingId,
+            routeName: item.routeName,
+            operatorName: item.operatorName,
+            departureAt: item.departureAt,
+            rating: item.rating,
+            comment: item.comment,
+            reviewedAt: item.createdAt,
+            visibility: switch (item.status.name) {
+              'HELD' => ReviewVisibility.held,
+              'HIDDEN' => ReviewVisibility.hidden,
+              _ => ReviewVisibility.visible,
+            },
+          ),
+      ],
+      reviewedTotal: data.reviewed.total,
+      reviewedNextCursor: data.reviewed.nextCursor,
+    );
   }
 
   Future<bool> _submitReview(String bookingId, ReviewSubmission input) {
@@ -1122,6 +1276,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   Future<bool> _logout() async {
     final succeeded = await _run(() async {
+      if (journeyDemoAvailable) {
+        await _journeyActivity.stop(ignoreNetworkError: true);
+      }
       // Gỡ thiết bị khi còn phiên, để tài khoản không nhận push trên máy đã đăng xuất.
       await _push.disable();
       await _api.getAuthApi().authControllerLogout(xAuthTransport: 'bearer');
@@ -1157,9 +1314,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
-  /// đã nhập; quay lại thì về Trang chủ. Tab Mua vé dùng lại điều kiện này.
+  /// đã nhập; quay lại thì về Trang chủ.
   void _openTripResults(HomeSearchQuery query) {
-    _lastSearchQuery = query;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TripResultsScreen(
@@ -1182,8 +1338,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           isSignedIn: _step == _AuthStep.signedIn,
           onBookingFinished: _finishBooking,
           onOperatorSelected: _openOperatorProfile,
-          fromLabel: query?.from.name,
-          toLabel: query?.to.name,
+          fromLabel: query?.from?.name,
+          toLabel: query?.to?.name,
           pickupSequence: trip.pickup.sequence,
           dropoffSequence: trip.dropoff.sequence,
         ),
@@ -1265,23 +1421,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         .toList(growable: false);
   }
 
+  /// Mở kênh liên hệ của sàn: gọi tổng đài nếu bản build có cấu hình số, không thì soạn email hỗ trợ.
   Future<void> _callSupport() async {
-    if (await _launchSupportHotline('1900 636 707') || !mounted) return;
+    const support = SupportContact.configured;
+    if (await _launchSupport(support.uri) || !mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Không thể mở ứng dụng gọi điện trên thiết bị này.'),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(support.launchFailureMessage)));
   }
 
-  Future<bool> _launchSupportHotline(String hotline) {
-    final digits = hotline.replaceAll(RegExp(r'\D'), '');
-    return launchUrl(
-      Uri(scheme: 'tel', path: digits),
-      mode: LaunchMode.externalApplication,
-    );
+  /// `tel:` / `mailto:` do [SupportContact] dựng; `false` = máy không có ứng dụng mở được.
+  Future<bool> _launchSupport(Uri uri) async {
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on Exception {
+      return false;
+    }
   }
 
   @override
@@ -1328,6 +1483,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         loadFeed: _articleApi.loadFeed,
         loadArticle: _articleApi.loadArticle,
         loadPromotions: _bookingApi.loadPromotions,
+        loadCategories: _articleApi.loadCategories,
+        loadRelatedArticles: _articleApi.loadRelated,
       );
     }
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
@@ -1337,10 +1494,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         searchCatalog: _searchCatalog,
         searchTrips: _bookingApi.searchTrips,
         loadOperatorFare: _bookingApi.loadOperatorMinFare,
-        initialQuery: _lastSearchQuery,
-        // Chưa tìm lần nào: xem mọi chuyến sắp chạy, không cần nhập điểm hay ngày.
+        // Mỗi lần vào tab: xem mọi chuyến, không giữ bộ lọc của lần tìm trước.
         browseTrips: _bookingApi.browseTrips,
-        onQueryChanged: (query) => _lastSearchQuery = query,
         onTripSelected: _openTripDetail,
         onOperatorSelected: (operator) => _openOperatorProfile(operator.id),
       );
@@ -1351,7 +1506,11 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         api: _journeyApi,
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
-        onFaqRequested: () => showHomeFaqSheet(context, _loadHomeFaqs),
+        onFaqRequested: () => showHomeFaqSheet(
+          context,
+          _loadHomeFaqs,
+          onContactSupport: _callSupport,
+        ),
         onSupportRequested: _callSupport,
       );
     }
@@ -1360,14 +1519,23 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         key: _myJourneyKey,
         api: _journeyApi,
         onTabSelected: _selectMainTab,
-        onSupportRequested: _callSupport,
+        onOpenSupport: _openBookingSupport,
+        demoPanelBuilder: journeyDemoAvailable
+            ? (booking) {
+                if (booking.status != 'CONFIRMED') return null;
+                return JourneyDemoPanel(
+                  service: _journeyActivity,
+                  bookingId: booking.bookingId,
+                );
+              }
+            : null,
       );
     }
     if (_step == _AuthStep.guest && _currentTab == 4) {
       return GuestAccountScreen(
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
-        onCallHotline: _launchSupportHotline,
+        onCallHotline: _launchSupport,
       );
     }
     if (_step == _AuthStep.signedIn) {
@@ -1433,6 +1601,13 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             onBack: _closeAccountView,
           );
         }
+        if (_accountView == _AccountView.support) {
+          return SupportTicketsScreen(
+            service: _supportApi,
+            loadBookings: _loadSupportBookings,
+            onBack: _closeAccountView,
+          );
+        }
         if (_accountView == _AccountView.notificationSettings) {
           return NotificationSettingsScreen(
             loadPreferences: _notificationCenter.loadPreferences,
@@ -1463,6 +1638,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           onNotificationSettings: () =>
               _openAccountView(_AccountView.notificationSettings),
           onLoginSessions: () => _openAccountView(_AccountView.loginSessions),
+          onSupport: () => _openAccountView(_AccountView.support),
           logoutErrorMessage: _error,
         );
       }
@@ -1521,6 +1697,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         builder: (routeContext) => ArticleReaderScreen(
           slug: slug,
           loadArticle: _articleApi.loadArticle,
+          loadRelated: _articleApi.loadRelated,
           onFindTrip: () {
             Navigator.of(routeContext).pop();
             _selectMainTab(1);
@@ -1544,7 +1721,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       loadArticles: _articleApi.loadLatest,
       onArticleSelected: _openArticle,
       onSearch: _openTripResults,
-      onCallHotline: _launchSupportHotline,
+      onCallHotline: _launchSupport,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
       onTabSelected: _selectMainTab,
       unreadNotifications: isLoggedIn ? _unreadNotifications : 0,

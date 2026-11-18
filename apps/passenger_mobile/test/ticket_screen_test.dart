@@ -118,7 +118,7 @@ void main() {
       await _pumpTicket(
         tester,
         width: 412,
-        browseTrips: (filters, page) async {
+        browseTrips: (filters, page, {date, passengers, from, to}) async {
           browsed.add(page);
           return samplePage([sampleTrip('t1')]);
         },
@@ -158,6 +158,89 @@ void main() {
     }
   });
 
+  testWidgets('chọn ngày khi chưa có tuyến vẫn lọc và giữ điều kiện khi tải thêm', (
+    tester,
+  ) async {
+    final calls =
+        <({DateTime? date, int? passengers, HomeLocation? from, int page})>[];
+    await _pumpTicket(
+      tester,
+      width: 412,
+      browseTrips: (filters, page, {date, passengers, from, to}) async {
+        calls.add((date: date, passengers: passengers, from: from, page: page));
+        return samplePage(
+          [for (var i = 0; i < 8; i++) sampleTrip('page-$page-$i')],
+          page: page,
+          total: 16,
+          limit: 8,
+        );
+      },
+    );
+    expect(calls.single.date, isNull);
+    expect(find.text('Ngày đi'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('explore-date-chip')));
+    await tester.pumpAndSettle();
+    final selected = tester
+        .widget<CalendarDatePicker>(find.byType(CalendarDatePicker))
+        .initialDate;
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(calls.last.date, selected);
+    expect(calls.last.page, 1);
+    expect(calls.last.from, isNull);
+
+    await tester.tap(find.byKey(const Key('explore-origin-chip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TP. Hồ Chí Minh'));
+    await tester.pumpAndSettle();
+    expect(calls.last.from?.id, hcm.id);
+    expect(calls.last.date, selected);
+
+    await tester.tap(find.byKey(const Key('explore-passenger-chip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    await tester.tap(find.text('Xác nhận'));
+    await tester.pumpAndSettle();
+    expect(calls.last.passengers, 2);
+    expect(calls.last.date, selected);
+
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, -5000),
+      3000,
+    );
+    await tester.pumpAndSettle();
+    expect(calls.last.page, 2);
+    expect(calls.last.date, selected);
+    expect(calls.last.passengers, 2);
+    expect(calls.last.from?.id, hcm.id);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('hủy chọn ngày giữ danh sách mọi chuyến và không tải lại', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pumpTicket(
+      tester,
+      width: 412,
+      browseTrips: (filters, page, {date, passengers, from, to}) async {
+        calls++;
+        return samplePage([sampleTrip('t1')]);
+      },
+    );
+    await tester.tap(find.byKey(const Key('explore-date-chip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hủy'));
+    await tester.pumpAndSettle();
+    expect(calls, 1);
+    expect(find.text('Ngày đi'), findsOneWidget);
+    expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'Chuyến xe: dùng điều kiện mang sang, chip gọn và chuyến sớm nhất trước',
     (tester) async {
@@ -182,8 +265,8 @@ void main() {
       );
 
       expect(calls, hasLength(1));
-      expect(calls.single.query.from.id, 'hcm');
-      expect(calls.single.query.to.id, 'lam-dong');
+      expect(calls.single.query.from!.id, 'hcm');
+      expect(calls.single.query.to!.id, 'lam-dong');
       expect(calls.single.filters.sort, TripSearchSort.departure);
       expect(find.byKey(const Key('ticket-journey-planner')), findsNothing);
       for (final (chip, label) in [
@@ -207,7 +290,7 @@ void main() {
       final first = find.byKey(const ValueKey('ticket-trip-t1'));
       expect(first, findsOneWidget);
       expect(
-        find.descendant(of: first, matching: find.text('280.000 ₫')),
+        find.descendant(of: first, matching: find.text('280.000đ')),
         findsOneWidget,
       );
       expect(
@@ -229,7 +312,7 @@ void main() {
       loadDefaultQuery: () async => sampleQuery,
       searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
     );
-    expect(calls.single.query.from.id, 'hcm');
+    expect(calls.single.query.from!.id, 'hcm');
     expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
   });
 
@@ -266,8 +349,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(calls, hasLength(2));
-    expect(calls.last.query.to.id, 'khanh-hoa');
-    expect(reported!.to.id, 'khanh-hoa');
+    expect(calls.last.query.to!.id, 'khanh-hoa');
+    expect(reported!.to!.id, 'khanh-hoa');
     expect(
       find.descendant(
         of: find.byKey(const Key('explore-destination-chip')),
@@ -431,7 +514,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(of: dienLinhCard, matching: find.text('250.000 ₫')),
+        find.descendant(of: dienLinhCard, matching: find.text('250.000đ')),
         findsOneWidget,
       );
       expect(
@@ -455,6 +538,55 @@ void main() {
         findsNothing,
       );
       expect(find.text('Bộ lọc · 1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Nhà xe: danh sách Khu vực xếp theo bảng chữ cái tiếng Việt',
+    (tester) async {
+      const dakLak = HomeLocation(id: 'dak-lak', name: 'Đắk Lắk');
+      const tayNinh = HomeLocation(id: 'tay-ninh', name: 'Tây Ninh');
+      const tuyenQuang = HomeLocation(id: 'tuyen-quang', name: 'Tuyên Quang');
+      await _pumpTicket(
+        tester,
+        width: 412,
+        height: 1400,
+        initialQuery: sampleQuery,
+        searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+        loadOperatorFare: _fares,
+        operators: const [
+          HomeOperator(
+            id: 'op-x',
+            name: 'Nhà xe X',
+            averageRating: 4.5,
+            reviewCount: 3,
+            routes: [
+              HomeOperatorRoute(from: tuyenQuang, to: tayNinh),
+              HomeOperatorRoute(from: hcm, to: dakLak),
+              HomeOperatorRoute(from: hcm, to: khanhHoa),
+            ],
+          ),
+        ],
+      );
+      await tester.tap(find.byKey(const Key('ticket-mode-operator')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('explore-area-chip')));
+      await tester.pumpAndSettle();
+
+      // So mã ký tự thì "Đắk Lắk" rơi xuống cuối và "Tuyên Quang" đứng trước "Tây Ninh".
+      final tops = [
+        for (final name in [
+          'Đắk Lắk',
+          'Khánh Hòa',
+          'Tây Ninh',
+          'TP. Hồ Chí Minh',
+          'Tuyên Quang',
+        ])
+          tester.getTopLeft(find.text(name).last).dy,
+      ];
+      expect(tops, orderedEquals([...tops]..sort()));
+      expect(tops.toSet(), hasLength(5));
       expect(tester.takeException(), isNull);
     },
   );
@@ -484,7 +616,7 @@ void main() {
 
       expect(find.byKey(const Key('trip-results-screen')), findsOneWidget);
       expect(calls.last.filters.operatorId, 'op-pt');
-      expect(calls.last.query.from.id, 'hcm');
+      expect(calls.last.query.from!.id, 'hcm');
       expect(
         find.descendant(
           of: find.byKey(const ValueKey('results-chip-0')),
@@ -564,7 +696,7 @@ void main() {
       TripSummary? opened;
       await pumpTrips(
         tester,
-        browseTrips: (value, page) async {
+        browseTrips: (value, page, {date, passengers, from, to}) async {
           filters.add(value);
           return samplePage([sampleTrip('t1')]);
         },
@@ -589,7 +721,7 @@ void main() {
       var calls = 0;
       await pumpTrips(
         tester,
-        browseTrips: (_, _) async {
+        browseTrips: (_, _, {date, passengers, from, to}) async {
           calls++;
           if (calls == 1) {
             throw const ApiFailure(status: 0, code: 'NETWORK', detail: 'x');

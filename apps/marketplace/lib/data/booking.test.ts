@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, ticketPassengerName, withSelectedLeg } from "./booking-mappers";
+import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapMyTicket, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, seatTypeLabel, ticketPassengerName, withSelectedLeg } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
 const { request, profile, wallet, jar, values } = vi.hoisted(() => {
@@ -11,7 +11,7 @@ vi.mock("./auth", () => ({ getAccountProfile: profile }));
 vi.mock("./loyalty", () => ({ getUserVouchers: wallet }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats } from "./booking";
+import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats, resendTicketEmail } from "./booking";
 
 describe("booking API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); wallet.mockResolvedValue({ status: "ok", data: { vouchers: [], availableCount: 0, usedCount: 0, expiredCount: 0 } }); });
@@ -32,6 +32,18 @@ describe("booking API integration", () => {
     expect(mapPaymentResult(bookingFixture()).status).toBe("success");
   });
 
+  it("ô logo nhà xe ở kết quả thanh toán và chi tiết vé có chữ viết tắt, không để trống", () => {
+    expect(mapPaymentResult(bookingFixture()).trip?.operatorCode).toBe("NH");
+    expect(mapTicketDetail(bookingFixture()).trip.operatorCode).toBe("NH");
+  });
+
+  it("thời gian đi trên vé hiện giờ + phút như chi tiết chuyến", () => {
+    const booking = bookingFixture();
+    const at = (iso: string) => ({ ...booking, pickup: { ...booking.pickup, plannedAt: "2030-01-01T01:00:00Z" }, dropoff: { ...booking.dropoff, plannedAt: iso } });
+    expect(mapTicketDetail(at("2030-01-01T07:15:00Z")).trip.travelDurationText).toBe("6 giờ 15 phút");
+    expect(mapTicketDetail(at("2030-01-01T01:45:00Z")).trip.travelDurationText).toBe("45 phút");
+  });
+
   it("giữ trạng thái đã sử dụng/vắng mặt và nhãn thanh toán chưa thành công", () => {
     const booking = bookingFixture();
     booking.tickets[0]!.status = "NO_SHOW";
@@ -42,6 +54,34 @@ describe("booking API integration", () => {
     expect(detail.payment).toMatchObject({ statusLabel: "Đang đối soát", paidTotalVnd: "0" });
     expect(mapLookupResult({ ...booking, status: "CANCELLED" }, 30).statusLabel).toBe("Đã hủy");
     expect(mapPaymentResult({ ...booking, status: "CANCELLED", payment: null, tickets: [] })).toMatchObject({ status: "failed", canRetryPayment: false });
+  });
+
+  it("danh sách hành trình ghi rõ đơn hết hạn và trạng thái hoàn tiền thay cho 'Đã hủy / hết hạn' (FR-MKT-11)", () => {
+    expect(mapMyTicket(bookingFixture())).not.toHaveProperty("closedStatusLabel");
+    expect(mapMyTicket(bookingFixture({ status: "EXPIRED" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hết hạn thanh toán", refundFailed: false });
+    expect(mapMyTicket(bookingFixture({ status: "PENDING_PAYMENT", expiresAt: "2020-01-01T00:00:00Z" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hết hạn thanh toán" });
+    expect(mapMyTicket(bookingFixture({ status: "REFUND_FAILED" }))).toMatchObject({ status: "cancelled", closedStatusLabel: "Hoàn tiền chưa thành công", refundFailed: true });
+    expect(mapMyTicket(bookingFixture({ status: "REFUNDED" }))).toMatchObject({ closedStatusLabel: "Đã hoàn tiền", refundFailed: false });
+  });
+
+  it("chi tiết vé đã hủy có số tiền hoàn, mã hoàn và trạng thái từng lần hoàn", () => {
+    const detail = mapTicketDetail(bookingFixture({
+      status: "REFUND_FAILED",
+      refunds: [{ refundCode: "RFDSAGLES8PS93X", amount: 221850, status: "FAILED", createdAt: "2029-12-02T00:00:00Z" }]
+    }));
+    expect(detail.payment.refunds).toEqual([{ refundCode: "RFDSAGLES8PS93X", amountVnd: "221850", statusLabel: "Hoàn tiền chưa thành công — đang hỗ trợ", failed: true }]);
+    expect(detail.payment.methodLabel).toBe("VNPay");
+    expect(mapTicketDetail(bookingFixture()).payment.refunds).toEqual([]);
+  });
+
+  it("tên loại chỗ ghi rõ chỗ đơn / chỗ đôi theo GLOSSARY", () => {
+    expect(["SEAT", "BED", "BED_DOUBLE", "CABIN", "CABIN_DOUBLE"].map(seatTypeLabel)).toEqual(["Ghế ngồi", "Giường đơn", "Giường đôi", "Cabin đơn", "Cabin đôi"]);
+  });
+
+  it("kết quả tra cứu giữ dòng ưu đãi để giá vé + phí − ưu đãi khớp số đã thanh toán", () => {
+    const { payment } = mapLookupResult(bookingFixture(), 30);
+    expect(payment).toMatchObject({ ticketPriceTotalVnd: "100001", serviceFeeVnd: "0", discountVnd: "1", paidTotalVnd: "100000" });
+    expect(BigInt(payment.ticketPriceTotalVnd) + BigInt(payment.serviceFeeVnd) - BigInt(payment.discountVnd)).toBe(BigInt(payment.paidTotalVnd));
   });
 
   it("giữ tọa độ ghế thật và không cho chọn ghế chưa có giá hoặc không còn bán; đã bán / đang giữ hiện Đã đặt, chưa có giá hiện Không bán", () => {
@@ -257,6 +297,18 @@ describe("booking API integration", () => {
     const body = JSON.parse(request.mock.calls[1]![1].body);
     expect(body).toMatchObject({ userVoucherId: "v-redeem", expectedTotal: 50_001 });
     expect(body.promotionCode).toBeUndefined();
+  });
+
+  // SCR-PSG-22 (PASSENGER-PARITY giai đoạn 4): gửi lại email vé tới email liên hệ của đơn.
+  it("gửi lại email vé: POST kèm mã truy cập khách vãng lai, trả email đã che; mã đơn sai không gọi API", async () => {
+    const booking = bookingFixture();
+    values.set(`vxn_booking_${booking.bookingId}`, "private-guest-token");
+    request.mockResolvedValue({ status: "ok", data: { sentTo: "k***@example.com", resendAfterSeconds: 60 } });
+    expect(await resendTicketEmail(booking.bookingId)).toEqual({ status: "ok", data: { sentTo: "k***@example.com" } });
+    expect(request).toHaveBeenCalledWith(`/bookings/${booking.bookingId}/tickets/email`, expect.objectContaining({ method: "POST", headers: { "X-Booking-Token": "private-guest-token" } }));
+    request.mockClear();
+    expect((await resendTicketEmail("khong-phai-uuid")).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
   });
 
   it("gửi đúng provider và token qua header, từ chối liên kết thanh toán thực thi mã", async () => {

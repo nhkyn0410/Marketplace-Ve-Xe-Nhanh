@@ -13,11 +13,17 @@ class JourneyApi {
   final ApiClientDart _client;
 
   /// Gửi mã xác minh tới email liên hệ (phản hồi như nhau dù email có đơn hay không).
-  Future<JourneyLookupOtp> requestLookupOtp(String email) async {
+  /// Có [bookingCode] thì phiên chỉ mở đúng đơn đó (UC-35 bước 1).
+  Future<JourneyLookupOtp> requestLookupOtp(
+    String email, {
+    String? bookingCode,
+  }) async {
     final response = await _call(
       () => _client.getTicketsApi().ticketControllerRequestOtp(
         ticketLookupOtpInputDto: TicketLookupOtpInputDto(
-          (b) => b..email = email,
+          (b) => b
+            ..email = email
+            ..bookingCode = bookingCode,
         ),
       ),
     );
@@ -26,17 +32,24 @@ class JourneyApi {
       maskedEmail: data.maskedEmail,
       expiresInSeconds: data.expiresInSeconds,
       resendAfterSeconds: data.resendAfterSeconds,
+      maxAttempts: data.maxAttempts,
     );
   }
 
-  /// Xác minh mã; trả bí mật của phiên tra cứu (chỉ giữ trong bộ nhớ).
-  Future<String> verifyLookupOtp(String email, String otp) async {
+  /// Xác minh mã; trả bí mật của phiên tra cứu (chỉ giữ trong bộ nhớ). [bookingCode] phải
+  /// giống lúc gửi mã.
+  Future<String> verifyLookupOtp(
+    String email,
+    String otp, {
+    String? bookingCode,
+  }) async {
     final response = await _call(
       () => _client.getTicketsApi().ticketControllerVerifyOtp(
         ticketLookupVerifyInputDto: TicketLookupVerifyInputDto(
           (b) => b
             ..email = email
-            ..otp = otp,
+            ..otp = otp
+            ..bookingCode = bookingCode,
         ),
       ),
     );
@@ -56,6 +69,8 @@ class JourneyApi {
     return JourneyLookupResult(
       maskedEmail: data.maskedEmail,
       hasAccount: data.hasAccount,
+      bookingScoped:
+          data.scope == TicketLookupBookingListDtoOutputScopeEnum.BOOKING,
       bookings: [
         for (final item in data.items)
           JourneyBookingSummary(
@@ -86,6 +101,24 @@ class JourneyApi {
       ),
     );
     return response.data!.accessToken;
+  }
+
+  /// Xem một đơn của phiên tra cứu mà không cấp mã truy cập — chỉ đọc. Dùng cho đơn đặt
+  /// bằng tài khoản: khách xem được, muốn hủy vé / khiếu nại thì đăng nhập (UC-35 bước 6).
+  Future<JourneyBooking> lookupBooking(
+    String lookupToken,
+    String bookingId,
+  ) async {
+    final response = await _call(
+      () => _client.getTicketsApi().ticketControllerLookup(
+        ticketLookupInputDto: TicketLookupInputDto(
+          (b) => b
+            ..lookupToken = lookupToken
+            ..bookingId = bookingId,
+        ),
+      ),
+    );
+    return _journeyBooking(response.data!);
   }
 
   /// Các đơn của tài khoản đang đăng nhập, mới nhất trước.
@@ -122,7 +155,10 @@ class JourneyApi {
         xBookingToken: accessToken,
       ),
     );
-    final data = response.data!;
+    return _journeyBooking(response.data!);
+  }
+
+  static JourneyBooking _journeyBooking(BookingResponseDtoOutput data) {
     final seatTypes = {
       for (final passenger in data.passengers)
         passenger.seatCode: passenger.seatType.name,
@@ -245,6 +281,51 @@ class JourneyApi {
     );
   }
 
+  /// Đơn đã có đánh giá chưa và còn được gửi không (chỉ tài khoản hành khách).
+  Future<JourneyReviewStatus> loadReview(String bookingId) async {
+    final response = await _call(
+      () => _client.getReviewsApi().customerReviewControllerGet(
+        bookingId: bookingId,
+      ),
+    );
+    final data = response.data!;
+    final review = data.review;
+    return JourneyReviewStatus(
+      canReview: data.canReview,
+      review: review == null
+          ? null
+          : JourneyReview(
+              rating: review.rating,
+              status: review.status.name,
+              comment: review.comment,
+            ),
+    );
+  }
+
+  /// Gửi đánh giá cho đơn; mỗi đơn một lần.
+  Future<JourneyReview> submitReview(
+    String bookingId, {
+    required int rating,
+    String? comment,
+  }) async {
+    final response = await _call(
+      () => _client.getReviewsApi().customerReviewControllerCreate(
+        bookingId: bookingId,
+        reviewInputDto: ReviewInputDto(
+          (b) => b
+            ..rating = rating
+            ..comment = comment,
+        ),
+      ),
+    );
+    final data = response.data!;
+    return JourneyReview(
+      rating: data.rating,
+      status: data.status.name,
+      comment: data.comment,
+    );
+  }
+
   Future<T> _call<T>(Future<T> Function() run) async {
     try {
       return await run();
@@ -261,8 +342,8 @@ String describeJourneyFailure(Object error) {
     return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
   }
   return switch (error.code) {
-    'TICKET_LOOKUP_OTP_INVALID' =>
-      'Mã xác minh không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại.',
+    // Máy chủ ghi kèm số lần thử còn lại ("Còn N lần thử.") hoặc nhắc gửi lại mã.
+    'TICKET_LOOKUP_OTP_INVALID' => error.detail,
     'TICKET_LOOKUP_RATE_LIMITED' =>
       'Bạn thao tác quá nhiều lần. Vui lòng thử lại sau ít phút.',
     'TICKET_LOOKUP_EXPIRED' =>

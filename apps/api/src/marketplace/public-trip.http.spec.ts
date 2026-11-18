@@ -12,7 +12,7 @@ import { TripSearchService } from "./trip-search.service";
 /** Route công khai `/trips/search`, `/trips/{tripId}` (TASK-TRN-004): không cần đăng nhập; nghiệp vụ ở `.int.spec.ts`. */
 describe("Tìm chuyến công khai — HTTP", () => {
   const service = {
-    search: vi.fn<TripSearchService["search"]>(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
+    search: vi.fn<TripSearchService["search"]>(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], pickupPoints: [], dropoffPoints: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
     getTrip: vi.fn(async () => {
       throw new Error("không gọi");
     }),
@@ -71,7 +71,7 @@ describe("Tìm chuyến công khai — HTTP", () => {
         dropoff: { sequence: 2, name: "B", address: "B", plannedAt: "2031-05-10T07:00:00Z" },
         durationMinutes: 360, availableSeats: 10, minPrice: 300000, vehicleCoverImageUrl: null, amenities: [], onlineSaleClosesAt: "2031-05-10T00:00:00Z",
       }],
-      total: 1, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false },
+      total: 1, page: 1, limit: 20, facets: { operators: [], pickupPoints: [], dropoffPoints: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false },
     });
     const response = await fetch(`${base}/search?date=2031-05-10`);
     expect(response.status).toBe(200);

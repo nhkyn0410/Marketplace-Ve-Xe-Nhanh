@@ -147,3 +147,4 @@ Desktop.ini
 .storage/
 **/.storage/
 /apps/api/prisma/seed-data
+/doc/report

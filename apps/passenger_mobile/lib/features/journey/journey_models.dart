@@ -126,6 +126,29 @@ class JourneyRefund {
   final String status;
 }
 
+/// Đánh giá hành khách đã gửi cho đơn.
+class JourneyReview {
+  const JourneyReview({
+    required this.rating,
+    required this.status,
+    this.comment,
+  });
+
+  final int rating;
+
+  /// `VISIBLE`, `HELD` hoặc `HIDDEN`.
+  final String status;
+  final String? comment;
+}
+
+/// Trạng thái đánh giá của đơn (`GET /bookings/{id}/review`).
+class JourneyReviewStatus {
+  const JourneyReviewStatus({required this.canReview, this.review});
+
+  final bool canReview;
+  final JourneyReview? review;
+}
+
 /// Chi tiết một đơn (`GET /bookings/{id}`).
 class JourneyBooking {
   const JourneyBooking({
@@ -213,11 +236,15 @@ class JourneyLookupOtp {
     required this.maskedEmail,
     required this.expiresInSeconds,
     required this.resendAfterSeconds,
+    this.maxAttempts = 5,
   });
 
   final String maskedEmail;
   final int expiresInSeconds;
   final int resendAfterSeconds;
+
+  /// Số lần nhập mã cho phép của mỗi mã (hiện "Còn N lần thử" như web).
+  final int maxAttempts;
 }
 
 /// Đơn tìm được của phiên tra cứu khách vãng lai.
@@ -226,6 +253,7 @@ class JourneyLookupResult {
     required this.maskedEmail,
     required this.hasAccount,
     required this.bookings,
+    this.bookingScoped = false,
   });
 
   final String maskedEmail;
@@ -233,6 +261,9 @@ class JourneyLookupResult {
   /// Email đã có tài khoản hành khách — gợi ý đăng nhập.
   final bool hasAccount;
   final List<JourneyBookingSummary> bookings;
+
+  /// Phiên mở bằng mã đặt vé: chỉ có đúng đơn đó (UC-35 bước 1).
+  final bool bookingScoped;
 }
 
 /// "Thứ Sáu · 16/10/2026" theo giờ máy.
@@ -287,7 +318,8 @@ String journeyBookingStatusLabel(String status) => switch (status) {
   'EXPIRED' => 'Hết hạn thanh toán',
   'REFUND_PENDING' => 'Đang hoàn tiền',
   'REFUNDED' => 'Đã hoàn tiền',
-  'REFUND_FAILED' => 'Hoàn tiền lỗi',
+  // Cùng nhãn với web (bookingStatusLabel của marketplace).
+  'REFUND_FAILED' => 'Hoàn tiền chưa thành công',
   _ => status,
 };
 
@@ -301,10 +333,12 @@ String journeySeatTypeLabel(String? seatType) => switch (seatType) {
   _ => 'Chỗ',
 };
 
-/// Tên cổng thanh toán.
+/// Tên cổng thanh toán cho hành khách đọc; không để lộ mã thô như `DEMO` / `PAYOS`.
 String journeyProviderLabel(String? provider) => switch (provider) {
   'VNPAY' => 'VNPay',
   'MOMO' => 'MoMo',
+  'PAYOS' => 'payOS',
+  'DEMO' => 'Cổng thanh toán thử',
   null => 'Chưa thanh toán',
   _ => provider,
 };
@@ -313,7 +347,7 @@ String journeyProviderLabel(String? provider) => switch (provider) {
 String journeyRefundStatusLabel(String status) => switch (status) {
   'REQUESTED' || 'APPROVED' || 'PROCESSING' => 'Đang xử lý',
   'SUCCESS' => 'Đã hoàn',
-  'FAILED' => 'Hoàn tiền lỗi — đang hỗ trợ',
+  'FAILED' => 'Hoàn tiền chưa thành công — đang hỗ trợ',
   'REJECTED' => 'Từ chối hoàn',
   _ => status,
 };

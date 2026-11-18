@@ -12,6 +12,7 @@ import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import {
   AdminEmployeeController,
+  AdminOperatorAccountController,
   AdminPassengerController,
   AdminPlatformAccountController,
 } from "../iam/user/admin-user.controller";
@@ -53,6 +54,8 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
     lockPassenger: vi.fn(async () => undefined),
     unlockPassenger: vi.fn(async () => undefined),
     listEmployees: vi.fn(async () => ({ items: [], nextCursor: null, total: 0, operators: [] })),
+    listOperatorAccounts: vi.fn(async () => ({ items: [], nextCursor: null, total: 0, operators: [] })),
+    resetOperatorPassword: vi.fn(async () => ({})),
     listPlatformAccounts: vi.fn(async () => ({ items: [] })),
     createPlatformAccount: vi.fn(async () => ({
       ...account,
@@ -77,7 +80,7 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
   const config = { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig;
 
   @Module({
-    controllers: [AdminOperatorController, AdminPassengerController, AdminEmployeeController, AdminPlatformAccountController],
+    controllers: [AdminOperatorController, AdminPassengerController, AdminEmployeeController, AdminOperatorAccountController, AdminPlatformAccountController],
     providers: [
       { provide: APP_CONFIG, useValue: config },
       TokenService,
@@ -152,6 +155,8 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
     ["POST", "/passengers/user-abc/lock", lock, 204, true],
     ["POST", "/passengers/user-abc/unlock", undefined, 204, true],
     ["GET", "/employees", undefined, 200, false],
+    ["GET", "/operator-accounts", undefined, 200, false],
+    ["POST", `/operator-accounts/${id}/reset-password`, lock, 200, true],
     ["GET", "/platform-accounts", undefined, 200, false],
     ["POST", "/platform-accounts", { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT", permissions: ["payment:monitor"] }, 201, true],
     ["POST", `/platform-accounts/${id}/reset-password`, undefined, 200, true],
@@ -196,6 +201,11 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
       ["POST", "/platform-accounts", { username: "ngoc", email: "khong-phai-email", role: "PLATFORM_SUPPORT" }],
       ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "OPERATOR_OWNER" }],
       ["POST", "/platform-accounts/not-uuid/lock", lock],
+      ["GET", "/operator-accounts?operatorId=bad-id", undefined],
+      ["GET", "/operator-accounts?role=DRIVER", undefined],
+      ["POST", "/operator-accounts/not-uuid/reset-password", lock],
+      ["POST", `/operator-accounts/${id}/reset-password`, { reason: "ab" }],
+      ["POST", `/operator-accounts/${id}/reset-password`, {}],
       ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT" }],
       ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT", permissions: ["god:mode"] }],
       ["PUT", `/platform-accounts/${id}/permissions`, { permissions: ["audit:read"], reason: "ab" }],
@@ -212,5 +222,18 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
       expect.anything(),
       { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_ADMIN", permissions: [] },
     );
+  });
+
+  it("Admin chỉ có access:manage không được dùng tài khoản nhà xe; user:manage nhận đúng bộ lọc và lý do đã trim", async () => {
+    reauth.granted = true;
+    const accessOnly = (await tokens.mintAccessToken({ sub: randomUUID(), sid: randomUUID(), scope: "platform", role: "PLATFORM_ADMIN", perms: ["access:manage"], mfa: true })).accessToken;
+    expect((await call("GET", "/operator-accounts", accessOnly)).status).toBe(403);
+    expect((await call("POST", `/operator-accounts/${id}/reset-password`, accessOnly, lock)).status).toBe(403);
+    expect(calls()).toHaveLength(0);
+    const usersOnly = (await tokens.mintAccessToken({ sub: randomUUID(), sid: randomUUID(), scope: "platform", role: "PLATFORM_ADMIN", perms: ["user:manage"], mfa: true })).accessToken;
+    expect((await call("GET", `/operator-accounts?operatorId=${id}&role=OPERATOR_OWNER&limit=1`, usersOnly)).status).toBe(200);
+    expect(accounts.listOperatorAccounts).toHaveBeenCalledWith(expect.objectContaining({ permission: "user:manage", db: { kind: "platform" } }), expect.objectContaining({ operatorId: id, role: "OPERATOR_OWNER", limit: 1 }));
+    expect((await call("POST", `/operator-accounts/${id}/reset-password`, usersOnly, { reason: "  Nhà xe quên mật khẩu  " })).status).toBe(200);
+    expect(accounts.resetOperatorPassword).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ scope: "platform" }), id, "Nhà xe quên mật khẩu");
   });
 });

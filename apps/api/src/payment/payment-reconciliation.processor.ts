@@ -44,14 +44,15 @@ export class PaymentReconciliationProcessor extends WorkerHost implements OnModu
     if (!job.data.runId) await job.updateData({ ...job.data, runId: requestedRunId });
     const runId = await startReconciliationRecord(this.prisma, requestedRunId);
     try {
-      const { confirmedKeys, ...run } = await reconcilePayments(this.prisma, this.gateways, this.qr, this.refunds);
+      // `errorCodes` (mã lỗi cổng khi tra cứu hỏng) chỉ đi vào nhật ký và kết quả job; bản ghi đối soát chỉ lưu các số đếm.
+      const { confirmedKeys, errorCodes, ...run } = await reconcilePayments(this.prisma, this.gateways, this.qr, this.refunds);
       // Thanh toán được xác nhận nhờ đối soát → gửi vé điện tử như callback thường.
       await this.notifications.dispatch(confirmedKeys);
       await checkpointReconciliation(this.prisma, runId, run);
       const escrow = await reconcileEscrow(this.prisma);
       await finishReconciliationRecord(this.prisma, runId, escrow);
-      this.logger.log({ event: "payment.reconciliation", runId, ...run, issueCount: escrow.issueCount });
-      return { ...run, ...escrow, runId };
+      this.logger.log({ event: "payment.reconciliation", runId, ...run, errorCodes, issueCount: escrow.issueCount });
+      return { ...run, errorCodes, ...escrow, runId };
     } catch (error) {
       await failReconciliationRecord(this.prisma, runId);
       throw error;

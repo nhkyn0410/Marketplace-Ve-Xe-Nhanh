@@ -190,6 +190,22 @@ void main() {
     expect(_body(adapter.requests.last)['status'], 'CHECKED_IN');
   });
 
+  test('server check-in time is shown in Vietnam time, not UTC', () async {
+    final (api, _) = _api(
+      (request) => request.path.endsWith('/verify')
+          ? _json(_verify())
+          : _json({
+              'ticket': _ticket('CHECKED_IN'),
+              'checkedInCount': 1,
+              'ticketCount': 1,
+            }),
+    );
+    final passenger = await api.board(_trip(), _token);
+    // Server sends 03:00Z; the "Soát vé" cell must read 10:00 like departures.
+    expect(passenger.checkedInAt?.hour, 10);
+    expect(passenger.checkedInAt?.minute, 0);
+  });
+
   test('URLs, arbitrary QR and human ticket code cannot check in', () async {
     final (api, adapter) = _api((_) => fail('No API request expected'));
     for (final value in ['https://example.com', _ticketCode, 'VX102001', '']) {
@@ -301,7 +317,7 @@ void main() {
             'refreshToken': 'rotated-refresh',
             'tokenType': 'Bearer',
             'scope': 'operator',
-            'role': 'EMPLOYEE',
+            'role': 'DRIVER',
             'expiresIn': 900,
             'refreshExpiresIn': 2592000,
           });
@@ -337,26 +353,37 @@ void main() {
     expect(trip.boardedCount, 0);
   });
 
-  test('Login uses employee endpoint and stores server session', () async {
+  Map<String, Object> loginPayload(String role) => {
+    'accessToken': 'new-access',
+    'tokenType': 'Bearer',
+    'expiresIn': 900,
+    'scope': 'operator',
+    'role': role,
+    'refreshToken': 'new-refresh',
+    'refreshExpiresIn': 2592000,
+    'mfaRequired': false,
+  };
+
+  for (final role in ['DRIVER', 'TICKET_STAFF', 'SUPPORT_STAFF']) {
+    test('Login as $role uses employee endpoint and stores server session', () async {
+      final tokens = _Tokens();
+      final (api, adapter) = _api((_) => _json(loginPayload(role)), tokens: tokens);
+      await api.login('nhaxe/taixe', 'password');
+      expect(adapter.requests.single.path, '/v1/auth/employee/login');
+      expect(adapter.requests.single.headers['X-Auth-Transport'], 'bearer');
+      expect(tokens.access, 'new-access');
+      expect(tokens.refresh, 'new-refresh');
+    });
+  }
+
+  test('Login rejects a role outside the employee login list', () async {
     final tokens = _Tokens();
-    final (api, adapter) = _api(
-      (_) => _json({
-        'accessToken': 'new-access',
-        'tokenType': 'Bearer',
-        'expiresIn': 900,
-        'scope': 'operator',
-        'role': 'EMPLOYEE',
-        'refreshToken': 'new-refresh',
-        'refreshExpiresIn': 2592000,
-        'mfaRequired': false,
-      }),
-      tokens: tokens,
+    final (api, _) = _api((_) => _json(loginPayload('OPERATOR_OWNER')), tokens: tokens);
+    await expectLater(
+      api.login('nhaxe/taixe', 'password'),
+      throwsA(isA<EmployeeApiException>()),
     );
-    await api.login('nhaxe/taixe', 'password');
-    expect(adapter.requests.single.path, '/v1/auth/employee/login');
-    expect(adapter.requests.single.headers['X-Auth-Transport'], 'bearer');
-    expect(tokens.access, 'new-access');
-    expect(tokens.refresh, 'new-refresh');
+    expect(tokens.access, isNull);
   });
 
   test(
@@ -389,13 +416,57 @@ void main() {
       expect(trips.single.serverId, _tripId);
       expect(trips.single.departure, '10:00');
       expect(trips.single.plate, '51B-12345');
+      // API cũ chưa trả sơ đồ ghế: chỉ còn các ghế đã có vé.
       expect(trips.single.seats, ['A1']);
+      expect(trips.single.seatLayout, isEmpty);
       expect(trips.single.checkInTicket, isNotNull);
       expect(trips.single.reloadManifest, isNotNull);
       expect(
         adapter.requests.first.queryParameters['from'].toString(),
         '2026-10-31',
       );
+    },
+  );
+
+  test(
+    'Manifest seat layout lists every seat of the trip, sold or not',
+    () async {
+      final assignment = {
+        'tripId': _tripId,
+        'role': 'TICKET_STAFF',
+        'routeName': 'TP.HCM → Đà Lạt',
+        'departureAt': '2026-10-31T03:00:00.000Z',
+        'arrivalAt': '2026-10-31T10:00:00.000Z',
+        'status': 'BOARDING',
+        'vehiclePlateNumber': '51B-12345',
+        'origin': 'TP.HCM',
+        'destination': 'Đà Lạt',
+        'ticketCount': 1,
+        'checkedInCount': 0,
+      };
+      final seats = [
+        {'code': 'A1', 'deck': 1, 'row': 1, 'column': 1},
+        {'code': 'A2', 'deck': 1, 'row': 1, 'column': 2},
+        {'code': 'B1', 'deck': 2, 'row': 1, 'column': 1},
+      ];
+      final (api, _) = _api(
+        (r) => r.path.endsWith('/assignments')
+            ? _json({
+                'items': [assignment],
+              })
+            : _json({
+                'trip': assignment,
+                'passengers': [_ticket()],
+                'seats': seats,
+              }),
+      );
+      final trip = (await api.assignments(day: DateTime(2026, 10, 31))).single;
+      expect(trip.seats, ['A1', 'A2', 'B1']);
+      expect(trip.seatLayout, [
+        (code: 'A1', deck: 1, row: 1, column: 1),
+        (code: 'A2', deck: 1, row: 1, column: 2),
+        (code: 'B1', deck: 2, row: 1, column: 1),
+      ]);
     },
   );
 }

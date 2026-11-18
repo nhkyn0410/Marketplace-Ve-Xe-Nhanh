@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Star, Send, Check, AlertCircle } from "lucide-react";
-import { Button } from "@vexenhanh/ui/components/button";
+import { Star, Check, AlertCircle } from "lucide-react";
 import type {
   UserProfileData,
   UserReviewsData,
@@ -14,20 +13,13 @@ import type {
 import { submitTripReview } from "../../lib/data/auth";
 import { AccountSidebar } from "./account-sidebar";
 import { PassengerTopBar } from "../passenger-topbar";
+import { TripReviewForm } from "../reviews/trip-review-form";
 
 export interface AccountReviewsViewProps {
   readonly user?: UserProfileData;
   readonly initialData?: UserReviewsData;
   readonly isPreview?: boolean;
 }
-
-const ratingLabels: Record<number, string> = {
-  1: "Rất tệ",
-  2: "Chưa tốt",
-  3: "Bình thường",
-  4: "Hài lòng",
-  5: "Tuyệt vời"
-};
 
 /**
  * Màn hình Đánh giá của tôi + form đánh giá chuẩn Figma node 1448:19193
@@ -73,8 +65,6 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
   const router = useRouter();
   const [pendingTrips, setPendingTrips] = useState<PendingReviewTrip[]>([...initialData.pendingTrips]);
   const pendingTrip = pendingTrips[0];
-  const [rating, setRating] = useState<number>(pendingTrip?.initialRating ?? 4);
-  const [comment, setComment] = useState<string>(pendingTrip?.initialComment ?? "");
   const [completedReviews, setCompletedReviews] = useState<UserReviewItem[]>([
     ...initialData.completedReviews
   ]);
@@ -84,16 +74,13 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitReview = async (rating: number, comment: string) => {
     if (!pendingTrip) return;
 
     setStatusMessage(null);
 
     if (isPreview) {
       setPendingTrips((items) => items.slice(1));
-      setRating(pendingTrips[1]?.initialRating ?? 4);
-      setComment(pendingTrips[1]?.initialComment ?? "");
       setCompletedReviews((prev) => [
         {
           id: `rev-new-${Date.now()}`,
@@ -133,8 +120,6 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
           content: comment.trim(),
           statusLabel: res.data.status === "VISIBLE" ? "Đang hiển thị" : res.data.status === "HIDDEN" ? "Đã ẩn" : "Đang kiểm duyệt"
         }, ...items]);
-        setRating(pendingTrips[1]?.initialRating ?? 4);
-        setComment(pendingTrips[1]?.initialComment ?? "");
         setStatusMessage({ type: "success", text: "Đã gửi đánh giá của bạn." });
         router.refresh();
       } else if (res.status === "unavailable") {
@@ -226,78 +211,22 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                 </span>
               </div>
 
-              {/* Form chấm sao & viết nhận xét */}
-              <form onSubmit={handleSubmitReview} className="space-y-4">
-                {/* Chọn sao */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Bạn chấm chuyến đi mấy sao? *
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((starVal) => (
-                        <button
-                          key={starVal}
-                          type="button"
-                          aria-label={`${starVal} sao`}
-                          aria-pressed={starVal === rating}
-                          disabled={isSubmitting}
-                          onClick={() => setRating(starVal)}
-                          className="p-1 text-amber-400 hover:scale-110 transition-transform"
-                        >
-                          <Star
-                            className={`w-6 h-6 ${
-                              starVal <= rating
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-slate-300 dark:text-slate-600"
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground pl-1">
-                      {ratingLabels[rating]}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Nhận xét text */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Nhận xét của bạn (không bắt buộc)
-                  </label>
-                  <textarea
-                    maxLength={1000}
-                    rows={3}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Chia sẻ trải nghiệm của bạn về tài xế, chất lượng xe, điểm đón trả..."
-                    className="w-full p-3.5 rounded-xl border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0F5B60] transition-all resize-y"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Tối đa 1.000 ký tự. Trạng thái hiển thị được cập nhật sau khi gửi.
-                  </p>
-                </div>
-
-                {/* Nút thao tác form */}
-                <div className="flex items-center justify-end gap-3 pt-2">
+              {/* Form chấm sao & viết nhận xét (dùng chung với chi tiết vé); đổi chuyến thì form nhận lại giá trị ban đầu */}
+              <TripReviewForm
+                key={pendingTrip.bookingId ?? pendingTrip.tripId}
+                initialRating={pendingTrip.initialRating}
+                initialComment={pendingTrip.initialComment}
+                submitting={isSubmitting}
+                onSubmit={(rating, comment) => void handleSubmitReview(rating, comment)}
+                secondaryAction={
                   <Link
                     href={isPreview ? "/tickets?preview=ideal" : "/tickets"}
                     className="text-xs text-muted-foreground hover:underline"
                   >
                     Quay lại vé của tôi
                   </Link>
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-10 px-5 rounded-xl text-xs gap-1.5 bg-[#0F5B60] hover:bg-[#0c474b] text-white font-medium"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}</span>
-                  </Button>
-                </div>
-              </form>
+                }
+              />
             </div>
           )}
 

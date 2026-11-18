@@ -13,6 +13,9 @@ export const BETTER_AUTH_BASE_PATH = "/api/auth/{*splat}";
 /** Role passenger (RBAC 8-role, ADR-017) — passenger không lưu ở bảng account riêng. */
 export const PASSENGER_ROLE = Role.PASSENGER;
 
+/** Số lần nhập sai cho mỗi mã OTP email (Better Auth `allowedAttempts`); API báo số lần còn lại (A21). */
+export const OTP_ALLOWED_ATTEMPTS = 3;
+
 /** Rate limit OTP (SEC-OQ-07). */
 export const OTP_COOLDOWN_SECONDS = 60;
 export const OTP_MAX_PER_HOUR = 5;
