@@ -190,7 +190,7 @@ Khanh: tiếng Việt mặc định, nghiệp dư ops → giải thích + đề 
 
 ## 9. Nhật ký sử dụng AI — BẮT BUỘC
 
-Mỗi lần sinh/sửa code đáng kể, ghi 1 dòng bằng lệnh — **KHÔNG đọc, KHÔNG mở, KHÔNG sửa tay** file nhật ký:
+Mỗi lần sinh/sửa code đáng kể, ghi 1 dòng bằng lệnh `add` (được đọc/mở/sửa file trong `.ai-journal/` khi cần: tra cứu, đính chính):
 
 ```bash
 node .claude/hooks/ai-journal.mjs add "<Mảng kỹ thuật>" "<AI sử dụng>" "<Mục đích>" "<Phần AI sinh>" "" "<Nhận xét>"
